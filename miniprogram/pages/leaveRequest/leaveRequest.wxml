@@ -1,0 +1,33 @@
+<view class="container">
+  <!-- 1. 头部：ArtDoU 品牌 + 标题 -->
+  <view class="header" style="text-align: center;">
+    <view class="brand-title">ArtDoU</view>
+    <text class="title">{{ isAudit ? '排期调整' : '请假条' }}</text>
+    <text class="subtitle">{{ isAudit ? 'SCHEDULE ADJUSTMENT' : 'LEAVE REQUEST' }}</text>
+  </view>
+
+  <view class="form-card">
+    <!-- 2. 日期选择 -->
+    <view class="input-item">
+      <text class="label" style="text-align:center; display:block;">{{ isAudit ? '变动日期 / Date' : '请假日期 / Leave Date' }}</text>
+      <!-- 灰色按钮：强制 75% 宽 -->
+      <picker mode="date" bindchange="bindDateChange" class="picker-box">
+        <view class="picker-inner">
+          <text class="{{leaveDate ? 'val' : 'placeholder'}}">{{leaveDate || '点击选择日期 >'}}</text>
+        </view>
+      </picker>
+    </view>
+
+    <!-- 3. 原因输入 -->
+    <view class="input-item no-border">
+      <text class="label" style="text-align:center; display:block;">{{ isAudit ? '变动备注 / Remark' : '请假说明 / Reason' }}</text>
+      <!-- 灰色输入框：强制 75% 宽 -->
+      <textarea class="reason-text" placeholder="{{ isAudit ? '请输入备注说明' : '请输入请假原因(选填)...' }}" bindinput="bindReasonInput"></textarea>
+    </view>
+  </view>
+
+  <!-- 4. 提交按钮 -->
+  <button class="submit-btn" bindtap="submitLeave">
+    {{ isAudit ? '确认变更' : '提交请假条' }}
+  </button>
+</view>

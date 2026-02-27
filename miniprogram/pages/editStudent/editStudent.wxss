@@ -1,0 +1,85 @@
+/* pages/editStudent/editStudent.wxss */
+.container { 
+  padding: 60rpx 40rpx; 
+  background: #fff; 
+  min-height: 100vh; 
+  box-sizing: border-box; 
+}
+
+.header-center { margin-bottom: 60rpx; text-align: center; }
+.page-title { font-size: 44rpx; font-weight: 800; color: #00539C; }
+.page-subtitle { font-size: 24rpx; color: #999; margin-top: 10rpx; text-transform: uppercase; letter-spacing: 2rpx;}
+
+/* 强制容器宽度一致 */
+.form-group { margin-bottom: 40rpx; width: 100%; }
+.last-group { margin-bottom: 60rpx; }
+
+.label { font-size: 28rpx; font-weight: bold; margin-bottom: 16rpx; display: block; color: #333; }
+
+/* 输入框统一 */
+input {
+  width: 100% !important;
+  height: 100rpx !important;
+  box-sizing: border-box !important;
+  background: #f8f8f8 !important;
+  border-radius: 12rpx !important;
+  padding: 0 30rpx !important;
+  font-size: 30rpx !important;
+  color: #333 !important;
+  margin: 0 !important;
+}
+
+.warning-text { font-size: 22rpx; color: #e64340; margin-top: 12rpx; }
+
+.share-row { margin-bottom: 24rpx; }
+.share-row button + button { margin-top: 20rpx !important; }
+.share-link-btn, .share-link-btn.copy-tip-btn {
+  width: 100% !important; height: 88rpx !important; border-radius: 50rpx !important;
+  font-size: 28rpx !important; color: #00539C !important; background: #EFF6FF !important;
+  border: 2rpx solid #00539C !important; display: flex !important; align-items: center !important; justify-content: center !important;
+}
+.input-openid {
+  width: 100% !important; height: 80rpx !important; box-sizing: border-box !important;
+  background: #f5f5f5 !important; border-radius: 12rpx !important; padding: 0 24rpx !important;
+  font-size: 26rpx !important; margin-bottom: 20rpx !important;
+}
+.openid-btn {
+  width: 100% !important; height: 72rpx !important;
+  font-size: 28rpx !important; color: #fff !important; background: #00539C !important;
+  border-radius: 12rpx !important; border: none !important;
+  display: flex !important; align-items: center !important; justify-content: center !important;
+  padding: 0 !important; line-height: 1 !important;
+}
+.open-parent-row .hint {
+  font-size: 22rpx; color: #999; margin-top: 16rpx; line-height: 1.5;
+}
+
+/* 按钮清理与统一 */
+button::after { border: none !important; }
+
+.save-btn, .delete-btn {
+  width: 100% !important;
+  height: 100rpx !important;
+  border-radius: 50rpx !important;
+  font-size: 32rpx !important;
+  font-weight: bold !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.save-btn {
+  background: #00539C !important; 
+  color: #fff !important; 
+  margin-bottom: 30rpx !important;
+  border: 2rpx solid #00539C !important;
+}
+
+.delete-btn {
+  background: #fff !important; 
+  color: #FF4D4F !important; 
+  border: 2rpx solid #FF4D4F !important; 
+}

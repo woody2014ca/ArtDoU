@@ -1,0 +1,26 @@
+<view class="container">
+  <view class="header-section">
+    <text class="label">类目 / Category</text>
+    <text class="name">{{name}}</text>
+    <text class="current">当前余量：{{currentLeft}}</text>
+  </view>
+
+  <view class="form-group">
+    <text class="label">数量</text>
+    <input class="input" type="digit" placeholder="请输入数字" value="{{amount}}" bindinput="onAmountInput" />
+  </view>
+  <view class="form-group">
+    <text class="label">单位</text>
+    <input class="input" placeholder="如：件、元、批" value="{{unit}}" bindinput="onUnitInput" />
+  </view>
+
+  <view class="form-group">
+    <text class="label">操作</text>
+    <view class="op-row">
+      <view class="op-btn {{operation === 'add' ? 'active' : ''}}" bindtap="setOperation" data-op="add">增加</view>
+      <view class="op-btn {{operation === 'minus' ? 'active' : ''}}" bindtap="setOperation" data-op="minus">减少</view>
+    </view>
+  </view>
+
+  <button class="submit-btn" bindtap="submit">确认记录</button>
+</view>

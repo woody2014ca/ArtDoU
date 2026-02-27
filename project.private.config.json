@@ -1,0 +1,60 @@
+{ "miniprogramRoot": "miniprogram",
+  "cloudfunctionRoot": "cloudfunctions",
+
+  "setting": {
+    "compileHotReLoad": false,
+    "urlCheck": false,
+    "coverView": true,
+    "lazyloadPlaceholderEnable": true,
+    "skylineRenderEnable": false,
+    "preloadBackgroundData": false,
+    "autoAudits": false,
+    "useApiHook": true,
+    "useApiHostProcess": true,
+    "showShadowRootInWxmlPanel": true,
+    "useStaticServer": false,
+    "useLanDebug": false,
+    "showES6CompileOption": false,
+    "checkInvalidKey": true,
+    "ignoreDevUnusedFiles": true,
+    "bigPackageSizeSupport": false,
+    "useIsolateContext": true
+  },
+  "condition": {
+    "miniprogram": {
+      "list": [
+        {
+          "name": "pages/parentHome/parentHome",
+          "pathName": "pages/parentHome/parentHome",
+          "query": "id=8e2c0a2f694b8b7c090ca4b732ae8b6e&referrer=8e2c0a2f694b8b7c090ca4b732ae8b6e",
+          "scene": null,
+          "launchMode": "default"
+        },
+        {
+          "name": "家长端测试",
+          "pathName": "pages/parentHome/parentHome",
+          "query": "id=8e2c0a2f694b8b7c090ca4b732ae8b6e",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pages/enroll/enroll",
+          "pathName": "pages/enroll/enroll",
+          "query": "cd349d8f696187080b61d7b468a2093e",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pages/parentHome/parentHome",
+          "pathName": "pages/enroll/enroll",
+          "query": "cd349d8f696187080b61d7b468a2093e",
+          "launchMode": "default",
+          "scene": null
+        }
+      ]
+    }
+  },
+  "description": "项目私有配置文件。此文件中的内容将覆盖 project.config.json 中的相同字段。项目的改动优先同步到此文件中。详见文档：https://developers.weixin.qq.com/miniprogram/dev/devtools/projectconfig.html",
+  "projectname": "ArtProject",
+  "libVersion": "3.14.1"
+}

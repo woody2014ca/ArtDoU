@@ -1,0 +1,26 @@
+.container { background: #f8f8f8; min-height: 100vh; padding-bottom: 50rpx; }
+.header-section { background: #fff; padding: 60rpx 40rpx; text-align: left; }
+.student-name { font-size: 60rpx; font-weight: bold; display: block; }
+.artist-tag { color: #005387; font-size: 24rpx; font-weight: bold; text-transform: uppercase; letter-spacing: 4rpx; }
+.lessons-count { font-size: 24rpx; color: #999; margin-top: 20rpx; display: block; }
+
+.stat-card { background: #005387; margin: -40rpx 40rpx 40rpx; border-radius: 24rpx; display: flex; padding: 40rpx; color: #fff; box-shadow: 0 20rpx 40rpx rgba(0,83,135,0.2); }
+.stat-item { flex: 1; text-align: center; display: flex; flex-direction: column; }
+.stat-num { font-size: 60rpx; font-weight: bold; }
+.stat-label { font-size: 24rpx; }
+.stat-en { font-size: 18rpx; opacity: 0.6; }
+.stat-divider { width: 1px; background: rgba(255,255,255,0.2); height: 80rpx; margin-top: 20rpx; }
+
+.action-grid { display: flex; justify-content: space-around; padding: 20rpx 40rpx; }
+.action-item { text-align: center; font-size: 24rpx; color: #666; }
+.icon-box { background: #fff; width: 100rpx; height: 100rpx; border-radius: 20rpx; display: flex; align-items: center; justify-content: center; margin-bottom: 10rpx; font-size: 40rpx; box-shadow: 0 4rpx 10rpx rgba(0,0,0,0.05); }
+
+.gallery-title { text-align: center; margin: 60rpx 0 30rpx; }
+.title-cn { color: #005387; font-size: 32rpx; font-weight: bold; letter-spacing: 8rpx; display: block; }
+.title-en { color: #ccc; font-size: 18rpx; margin-top: 10rpx; display: block; }
+
+.work-grid { padding: 20rpx; display: flex; flex-wrap: wrap; }
+.work-item { width: 335rpx; margin: 10rpx; background: #fff; border-radius: 12rpx; overflow: hidden; box-shadow: 0 4rpx 10rpx rgba(0,0,0,0.05); }
+.work-cover { width: 335rpx; height: 335rpx; }
+.work-info { padding: 15rpx; text-align: center; }
+.work-date { font-size: 20rpx; color: #999; }

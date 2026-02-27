@@ -1,0 +1,108 @@
+// 本地开发走 Vite 代理 /api；Vercel 部署时在项目里设置 VITE_API_URL 为后端地址
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
+
+function getToken() {
+  return localStorage.getItem('artdou_token') || '';
+}
+
+function setToken(token) {
+  if (token) localStorage.setItem('artdou_token', token);
+  else localStorage.removeItem('artdou_token');
+}
+
+function headers(extra = {}) {
+  const t = getToken();
+  return { 'Content-Type': 'application/json', ...(t ? { Authorization: `Bearer ${t}` } : {}), ...extra };
+}
+
+export async function authInit() {
+  const res = await fetch(`${API_BASE}/auth/init`, { headers: headers() });
+  const data = await res.json();
+  return data;
+}
+
+export async function authLogin(password) {
+  const res = await fetch(`${API_BASE}/auth/login`, {
+    method: 'POST',
+    headers: headers(),
+    body: JSON.stringify({ password }),
+  });
+  const data = await res.json();
+  if (data.success && data.token) setToken(data.token);
+  return data;
+}
+
+export async function authBind(phone) {
+  const res = await fetch(`${API_BASE}/auth/bind`, {
+    method: 'POST',
+    headers: headers(),
+    body: JSON.stringify({ phone }),
+  });
+  const data = await res.json();
+  if (data.success && data.token) setToken(data.token);
+  return data;
+}
+
+export function logout() {
+  setToken('');
+}
+
+export async function dataGet(collection, id = 'all', query = {}) {
+  const q = new URLSearchParams(query).toString();
+  const path = id ? `${API_BASE}/data/${collection}/${id}` : `${API_BASE}/data/${collection}`;
+  const url = q ? `${path}?${q}` : path;
+  const res = await fetch(url, { headers: headers() });
+  return res.json();
+}
+
+export async function dataAdd(collection, data) {
+  const res = await fetch(`${API_BASE}/data/${collection}`, {
+    method: 'POST',
+    headers: headers(),
+    body: JSON.stringify(data),
+  });
+  return res.json();
+}
+
+export async function dataUpdate(collection, id, data) {
+  const res = await fetch(`${API_BASE}/data/${collection}/${id}`, {
+    method: 'PATCH',
+    headers: headers(),
+    body: JSON.stringify(data),
+  });
+  return res.json();
+}
+
+export async function dataDelete(collection, id) {
+  const res = await fetch(`${API_BASE}/data/${collection}/${id}`, { method: 'DELETE', headers: headers() });
+  return res.json();
+}
+
+export async function dataIncrement(collection, id, value) {
+  const res = await fetch(`${API_BASE}/data/${collection}/${id}/increment`, {
+    method: 'POST',
+    headers: headers(),
+    body: JSON.stringify({ value }),
+  });
+  return res.json();
+}
+
+export async function paymentFindStudent(phone, studentName) {
+  const res = await fetch(`${API_BASE}/payment/find-student`, {
+    method: 'POST',
+    headers: headers(),
+    body: JSON.stringify({ phone, studentName: studentName || '' }),
+  });
+  return res.json();
+}
+
+export async function paymentConfirm(paymentId, prospectiveId) {
+  const res = await fetch(`${API_BASE}/payment/confirm`, {
+    method: 'POST',
+    headers: headers(),
+    body: JSON.stringify({ paymentId, prospectiveId }),
+  });
+  return res.json();
+}
+
+export { getToken, setToken };

@@ -1,0 +1,66 @@
+<!-- pages/poster/poster.wxml - 使用页面原生滚动，不用 scroll-view，避免「拉不动」 -->
+<view class="container">
+  <view class="header-section">
+    <text class="title">{{ isAudit ? '数据档案卡' : '艺术成长报告' }}</text>
+    <text class="subtitle">{{ isAudit ? 'DATA ARCHIVE CARD' : 'ART GROWTH REPORT' }}</text>
+  </view>
+
+  <!-- 老师/家长自己用：先选图再生成；预览模式(isPreview) 下不显示选图，直接看到海报 -->
+  <view wx:if="{{!posterImage && !loading && !isPreview}}" class="picker-panel">
+    <view class="picker-title">选择要出现在海报上的作品</view>
+    <view class="picker-subtitle">每张图一格，勾选后点「生成海报」（建议最多 4 张）。已选 {{selectedCount}} / {{maxSelect}}</view>
+
+    <view class="thumb-grid">
+      <block wx:for="{{workCandidates}}" wx:key="key">
+        <view
+          class="thumb-item {{item.selected ? 'thumb-selected' : ''}}"
+          bindtap="toggleSelect"
+          data-idx="{{index}}"
+        >
+          <image class="thumb-img" src="{{item.thumb}}" mode="aspectFill"></image>
+          <view class="thumb-mask" wx:if="{{item.selected}}">
+            <text class="thumb-check">✓</text>
+          </view>
+        </view>
+      </block>
+    </view>
+
+    <view class="picker-actions">
+      <button class="save-btn" bindtap="generatePosterFromSelection" disabled="{{selectedCount===0}}">
+        生成海报
+      </button>
+      <button class="back-btn" bindtap="goBack">返回</button>
+    </view>
+  </view>
+
+  <!-- ✅ 海报预览区：生成后显示（预览模式和老师自用都在这里看到海报） -->
+  <view wx:if="{{posterImage}}">
+    <view class="poster-preview">
+      <image
+        src="{{posterImage}}"
+        mode="widthFix"
+        class="final-image"
+        show-menu-by-longpress="{{true}}"
+      ></image>
+    </view>
+
+    <view class="btn-group">
+      <view class="save-btn" bindtap="saveToPhotos">保存到相册 / Save</view>
+      <view class="save-btn" bindtap="goToEnroll">🎁 我也要报名</view>
+      <view class="back-btn" bindtap="goBack">返回</view>
+    </view>
+  </view>
+
+  <!-- 加载作品列表时显示「加载作品中」，点生成后才显示「艺术海报生成中」 -->
+  <view wx:if="{{loading}}" class="loading-overlay">
+    <view class="loading-box">
+      <text class="loading-text">{{loadingMessage}}</text>
+    </view>
+  </view>
+
+  <canvas
+    type="2d"
+    id="posterCanvas"
+    style="width: 750rpx; height: {{canvasHeight}}rpx; position: absolute; left: 0; top: 0; z-index: -100; visibility: hidden;"
+  ></canvas>
+</view>

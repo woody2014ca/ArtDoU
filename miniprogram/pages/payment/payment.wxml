@@ -1,0 +1,62 @@
+<view class="container">
+  <!-- 家长缴费表单：从老师分享的链接进入时显示 -->
+  <block wx:if="{{isPaymentLink}}">
+    <view class="header">
+      <text class="title">提交缴费凭证</text>
+      <text class="subtitle">PAYMENT PROOF</text>
+    </view>
+    <view class="form-card">
+      <view class="info-row">
+        <text class="label">学员 / Student</text>
+        <text class="value">{{studentName}}</text>
+      </view>
+      <view class="input-group">
+        <text class="label">购买课时 / Lessons</text>
+        <input class="input" type="number" placeholder="请输入课时数" data-field="lessons" bindinput="onInput" value="{{lessons}}" />
+      </view>
+      <view class="input-group">
+        <text class="label">缴费金额（元）/ Amount</text>
+        <input class="input" type="digit" placeholder="请输入金额" data-field="price" bindinput="onInput" value="{{price}}" />
+      </view>
+      <view class="upload-section">
+        <text class="label">缴费凭证截图 / Proof</text>
+        <view class="image-box" bindtap="chooseImage">
+          <image wx:if="{{tempImagePath}}" src="{{tempImagePath}}" mode="aspectFill" class="preview-img"></image>
+          <view wx:else class="upload-placeholder">
+            <text class="plus">+</text>
+            <text>上传缴费凭证截图</text>
+          </view>
+        </view>
+      </view>
+    </view>
+    <button class="submit-btn" bindtap="submitPayment" disabled="{{submitting}}">提交凭证</button>
+  </block>
+
+  <!-- 审核员：资产流水核销（非缴费链接进入时显示） -->
+  <block wx:else>
+    <view class="header">
+      <text class="title">资产流水核销</text>
+      <text class="subtitle">ASSET SETTLEMENT & LOGGING</text>
+    </view>
+    <view class="checkin-card">
+      <view class="info-row">
+        <text class="label">结算归属 / Subject</text>
+        <text class="value">{{studentName}}</text>
+      </view>
+      <view class="upload-section">
+        <view class="image-box" bindtap="chooseImage">
+          <image wx:if="{{tempImagePath}}" src="{{tempImagePath}}" mode="aspectFill" class="preview-img"></image>
+          <view wx:else class="upload-placeholder">
+            <text class="plus">+</text>
+            <text>上传流水附件 / Attachment</text>
+          </view>
+        </view>
+      </view>
+      <view class="comment-section">
+        <text class="label">核销摘要 / Settlement Remarks</text>
+        <textarea class="comment-input" placeholder="记录本次资产消耗的具体摘要或存证说明（例如：2024-Q1 阶段性成果归档）..." bindinput="onCommentInput"></textarea>
+      </view>
+    </view>
+    <button class="submit-btn" bindtap="submitCheckin" disabled="{{submitting}}" style="background: #005387;">确认核销并同步账单</button>
+  </block>
+</view>

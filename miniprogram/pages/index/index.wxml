@@ -1,0 +1,138 @@
+<!-- pages/index/index.wxml -->
+<view wx:if="{{isLoading}}" class="loading-full-screen" style="height:100vh;display:flex;justify-content:center;align-items:center;">
+  <view style="color:#999;font-size:24rpx;">Loading...</view>
+</view>
+
+<view wx:else class="container">
+  
+  <!-- 家长从分享链接进入（from=parent）：只显示两个家长相关按钮，不显示审核员信息 -->
+  <block wx:if="{{useLocalMode && showParentEntries}}">
+    <view class="parent-gateway">
+      <view class="parent-gateway-title">ArtDoU</view>
+      <view class="parent-gateway-sub">家长入口 / Parent Entry</view>
+      <view class="parent-entry-row" bindtap="goFindStudentToPay">
+        <text class="parent-entry-text">意向学员缴费</text>
+      </view>
+      <view class="parent-entry-row" bindtap="goBindParent">
+        <text class="parent-entry-text">我是家长，绑定手机号</text>
+      </view>
+      <view class="parent-gateway-tip">请点击上方按钮完成缴费或绑定，绑定后再扫码即为家长端。</view>
+    </view>
+  </block>
+
+  <!-- 非家长分享进入（审核员或老师）：显示数据看板、列表等 -->
+  <block wx:else>
+  <!-- 1. 蓝色数据看板 -->
+  <view class="stats-board" bindtap="goToFinance">
+    <view class="stats-row">
+      <view class="stat-item">
+        <view class="stat-label-group">
+          <text class="stat-zh">{{ useLocalMode ? '本月记录' : '本月消课' }}</text>
+          <text class="stat-en">Monthly</text>
+        </view>
+        <text class="stat-value">{{stats.monthLogs}}</text>
+      </view>
+      
+      <view class="divider-line"></view>
+
+      <view class="stat-item">
+        <view class="stat-label-group">
+          <text class="stat-zh">{{ useLocalMode ? '余量总计' : '余课总计' }}</text>
+          <text class="stat-en">Total Left</text>
+        </view>
+        <text class="stat-value">{{stats.totalAssets}}</text>
+      </view>
+    </view>
+    
+    <view class="finance-link-container">
+      <text class="finance-link">财务 / FINANCE →</text>
+    </view>
+  </view>
+
+  <!-- 2. 核心按钮区 -->
+  <view class="action-grid">
+    <view bindtap="goToAdd" class="action-btn">
+      <text class="plus">+</text>
+      <text class="btn-zh" wx:if="{{useLocalMode}}">新项目</text>
+      <text class="btn-zh" wx:else>新学员</text>
+      <text class="btn-en" wx:if="{{useLocalMode}}">Add Item</text>
+      <text class="btn-en" wx:else>Add Student</text>
+    </view>
+    
+    <!-- 右按钮：带红点提醒 -->
+    <view wx:if="{{!useLocalMode}}" class="action-btn" bindtap="goToEnroll" style="position:relative;">
+      <!-- 红点 -->
+      <view wx:if="{{stats.pendingEnroll > 0}}" style="position:absolute; right:20rpx; top:20rpx; width:16rpx; height:16rpx; background:#ff4d4f; border-radius:50%;"></view>
+      
+      <text class="plus">+</text>
+      <text class="btn-zh">意向登记</text>
+      <text class="btn-en">Enrollment</text>
+    </view>
+    <view wx:else class="action-btn" bindtap="exportReport">
+      <text class="plus">D</text>
+      <text class="btn-zh">数据导出</text>
+      <text class="btn-en">Export CSV</text>
+    </view>
+  </view>
+
+  <!-- 底部文字链接 -->
+  <view wx:if="{{!useLocalMode}}" class="text-link-row" bindtap="goToEnrollList">
+    <text>管理意向名单 / PROSPECTIVE LIST →</text>
+  </view>
+
+  <!-- 3. 列表区 -->
+  <view class="directory-section">
+    <!-- 标题行 -->
+    <view class="section-title-row">
+      <view class="title-group">
+        <text class="main-title">{{ useLocalMode ? '项目列表' : '学员名录' }} / Directory</text>
+        <!-- 审核员：仅余量序；教师：姓名序+余课序 -->
+<text class="tag-blue" wx:if="{{useLocalMode}}" bindtap="sortList" data-type="left">余量序</text>
+<text class="tag-blue" wx:if="{{!useLocalMode}}" bindtap="sortList" data-type="name">姓名序</text>
+<text class="tag-gray" wx:if="{{!useLocalMode}}" bindtap="sortList" data-type="left">余课序</text>
+      </view>
+    </view>
+
+    <!-- 搜索框 (居中药丸) -->
+    <view class="search-pill-centered">
+      <text class="search-icon">🔍</text>
+      <!-- 【修改点】：动态 placeholder，审核模式不再显示“学员” -->
+      <input placeholder="{{ useLocalMode ? '搜索项目名称...' : '输入学员姓名搜索...' }}" placeholder-style="color:#ccc; text-align:center;" bindinput="onSearch" />
+    </view>
+  </view>
+
+  <!-- 4. 列表内容 -->
+  <view class="student-list">
+    <block wx:for="{{itemList}}" wx:key="_id">
+      <view class="student-card">
+        <view class="avatar">{{item.name[0]}}</view>
+        
+        <view class="student-info" bindtap="handleItemClick" data-id="{{item._id}}" data-name="{{item.name}}" data-left="{{item.left_classes}}">
+          <view class="name-line">
+            <text class="student-name">{{item.name}}</text>
+            <block wx:if="{{!useLocalMode}}">
+              <text class="link-blue" catchtap="goToGallery" data-id="{{item._id}}">查看展厅</text>
+              <text class="link-gray" catchtap="handleEdit" data-id="{{item._id}}">管理 / Edit</text>
+            </block>
+            <block wx:else>
+              <text class="link-gray" catchtap="handleEdit" data-id="{{item._id}}" data-name="{{item.name}}" data-left="{{item.left_classes}}">编辑</text>
+            </block>
+          </view>
+          <text class="status-line">
+  {{ useLocalMode ? '余量: ' : '余课 / Lessons: ' }}
+  <text class="{{(!useLocalMode && item.left_classes === 0) ? 'lessons-zero' : ((!useLocalMode && item.left_classes === 1) ? 'lessons-low' : '')}}">
+    {{item.left_classes}}
+  </text>
+</text>
+
+        </view>
+
+        <view class="checkin-btn" catchtap="handleAction" data-id="{{item._id}}" data-name="{{item.name}}" data-left="{{item.left_classes}}">
+          {{ useLocalMode ? '记录 / Log' : '消课 / Check-in' }}
+        </view>
+      </view>
+    </block>
+  </view>
+
+  </block>
+</view>

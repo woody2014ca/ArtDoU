@@ -1,0 +1,35 @@
+<view class="container">
+  <view class="header-section">
+    <view class="brand-small">ArtDoU</view>
+    <view class="main-title">{{ isAudit ? '排期变更' : '请假条' }}</view>
+    <view class="sub-title-en">{{ isAudit ? 'SCHEDULE ADJUSTMENT' : 'LEAVE REQUEST' }}</view>
+  </view>
+
+  <view class="form-body">
+    <view class="input-group">
+      <view class="label">{{ isAudit ? '变更日期 / Change Date' : '请假日期 / Leave Date' }}</view>
+      <picker mode="date" value="{{date}}" bindchange="onDateChange">
+        <view class="picker-inner">
+          <text class="date-text">{{ date || '点击选择日期 >' }}</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="input-group">
+      <view class="label">{{ isAudit ? '变更备注 / Remark' : '请假说明 / Reason' }}</view>
+      <textarea 
+        class="styled-textarea" 
+        placeholder="{{ isAudit ? '请输入变更备注...' : '请输入请假原因(选填)...' }}" 
+        bindinput="onRemarkInput"
+      />
+    </view>
+
+    <button class="brand-submit-btn" bindtap="submitForm">
+      {{ isAudit ? '提交更新' : '提交请假条' }}
+    </button>
+  </view>
+
+  <view class="audit-footer" wx:if="{{isAudit}}">
+    * 系统将根据您的申请进行资产排期核验
+  </view>
+</view>

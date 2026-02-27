@@ -1,0 +1,62 @@
+/** pages/leaveManage/leaveManage.wxss **/
+.container {
+  padding: 60rpx 40rpx;
+  background: #fff;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.header { margin-bottom: 60rpx; }
+.title { font-size: 48rpx; font-weight: 900; color: #1a1a1a; display: block; }
+.subtitle { font-size: 20rpx; color: #00539C; letter-spacing: 8rpx; font-weight: bold; margin-top: 10rpx; display: block; }
+
+.manage-card {
+  background: #fff;
+  border: 1.5rpx solid #f2f2f2;
+  border-radius: 24rpx;
+  padding: 40rpx;
+  box-shadow: 0 10rpx 40rpx rgba(0,0,0,0.03);
+  margin-bottom: 40rpx;
+}
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.student { font-size: 36rpx; font-weight: bold; color: #1a1a1a; }
+.date { font-size: 24rpx; color: #00539C; font-weight: 600; }
+
+.card-mid {
+  padding: 20rpx 0;
+  border-top: 1rpx solid #f8f8f8;
+}
+
+.reason-label { font-size: 22rpx; color: #999; }
+.reason-content { font-size: 26rpx; color: #666; }
+
+.card-bottom {
+  margin-top: 30rpx;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn.approve {
+  background: #00539C;
+  color: #fff;
+  padding: 15rpx 60rpx;
+  border-radius: 40rpx;
+  font-size: 24rpx;
+  font-weight: bold;
+  letter-spacing: 2rpx;
+}
+
+.empty-state {
+  text-align: center;
+  padding-top: 200rpx;
+  color: #ccc;
+  font-size: 28rpx;
+  letter-spacing: 2rpx;
+}

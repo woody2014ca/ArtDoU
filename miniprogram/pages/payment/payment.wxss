@@ -1,0 +1,68 @@
+/** pages/payment/payment.wxss **/
+.container { 
+  padding: 60rpx 40rpx; 
+  background: #fff; 
+  min-height: 100vh; 
+  box-sizing: border-box;
+}
+
+/* 艺术标题排版 */
+.header { margin-bottom: 60rpx; display: flex; flex-direction: column; }
+.title { font-size: 56rpx; font-weight: 900; color: #1a1a1a; letter-spacing: -1rpx; }
+.subtitle { font-size: 16rpx; color: #00539C; font-weight: bold; text-transform: uppercase; letter-spacing: 12rpx; margin-top: 15rpx; }
+
+/* 表单卡片 */
+.form-card, .checkin-card {
+  background: #fff;
+  border: 1.5rpx solid #f2f2f2;
+  border-radius: 24rpx;
+  padding: 40rpx;
+  box-shadow: 0 10rpx 40rpx rgba(0,0,0,0.03);
+  margin-top: 20rpx;
+}
+.info-row { margin-bottom: 30rpx; }
+.info-row .value { font-size: 32rpx; font-weight: bold; color: #333; }
+.comment-section { margin-top: 30rpx; }
+.comment-input { width: 100%; min-height: 160rpx; padding: 20rpx; background: #f8f8f8; border-radius: 12rpx; font-size: 28rpx; box-sizing: border-box; }
+
+.input-group {
+  margin-bottom: 40rpx;
+  border-bottom: 1rpx solid #f8f8f8;
+  padding-bottom: 20rpx;
+}
+
+.label { font-size: 22rpx; color: #999; display: block; margin-bottom: 15rpx; letter-spacing: 2rpx; }
+.input { font-size: 36rpx; font-weight: bold; color: #333; height: 80rpx; }
+
+/* 上传图片区域 */
+.upload-section { margin-top: 40rpx; }
+.image-box {
+  width: 100%;
+  height: 450rpx;
+  background: #fcfcfc;
+  border: 2rpx dashed #eee;
+  border-radius: 16rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  margin-top: 20rpx;
+}
+
+.preview-img { width: 100%; height: 100%; }
+.upload-placeholder { text-align: center; color: #ccc; }
+.upload-placeholder .plus { font-size: 80rpx; display: block; margin-bottom: 10rpx; }
+.upload-placeholder .tip { font-size: 24rpx; }
+
+/* 提交按钮 */
+.submit-btn {
+  margin-top: 80rpx;
+  background: #00539C;
+  color: #fff;
+  height: 100rpx;
+  line-height: 100rpx;
+  border-radius: 50rpx;
+  font-size: 30rpx;
+  font-weight: bold;
+  letter-spacing: 4rpx;
+}

@@ -1,0 +1,41 @@
+<view class="container">
+  
+  <!-- 1. 顶部品牌区 -->
+  <view class="header">
+    <!-- 审核员看 ASSETS，老师看 ArtDoU -->
+    <view class="brand-title">{{ isLocalMode ? 'ASSETS' : 'ArtDoU' }}</view>
+    <text class="title">{{ isLocalMode ? '资产入库' : '录入新学员' }}</text>
+    <text class="subtitle">{{ isLocalMode ? 'NEW ASSET ENTRY' : 'NEW STUDENT REGISTRATION' }}</text>
+  </view>
+
+  <!-- 2. 表单区域 -->
+  <view class="form-group">
+    
+    <!-- 姓名 -->
+    <view class="input-item">
+      <text class="label">{{ isLocalMode ? '项目名称 / Item Name' : '学生姓名 / Student Name' }}</text>
+      <input class="input-box" placeholder="{{ isLocalMode ? '例如：办公用纸' : '请输入姓名' }}" bindinput="onNameInput" />
+    </view>
+
+    <!-- 电话 / 编号 -->
+    <view class="input-item">
+      <text class="label">{{ isLocalMode ? '供应商编号 / Contact' : '家长电话 (登录账号)' }}</text>
+      <input class="input-box" type="number" maxlength="11" placeholder="{{ isLocalMode ? '请输入编号' : '请输入手机号' }}" bindinput="onPhoneInput" />
+    </view>
+
+    <!-- 数量 -->
+    <view class="input-item">
+      <text class="label">{{ isLocalMode ? '入库数量 / Quantity' : '初始课时 / Initial Balance' }}</text>
+      <input class="input-box" type="number" placeholder="0" bindinput="onClassesInput" />
+    </view>
+
+  </view>
+
+  <!-- 3. 提交按钮 -->
+  <button class="submit-btn" bindtap="addStudent">
+    {{ isLocalMode ? '确认入库' : '确认录入' }}
+  </button>
+
+</view>
+
+    

@@ -1,0 +1,70 @@
+<view class="container">
+  <!-- 使用正确的类名 -->
+  <view class="art-header-box">
+    <text class="art-main-title">{{ isAudit ? '待激活明细' : '意向名单' }}</text>
+    <text class="art-sub-title">{{ isAudit ? 'PENDING ASSETS' : 'PROSPECTIVE LIST' }}</text>
+  </view>
+
+  <!-- 教师端：两条路径说明 + 复制发给家长 -->
+  <view wx:if="{{!isAudit}}" class="enroll-tip-box">
+    <text class="enroll-tip-text">① 家长先缴费：让家长在首页点「意向学员缴费」输入姓名+手机提交凭证，您到「财务 → 待确认缴费」点「确认入账并转为正式学员」。</text>
+    <text class="enroll-tip-text">② 直接转正：下方点「转为正式学员」输入课时数办理入学（不经过缴费）。</text>
+    <view class="copy-tip-btn" bindtap="copyPaymentTip">复制缴费说明（发给家长）</view>
+  </view>
+
+  <view class="list-container">
+    <block wx:for="{{enrollList}}" wx:key="_id">
+      <view class="enroll-card {{item.status === 'converted' ? 'converted' : ''}}">
+        <view class="card-body">
+          <view class="main-info">
+            <text class="st-name">{{item.name}}</text>
+            <!-- 动态文案：年龄 vs 标识 -->
+            <text class="st-age">{{ isAudit ? '标识: ' : '年龄: ' }}{{item.age}}</text>
+          </view>
+          <view class="parent-info">
+            <!-- 动态文案：关联方 vs 家长 -->
+            <text>{{ isAudit ? '关联方：' : '家长：' }}{{item.parentName || (isAudit ? '无' : '未登记')}}</text>
+            <text>{{ isAudit ? '索引号：' : '电话：' }}{{item.phone}}</text>
+          </view>
+          <text class="note" wx:if="{{item.note}}">说明：{{item.note}}</text>
+        </view>
+
+        <!-- 操作区 -->
+        <view class="card-action" wx:if="{{item.status !== 'converted'}}">
+          <!-- 新增删除按钮 -->
+          <view bindtap="deleteEnroll" data-id="{{item._id}}" style="margin-right:20rpx; color:#ff4d4f; font-size:24rpx; padding:10rpx;">删除</view>
+          
+          <view class="convert-btn" bindtap="showConvertModal" data-item="{{item}}">
+            <text>{{ isAudit ? '激活账户' : '转为正式学员' }}</text>
+          </view>
+        </view>
+        <view class="status-tag" wx:else>{{ isAudit ? '已激活' : '已转正' }}</view>
+      </view>
+    </block>
+    
+    <!-- 空状态提示 -->
+    <view wx:if="{{enrollList.length === 0}}" class="empty">
+      {{ isAudit ? '暂无待处理资产' : '暂无意向名单' }}
+    </view>
+  </view>
+
+  <!-- 弹窗 -->
+  <view class="modal" wx:if="{{showModal}}">
+    <view class="modal-content">
+      <view class="modal-title">
+        {{ isAudit ? '初始化资产数据' : '办理入学：' + activeItem.name }}
+      </view>
+      <view wx:if="{{discountTip}}" style="color:#e64340; font-size:24rpx; margin-bottom:20rpx; font-weight:bold;">{{discountTip}}</view>
+      <view class="modal-tip">
+        {{ isAudit ? '请输入初始存量：' : '请输入购买课时数：' }}
+      </view>
+      <input class="lesson-input" type="number" placeholder="0" bindinput="onLessonInput" />
+      <view class="modal-btns">
+        <view class="m-btn cancel" bindtap="closeModal">取消</view>
+        <view class="m-btn confirm" bindtap="confirmConversion">
+          {{ isAudit ? '确认入账' : '确认办理' }}
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

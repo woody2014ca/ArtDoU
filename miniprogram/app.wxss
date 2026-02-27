@@ -1,0 +1,56 @@
+/**app.wxss**/
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+} 
+
+button {
+  background: initial;
+}
+
+button:focus{
+  outline: 0;
+}
+
+button::after{
+  border: none;
+}
+
+
+page {
+  background: #f6f6f6;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+/* 家长端续费提醒 */
+.renew-alert {
+  background: #FFF1F0;
+  border: 1rpx solid #FFA39E;
+  padding: 30rpx;
+  border-radius: 20rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40rpx;
+}
+.renew-title { font-size: 22rpx; color: #F5222D; font-weight: bold; display: block; margin-bottom: 8rpx; }
+.renew-detail { font-size: 24rpx; color: #1a1a1a; display: block; }
+.renew-btn { font-size: 22rpx; color: #F5222D; font-weight: bold; border-bottom: 1rpx solid #F5222D; }
+
+/* 教师端橙色核销条 */
+.orange-bar { background: #FAAD14 !important; margin-top: 15rpx; }
+/* Lessons badge / remaining classes */
+.lessons {
+  font-weight: 600;
+}
+
+.lessons-low {        /* 1 节：橙色预警 */
+  color: #ff9800;
+}
+
+.lessons-zero {       /* 0 节：红色耗尽 */
+  color: #e53935;
+}

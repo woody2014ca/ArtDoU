@@ -1,0 +1,45 @@
+<view class="container">
+  <!-- 1. 标题区：教师端 vs 审核员端 -->
+  <view class="header-box">
+    <view class="title">{{ isAudit ? '数据存量补录' : '待确认缴费' }}</view>
+    <view class="subtitle">{{ isAudit ? 'QUOTA REPLENISHMENT' : 'PENDING PAYMENTS' }}</view>
+  </view>
+
+  <!-- 待处理列表 -->
+  <view class="payment-list">
+    <block wx:for="{{pendingPayments}}" wx:key="_id">
+      <view class="payment-card">
+        <view class="card-info">
+          <view class="main-row">
+            <text class="student-name">{{ isAudit ? '成员' : '学员' }}: {{item.student_name}}</text>
+            <text wx:if="{{!isAudit && item.prospective_id}}" class="tag-prospective">意向</text>
+            <view class="amount-group">
+              <text class="lesson-count">+{{item.amount_lessons}} {{ isAudit ? 'Units' : '课时' }}</text>
+              <text class="price-val">{{ isAudit ? '价值估值' : '金额' }}: ￥{{item.price || 0}}</text>
+            </view>
+          </view>
+          <text class="time-tip">提交于：{{item.displayTime}}</text>
+        </view>
+
+        <view class="proof-section" bindtap="previewProof" data-url="{{item.proof_img}}">
+          <image src="{{item.proof_img}}" mode="aspectFill" class="proof-img"></image>
+          <view class="zoom-tip">{{ isAudit ? '点击核对流水附件详情' : '点击查看缴费凭证' }}</view>
+        </view>
+
+        <view class="action-row" wx:if="{{!isAudit && item.student_id}}">
+          <button class="approve-btn" bindtap="confirmPayment" data-item="{{item}}">确认入账</button>
+        </view>
+        <view class="action-row" wx:if="{{!isAudit && item.prospective_id}}">
+          <button class="approve-btn prospective-btn" bindtap="confirmProspectivePayment" data-item="{{item}}">确认入账并转为正式学员</button>
+        </view>
+        <view class="action-row" wx:else>
+          <button class="approve-btn audit-btn" bindtap="confirmPayment" data-item="{{item}}">核对无误，确认同步库存</button>
+        </view>
+      </view>
+    </block>
+
+    <view wx:if="{{pendingPayments.length === 0}}" class="empty-state">
+      {{ isAudit ? '目前没有待处理的存量补录申请' : '暂无待确认的缴费' }}
+    </view>
+  </view>
+</view>

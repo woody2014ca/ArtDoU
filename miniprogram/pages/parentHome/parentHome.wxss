@@ -1,0 +1,331 @@
+/** pages/parentHome/parentHome.wxss **/
+.container { padding: 0 40rpx 80rpx; background: #ffffff; min-height: 100vh; box-sizing: border-box; }
+
+/* 1. 品牌页眉：ArtDoU 专属艺术字体 (Serif) */
+.brand-title {
+  color: #005387; 
+  font-size: 58rpx; 
+  font-family: "Serif", "Times New Roman", serif;
+  font-weight: bold; 
+  padding: 60rpx 0 20rpx; 
+  letter-spacing: 4rpx;
+}
+
+/* 2. 姓名与艺术家标签：显著放大层级 */
+.student-name { 
+  font-size: 48rpx; 
+  font-weight: 900; 
+  color: #1a1a1a; 
+  line-height: 1.2; 
+}
+.artist-tag { 
+  font-size: 32rpx; 
+  color: #005387; 
+  font-weight: 600; 
+  margin-top: 10rpx; 
+  display: block; 
+  opacity: 0.8; 
+}
+
+/* 精修点 1, 2, 3：加大字号、统一颜色、基准线对齐 */
+.lessons-stat { 
+  margin-top: 20rpx; 
+  display: flex;
+  flex-direction: row; 
+  align-items: center; /* 关键：确保文字、冒号、数字在一条基准线上 */
+}
+.lessons-label { 
+  font-size: 32rpx; /* 加大到 32rpx */
+  color: #666; 
+}
+.lessons-num { 
+  font-size: 32rpx; /* 与中文完全等大 */
+  font-weight: bold; 
+  color: #666; /* 冒号和数字颜色彻底改为 #666 */
+  margin-left: 2rpx;
+}
+
+/* =================================================================
+   🚀 最终重构版 (请确保删除了原来底部所有旧代码)
+   ================================================================= */
+/* ------------------- 1. 蓝色统计卡片 ------------------- */
+.achievement-card {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background: #005387;
+  padding: 60rpx 20rpx; /* 左右留白减少，防挤 */
+  border-radius: 32rpx;
+  color: white;
+  margin: 40rpx 0 60rpx 0;
+  box-shadow: 0 20rpx 40rpx rgba(0, 83, 135, 0.2);
+  min-height: 240rpx; /* 强制给足高度，防止内容被压扁 */
+}
+.ach-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.ach-num {
+  font-size: 64rpx;
+  font-weight: 900;
+  margin-bottom: 12rpx;
+  line-height: 1;
+}
+/* 核心修复：防止文字压扁 */
+.ach-label-group text {
+  display: block;
+  white-space: nowrap; /* 禁止换行 */
+}
+.ach-zh {
+  font-size: 28rpx;
+  font-weight: bold;
+  letter-spacing: 2rpx;
+  line-height: 1.6; /* 标准行高 */
+  margin-bottom: 4rpx;
+}
+.ach-en {
+  font-size: 16rpx;
+  opacity: 0.7;
+  text-transform: uppercase;
+  letter-spacing: 2rpx;
+}
+/* 分割线修复 */
+.ach-line {
+  width: 2rpx;
+  height: 100rpx;
+  background: rgba(255, 255, 255, 0.5);
+  margin: 0 40rpx;
+}
+/* ------------------- 2. 功能按钮区 ------------------- */
+.action-grid {
+  display: flex;
+  justify-content: space-between;
+  gap: 24rpx;
+  margin-bottom: 60rpx;
+}
+.action-item {
+  flex: 1;
+  background: #f8faff;
+  border-radius: 24rpx;
+  padding: 30rpx 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2rpx solid #eef2f6;
+}
+.action-icon {
+  font-size: 50rpx;
+  margin-bottom: 10rpx;
+}
+.action-text {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333;
+  line-height: 1.6; /* 修复字扁 */
+}
+/* 我也要报名：蓝色方框正下方，与下方内容留出间距 */
+.enroll-row {
+  margin-top: 0;
+  margin-bottom: 48rpx;
+}
+
+/* ------------------- 3. 艺术展厅标题 ------------------- */
+.gallery-section {
+  padding-bottom: 60rpx;
+}
+.gallery-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 32rpx;
+}
+.gallery-header .en {
+  font-size: 42rpx;
+  color: #005387;
+  font-weight: 900;
+  letter-spacing: 4rpx;
+  margin-bottom: 6rpx;
+  display: block;
+}
+.gallery-header .zh {
+  font-size: 30rpx;
+  color: #666;
+  font-weight: normal;
+  letter-spacing: 2rpx;
+  display: block;
+}
+/* ------------------- 4. 作品列表：在 ART GALLERY 正下方、整体居中 ------------------- */
+.works-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30rpx;
+  width: 100%;
+  max-width: 620rpx;
+  margin: 0 auto;
+  justify-items: center;
+}
+/* 核心修复：暂无作品强制不换行 */
+.empty-holder {
+  grid-column: 1 / -1; /* 【关键】强制跨越所有列 (从第1列到最后) */
+  width: 100%;
+  display: flex;       /* 用flex居中 */
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  margin-top: 40rpx;
+  /* 字体样式 */
+  color: #999;
+  font-size: 28rpx;
+  white-space: nowrap; /* 【关键】绝对禁止文字换行 */
+}
+.work-card {
+  background: #fff;
+  border-radius: 12rpx;
+  overflow: hidden;
+  box-shadow: 0 10rpx 30rpx rgba(0,0,0,0.05);
+  width: 100%;
+}
+.work-cover {
+  width: 100%;
+  height: 300rpx;
+  background: #f8f8f8;
+  display: block;
+}
+.work-info {
+  padding: 15rpx;
+  text-align: center;
+}
+.work-date {
+  font-size: 22rpx;
+  color: #999;
+}
+.work-multi {
+  font-size: 20rpx;
+  color: #00539C;
+  margin-left: 12rpx;
+}
+/* =================================================================
+   📐 最终布局修正：绝对居中对齐 + 字不扁
+   ================================================================= */
+
+/* 1. 蓝色大卡片：设定为 Flex 容器 */
+.achievement-card {
+  display: flex !important;
+  flex-direction: row !important; /* 横向排列 */
+  align-items: center !important; /* 垂直居中 */
+  justify-content: center !important;
+  padding: 60rpx 0 !important;    /* 上下留白 */
+}
+
+/* 2. 左右两大块 (ach-item)：各占 50%，强制居中 */
+.ach-item {
+  flex: 1 !important;             /* 【核心】左右均分空间 */
+  display: flex !important;
+  flex-direction: column !important; /* 内部元素竖着排 */
+  align-items: center !important;    /* 【核心】水平居中对齐 (0, 中文, 英文都居中) */
+  justify-content: center !important;
+}
+
+/* 3. 数字 (0) */
+.ach-num {
+  align-self: center !important;  /* 确保数字居中 */
+  margin-bottom: 10rpx !important;
+  line-height: 1 !important;
+}
+
+/* 4. 文字容器 (ach-label-group) */
+.ach-label-group {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important; /* 【核心】让里面的中文和英文居中 */
+  width: 100% !important;
+}
+
+/* 5. 中文 (创作作品) - 解决字扁 & 居中 */
+.ach-zh {
+  text-align: center !important;  /* 文字居中 */
+  line-height: 1.8 !important;    /* 【核心】解决字扁 */
+  font-size: 28rpx !important;
+  display: block !important;
+  width: 100% !important;         /* 占满容器以便居中 */
+}
+
+/* 6. 英文 (WORKS) - 居中 */
+.ach-en {
+  text-align: center !important;
+  display: block !important;
+  width: 100% !important;
+}
+
+/* 7. 中间分割线 (以它为中轴) */
+.ach-line {
+  width: 2rpx !important;
+  height: 100rpx !important;
+  background: rgba(255, 255, 255, 0.6) !important;
+  margin: 0 !important;           /* 【核心】去掉左右边距，由 flex:1 自动分配空间 */
+  flex-shrink: 0 !important;      /* 禁止线被压扁 */
+}
+
+/* 8. 修复底部“艺术成长展厅”的字扁问题 */
+.gallery-header .zh {
+  line-height: 1.8 !important;
+}
+/* ====================================
+   🚑 紧急修复：把卡片宽度撑开
+   ==================================== */
+   .achievement-card {
+    width: 70% !important;          /* 强制占满屏幕宽度 */
+    box-sizing: border-box !important; /* 包含内边距，防止撑破 */
+    justify-content: space-around !important; /* 让左右两块稍微分开一点 */
+  }
+
+  /* 呼吸高亮动画 */
+.pulse-anim {
+  animation: pulse 1s infinite;
+  border: 4rpx solid #E64340 !important; /* 加个红框提示 */
+}
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+/* =================================================================
+   🩸 最终救命补丁：给汉字“去油” (解决视觉压扁的根源)
+   ================================================================= */
+
+/* 1. 针对“艺术成长展厅”、“创作作品”、“暂无作品” */
+.ach-zh, 
+.gallery-header .zh, 
+.empty-holder {
+  font-weight: normal !important;  /* 【核心】必须去掉粗体！粗体会让字变扁 */
+  font-family: sans-serif !important; /* 强制用无衬线标准字体 */
+  transform: scale(1, 1) !important;  /* 强制比例 1:1，防止任何变形 */
+  line-height: 1.6 !important;     /* 保持呼吸感 */
+  letter-spacing: 1rpx !important; /*稍微收一点间距，让字形更紧凑修长 */
+}
+
+/* 2. 专门针对“艺术成长展厅”微调 */
+.gallery-header .zh {
+  font-size: 32rpx !important;     /*稍微加大一点，让它更清晰 */
+  margin-top: 8rpx !important;
+  color: #666 !important;
+}
+
+/* 3. 专门针对“创作作品/获得奖励” */
+.ach-zh {
+  font-size: 28rpx !important;
+  color: #fff !important;
+  opacity: 0.9 !important;         /* 稍微透一点白，看起来更精致 */
+}
+
+/* 4. 按钮文字 (请假条) 保持微粗，但不要太粗 */
+.action-text {
+  font-weight: 500 !important;     /* 用 500 代替 bold，折中方案 */
+}
+.lessons { font-weight: 700; }
+.lessons-low { color: #ff9800; }   /* 1：橙色 */
+.lessons-zero { color: #e53935; }  /* 0：红色 */

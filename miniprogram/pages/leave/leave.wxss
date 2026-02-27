@@ -1,0 +1,47 @@
+/** pages/leave/leave.wxss **/
+.container { padding: 0 50rpx 80rpx; background: #ffffff; min-height: 100vh; }
+
+/* 顶部标题区：左对齐，建立层级 */
+.header-section { padding: 60rpx 0 40rpx; border-bottom: 1rpx solid #f0f0f0; margin-bottom: 60rpx; }
+.brand-small { color: #005387; font-size: 32rpx; font-family: "Serif", serif; font-weight: bold; margin-bottom: 10rpx; }
+.main-title { font-size: 64rpx; font-weight: 900; color: #1a1a1a; }
+.sub-title-en { font-size: 26rpx; color: #ccc; letter-spacing: 4rpx; margin-top: 8rpx; }
+
+/* 表单区块 */
+.input-group { margin-bottom: 50rpx; }
+.label { font-size: 34rpx; font-weight: bold; color: #444; margin-bottom: 24rpx; display: block; }
+
+/* 日期选择器：高级蓝感 */
+.picker-inner {
+  background: #f4f7f9; border-radius: 16rpx; padding: 35rpx 40rpx;
+  border: 2rpx solid #e1e8ed; display: flex; align-items: center;
+}
+.date-text { font-size: 42rpx; color: #005387; font-weight: bold; }
+
+/* 文本域美化 */
+.styled-textarea {
+  width: 100%; height: 240rpx; background: #f4f7f9; border-radius: 16rpx;
+  padding: 30rpx; font-size: 32rpx; color: #333; border: 2rpx solid #e1e8ed; box-sizing: border-box;
+}
+
+/* 提交按钮：显著加重 */
+.brand-submit-btn {
+  background: #005387 !important;
+  color: white !important;
+  width: 100% !important; /* 确保宽度足够 */
+  height: 110rpx;
+  line-height: 110rpx;
+  border-radius: 55rpx;
+  font-size: 34rpx !important; /* 稍微缩小字号，防止截断 */
+  font-weight: bold;
+  margin-top: 60rpx;
+  box-shadow: 0 10rpx 30rpx rgba(0, 83, 135, 0.3);
+}
+/* 确保页头和内容左对齐一致 */
+.header-section {
+  text-align: left; /* 强制左对齐 */
+  padding: 40rpx 0;
+}
+.brand-small {
+  margin-left: 0;
+}

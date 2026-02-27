@@ -1,0 +1,99 @@
+/* pages/checkin/checkin.wxss */
+.container { padding: 60rpx 40rpx; background: #fff; min-height: 100vh; box-sizing: border-box; }
+
+.header { margin-bottom: 40rpx; text-align: center; }
+.title { font-size: 40rpx; font-weight: 800; color: #1a1a1a; display: block; }
+.subtitle { font-size: 20rpx; color: #999; letter-spacing: 4rpx; margin-top: 10rpx; text-transform: uppercase; }
+
+.form-group { margin-bottom: 40rpx; }
+.label { font-size: 28rpx; font-weight: bold; color: #333; margin-bottom: 20rpx; display: block; }
+.memo-count { font-size: 20rpx; color: #999; text-align: right; margin-top: 8rpx; }
+
+/* 统一输入框 */
+input, textarea, .image-box {
+  width: 100% !important;
+  background: #f8f8f8 !important;
+  border-radius: 12rpx !important;
+  box-sizing: border-box !important;
+  display: block;
+}
+
+input { height: 100rpx !important; padding: 0 30rpx !important; font-size: 30rpx !important; color: #333 !important; }
+textarea { height: 200rpx !important; padding: 30rpx !important; font-size: 30rpx !important; color: #333 !important; }
+
+/* 图片框 */
+.image-box {
+  height: 350rpx !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: hidden;
+
+  /* ✅ 新增：让 overlay 能定位，但不改变现有布局 */
+  position: relative;
+}
+.preview-img { width: 100%; height: 100%; object-fit: cover; }
+.plus { font-size: 60rpx; color: #ccc; }
+
+/* ✅ 新增：右下角“+”覆盖层（即使已有预览图也保留上传入口提示） */
+.plus-overlay{
+  position:absolute;
+  right:16rpx;
+  bottom:16rpx;
+  width:56rpx;
+  height:56rpx;
+  border-radius:28rpx;
+  background:rgba(0,0,0,0.35);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.plus-overlay .plus{
+  font-size:44rpx;
+  line-height:44rpx;
+  color:#fff;
+}
+
+/* ✅ 新增：多图缩略图区域（不影响原 image-box） */
+.thumbs-wrap{
+  margin-top:16rpx;
+}
+.thumbs-count{
+  color:#999;
+  font-size:24rpx;
+  margin-bottom:8rpx;
+  display:block;
+}
+.thumbs-row{
+  white-space:nowrap;
+  width:100%;
+}
+.thumb{
+  width:120rpx;
+  height:120rpx;
+  border-radius:12rpx;
+  display:inline-block;
+  margin-right:12rpx;
+  background:#f5f5f5;
+}
+
+/* 按钮居中修复 */
+button::after { border: none !important; }
+
+.submit-btn { 
+  margin-top: 60rpx; 
+  background: #00539C !important; 
+  color: #fff !important; 
+  width: 100% !important;
+  height: 100rpx !important; 
+  border-radius: 50rpx !important; 
+  font-size: 32rpx !important; 
+  font-weight: bold !important;
+  
+  /* Flex 垂直居中 */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  line-height: normal !important; /* 重置行高 */
+}

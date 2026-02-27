@@ -1,0 +1,64 @@
+<!-- pages/finance/finance.wxml -->
+<view class="container">
+  
+  <!-- 1. 标题区 -->
+  <view class="header">
+    <view class="title">{{ isAudit ? '数据结算明细' : '财务与课消流水' }}</view>
+    <view class="subtitle">{{ isAudit ? 'DATA SETTLEMENT LEDGER' : 'FINANCIAL RECORDS' }}</view>
+  </view>
+
+  <!-- 教师端：待确认缴费入口（审核员不看此入口） -->
+  <view wx:if="{{!isAudit}}" class="payment-entry" bindtap="goToPaymentManage">
+    <text class="payment-entry-label">待确认缴费</text>
+    <text class="payment-entry-arrow">→</text>
+  </view>
+
+  <!-- 2. 汇总看板 -->
+  <view class="summary-box" style="background: #005387;">
+    <view class="sum-item">
+      <text class="sum-label">{{ isAudit ? '累计消耗点数' : '本月总消课' }}</text>
+      <text class="sum-value">{{totalRevenue}}</text>
+    </view>
+    <view class="sum-line"></view>
+    <view class="sum-item">
+      <text class="sum-label">{{ isAudit ? '结算流水笔数' : '流水记录数' }}</text>
+      <text class="sum-value">{{logs.length}}</text>
+    </view>
+  </view>
+
+  <!-- 3. 明细列表 -->
+  <view class="record-list">
+    <block wx:for="{{logs}}" wx:key="index">
+      <view class="record-card">
+        <view class="r-left">
+          <view class="r-name-box">
+             <text class="r-name-label">{{ isAudit ? '对象:' : '学员:' }}</text>
+             <text class="r-name">{{item.student_name}}</text>
+          </view>
+          <text class="r-date">{{item.date}}</text>
+        </view>
+        <view class="r-right">
+          <!-- 动态显示：审核看 Units，老师看 课时 -->
+          <text class="r-amount" style="color: #005387;">
+            {{ isAudit ? '-' : '消耗 ' }}{{item.lessons_deducted}} {{ isAudit ? 'Units' : '课时' }}
+          </text>
+          
+          <!-- 动态显示：审核看价格，老师看备注 -->
+          <text class="r-price" style="font-size:22rpx; color:#999; margin-top:6rpx;">
+            {{ isAudit ? '结算价值 ￥' + (item.price || 0) : (item.teacher_comment || '常规消课') }}
+          </text>
+          <!-- 教师端：编辑、删除单条流水 -->
+          <view wx:if="{{!isAudit && item._id}}" class="r-actions">
+            <text class="r-edit" catchtap="editLog" data-id="{{item._id}}">编辑</text>
+            <text class="r-delete" catchtap="deleteLog" data-id="{{item._id}}">删除</text>
+          </view>
+        </view>
+      </view>
+    </block>
+    
+    <!-- 空状态 -->
+    <view wx:if="{{logs.length === 0}}" class="empty">
+      {{ isAudit ? '暂无资产结算流水' : '暂无消课记录' }}
+    </view>
+  </view>
+</view>

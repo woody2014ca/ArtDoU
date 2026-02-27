@@ -1,0 +1,32 @@
+{
+  "pages": [
+    "pages/index/index",    "pages/auditLog/auditLog",
+    "pages/auditEdit/auditEdit",
+    "pages/bindParent/bindParent","pages/findStudentToPay/findStudentToPay","pages/parentHome/parentHome",
+    "pages/example/index",
+    "pages/checkin/checkin",
+    "pages/addStudent/addStudent",
+    "pages/enroll/enroll",
+    "pages/leave/leave",
+    "pages/history/history",
+    "pages/leaveRequest/leaveRequest",
+    "pages/leaveManage/leaveManage",
+    "pages/enrollList/enrollList",
+    "pages/poster/poster",
+    "pages/payment/payment",
+    "pages/paymentManage/paymentManage",
+    "pages/editStudent/editStudent",
+    "pages/editLog/editLog",
+    "pages/finance/finance"
+  ],
+  "window": {
+    "backgroundColor": "#F6F6F6",
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#F6F6F6",
+    "navigationBarTitleText": "云开发 QuickStart",
+    "navigationBarTextStyle": "black"
+  },
+  "sitemapLocation": "sitemap.json",
+  "style": "v2",
+  "lazyCodeLoading": "requiredComponents"
+}

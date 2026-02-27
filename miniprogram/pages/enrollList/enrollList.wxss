@@ -1,0 +1,67 @@
+.container { padding: 40rpx; background: #fff; min-height: 100vh; }
+
+.enroll-tip-box {
+  background: #EFF6FF; border: 1rpx solid #8ab4d7; border-radius: 16rpx; padding: 24rpx; margin-bottom: 30rpx;
+}
+.enroll-tip-text { font-size: 24rpx; color: #333; line-height: 1.6; display: block; margin-bottom: 12rpx; }
+.copy-tip-btn {
+  font-size: 26rpx; color: #00539C; font-weight: 600; text-align: center; padding: 20rpx; margin-top: 8rpx;
+}
+
+.header { margin-bottom: 50rpx; }
+.title { font-size: 48rpx; font-weight: 900; }
+.subtitle { font-size: 18rpx; color: #00539C; letter-spacing: 10rpx; font-weight: bold; }
+
+.enroll-card {
+  border: 1.5rpx solid #f2f2f2;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  margin-bottom: 30rpx;
+  transition: all 0.3s;
+}
+
+.converted { opacity: 0.5; background: #f9f9f9; border-style: dashed; }
+
+.main-info { margin-bottom: 15rpx; }
+.st-name { font-size: 36rpx; font-weight: bold; margin-right: 20rpx; }
+.st-age { font-size: 24rpx; color: #888; }
+
+.parent-info { font-size: 24rpx; color: #666; line-height: 1.8; }
+.note { font-size: 22rpx; color: #999; margin-top: 20rpx; display: block; font-style: italic; }
+
+.card-action {
+  margin-top: 30rpx;
+  border-top: 1rpx solid #f8f8f8;
+  padding-top: 20rpx;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.convert-btn {
+  background: #00539C;
+  color: #fff;
+  padding: 12rpx 30rpx;
+  border-radius: 40rpx;
+  font-size: 22rpx;
+  font-weight: bold;
+}
+
+.status-tag { font-size: 22rpx; color: #ccc; text-align: right; margin-top: 20rpx; }
+
+/* 弹窗样式 */
+.modal {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 100;
+}
+.modal-content {
+  background: #fff; width: 80%; padding: 50rpx; border-radius: 30rpx;
+}
+.modal-title { font-size: 32rpx; font-weight: bold; display: block; margin-bottom: 30rpx; text-align: center; }
+.modal-tip { font-size: 24rpx; color: #888; margin-bottom: 20rpx; display: block; }
+.lesson-input {
+  border: 1rpx solid #eee; height: 100rpx; border-radius: 12rpx; padding: 0 30rpx; margin-bottom: 40rpx;
+}
+.modal-btns { display: flex; gap: 20rpx; }
+.m-btn { flex: 1; text-align: center; padding: 25rpx; border-radius: 50rpx; font-size: 26rpx; font-weight: bold; }
+.cancel { background: #f5f5f5; color: #999; }
+.confirm { background: #00539C; color: #fff; }

@@ -1,0 +1,63 @@
+<!-- pages/enroll/enroll.wxml -->
+<view class="container">
+  
+  <view style="margin-bottom:60rpx; text-align:center;">
+    <view style="font-size:44rpx; font-weight:800; color:#00539C;">
+      {{ isAudit ? '新增待办项' : '意向学员登记' }}
+    </view>
+    <view style="font-size:24rpx; color:#999; margin-top:10rpx; font-weight:bold; letter-spacing:2rpx;">
+      {{ isAudit ? 'NEW PENDING ITEM' : 'NEW PROSPECTIVE STUDENT' }}
+    </view>
+  </view>
+
+  <!-- 表单区域 -->
+  <view class="form-box">
+    
+    <!-- 1. 姓名 / 项目名 -->
+    <view class="input-group">
+      <view class="label">{{ isAudit ? '事项名称 / Title' : '学员姓名 / Student Name' }}</view>
+      <input class="input-field" placeholder="{{ isAudit ? '例如：采购画架' : '请输入孩子姓名' }}" data-field="name" bindinput="onInput" />
+    </view>
+
+    <!-- 2. 电话 / 关联方 -->
+    <view class="input-group">
+      <view class="label">{{ isAudit ? '关联方联系方式 / Contact' : '家长电话 / Parent Phone' }}</view>
+      <input class="input-field" type="number" placeholder="方便及时联系" data-field="phone" bindinput="onInput" />
+    </view>
+
+    <!-- 3. 年龄 / 编号 -->
+    <view class="input-group">
+      <view class="label">{{ isAudit ? '序列号 / Serial No.' : '学员年龄 / Age' }}</view>
+      <input class="input-field" type="number" placeholder="{{ isAudit ? '非必填' : '例如：6' }}" data-field="age" bindinput="onInput" />
+    </view>
+
+    <!-- 4. 级别 / 分类 (选择器) -->
+    <view class="input-group">
+      <view class="label">{{ isAudit ? '优先级 / Priority' : '艺术基础 / Art Level' }}</view>
+      <picker bindchange="onLevelChange" value="{{levelIndex}}" range="{{ isAudit ? auditLevels : realLevels }}">
+        <view class="picker-box">
+          {{ formData.level || (isAudit ? '请选择优先级' : '请选择基础情况') }}
+          <text class="arrow">▼</text>
+        </view>
+      </picker>
+    </view>
+
+    <!-- 4.5 推荐人（仅意向学员登记） -->
+    <view class="input-group" wx:if="{{!isAudit}}">
+      <view class="label">推荐人 / Referrer</view>
+      <view class="referrer-value">{{ referrerDisplay || '无' }}</view>
+    </view>
+
+    <!-- 5. 备注 -->
+    <view class="input-group">
+      <view class="label">{{ isAudit ? '备注说明 / Notes' : '备注 / Remarks' }}</view>
+      <textarea class="textarea-field" placeholder="请输入..." data-field="note" bindinput="onInput"></textarea>
+    </view>
+
+  </view>
+
+  <button bindtap="submitEnroll" style="background:#00539C; color:#fff; width:100%; border-radius:50rpx; padding:25rpx 0; font-weight:bold; margin-top:40rpx; box-shadow: 0 10rpx 20rpx rgba(0,83,156,0.2);">
+    {{ isAudit ? '保存待办' : '提交登记' }}
+  </button>
+
+</view>

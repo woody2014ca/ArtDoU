@@ -1,0 +1,87 @@
+<!-- pages/checkin/checkin.wxml -->
+<view class="container">
+
+<!-- 标题 -->
+<view class="header">
+  <view class="title">{{name}}</view>
+  <view class="subtitle">
+    {{ isLocalMode ? 'ASSET VERIFICATION' : 'CLASS CHECK-IN' }}
+  </view>
+</view>
+
+<!-- 1. 数量输入 -->
+<view class="form-group">
+  <view class="label">
+    {{ isLocalMode ? '核销数量 / Quantity' : '消课课时 / Lessons' }}
+  </view>
+  <input type="number" value="{{count}}" bindinput="onCountInput" placeholder="1" />
+</view>
+
+<!-- 2. 图片上传 (仅真实模式显示) -->
+<view wx:if="{{!isLocalMode}}" class="form-group">
+  <view class="label">作品记录 / Artwork</view>
+
+  <!-- 仍然保持：点这个框就选图（可多次追加） -->
+  <view bindtap="chooseImage" class="image-box">
+    <image wx:if="{{imgUrl}}" src="{{imgUrl}}" mode="aspectFill" class="preview-img"></image>
+
+    <!-- ✅ 永远保留“+”作为添加入口提示（即使已有预览图） -->
+    <view class="plus-overlay">
+      <text class="plus">+</text>
+    </view>
+  </view>
+
+  <!-- ✅ 可选：显示已选图片数量 + 缩略图（不影响原逻辑） -->
+  <view wx:if="{{imgUrls && imgUrls.length > 0}}" class="thumbs-wrap">
+    <text class="thumbs-count">已选 {{imgUrls.length}} 张</text>
+    <scroll-view scroll-x="true" class="thumbs-row">
+      <block wx:for="{{imgUrls}}" wx:key="*this">
+        <image class="thumb" src="{{item}}" mode="aspectFill"></image>
+      </block>
+    </scroll-view>
+  </view>
+</view>
+
+<!-- 3. 评语区（最小化替换：原 remark 改为 brief + memo） -->
+<view class="form-group">
+  <view class="label">
+    {{ isLocalMode ? '备注说明 / Remarks' : '课堂简评 / Brief Comment' }}
+  </view>
+
+  <!-- A. 本地/审核模式：仍用 remark，不破坏原逻辑 -->
+  <textarea
+    wx:if="{{isLocalMode}}"
+    value="{{remark}}"
+    bindinput="onRemarkInput"
+    placeholder="请输入..."
+  />
+
+  <!-- B. 真实消课模式：简评 brief（用于海报） -->
+  <textarea
+    wx:else
+    value="{{brief}}"
+    bindinput="onBriefInput"
+    placeholder="课堂简评（将用于海报）"
+    maxlength="80"
+  />
+</view>
+
+<!-- 4. 教师备忘（仅老师可见，不展示在海报） -->
+<view wx:if="{{!isLocalMode}}" class="form-group">
+  <view class="label">教师备忘 / Memo</view>
+  <textarea
+    value="{{memo}}"
+    bindinput="onMemoInput"
+    maxlength="800"
+    placeholder="详细记录课堂表现、问题点、下节课计划等（仅内部，不展示在海报）"
+  />
+  <view class="memo-count">{{memo.length || 0}} / 800</view>
+</view>
+
+
+<!-- 提交按钮 -->
+<button bindtap="submit" class="submit-btn">
+  {{ isLocalMode ? '确认核销' : '确认消课' }}
+</button>
+
+</view>

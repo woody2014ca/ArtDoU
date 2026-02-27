@@ -1,0 +1,66 @@
+<view class="container">
+  <!-- 头部：账户与存量信息 -->
+  <view class="header-section">
+    <text class="student-name">{{studentName}}</text>
+    <text class="artist-tag">专业版账户 / Premium Member</text>
+    <!-- 1. 课时整容：改为“可用余额”或“存量” -->
+    <text class="lessons-count">可用存量余额 / Remaining Units: {{lessonsCount || 0}}</text>
+  </view>
+
+  <!-- 统计卡片：资产统计 -->
+  <view class="stat-card">
+    <view class="stat-item">
+      <text class="stat-num">{{workCount || 0}}</text>
+      <!-- 2. 作品整容：改为“资产记录”或“存档数” -->
+      <text class="stat-label">资产存证</text>
+      <text class="stat-en">Records</text>
+    </view>
+    <view class="stat-divider"></view>
+    <view class="stat-item">
+      <text class="stat-num">{{rewardCount || 0}}</text>
+      <!-- 3. 奖励整容：改为“激励点数” -->
+      <text class="stat-label">激励分值</text>
+      <text class="stat-en">Bonus</text>
+    </view>
+  </view>
+
+  <!-- 功能按钮区：去教育化 -->
+  <view class="action-grid">
+    <!-- 4. 请假整容：这是高危词汇，改为“排期变更”或“服务挂起” -->
+    <view class="action-item">
+      <view class="icon-box"><text>📅</text></view>
+      <text>排期变更</text>
+    </view>
+    <!-- 5. 海报整容：改为“导出报告” -->
+    <view class="action-item" bindtap="doLongReportExport">
+      <view class="icon-box"><text>📊</text></view>
+      <text>导出档案</text>
+    </view>
+    <!-- 6. 分享有奖整容：改为“激励获取” -->
+    <view class="action-item">
+      <view class="icon-box"><text>🔗</text></view>
+      <text>激励获取</text>
+    </view>
+  </view>
+
+  <!-- 展厅列表：改为“视觉资产流水” -->
+  <view class="gallery-title">
+    <text class="title-cn">VISUAL LOG</text>
+    <text class="title-en">视 觉 资 产 库</text>
+  </view>
+
+  <view class="work-grid">
+    <block wx:for="{{timelineEvents}}" wx:key="_id">
+      <view class="work-item" wx:if="{{item.type === 'work'}}">
+        <image src="{{item.image}}" mode="aspectFill" class="work-cover"></image>
+        <view class="work-info">
+          <!-- 7. 日期整容：标记为“核销时间”或“录入点” -->
+          <text class="work-date">Record: {{item.displayDate}}</text>
+        </view>
+      </view>
+    </block>
+  </view>
+
+  <!-- 隐藏的绘图画布 -->
+  <canvas type="2d" id="artReportCanvas" style="width: 750px; height: {{canvasHeight}}px; position: fixed; left: -9999px;"></canvas>
+</view>

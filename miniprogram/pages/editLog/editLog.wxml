@@ -1,0 +1,34 @@
+<view class="container">
+  <view class="header-section">
+    <text class="title">编辑消课记录</text>
+    <text class="sub">{{log.student_name}} · {{log.date}}</text>
+  </view>
+
+  <view class="form-group">
+    <text class="label">课堂简评 / Brief</text>
+    <textarea class="textarea" value="{{brief}}" placeholder="课堂简评（用于海报）" maxlength="80" bindinput="onBriefInput" />
+  </view>
+  <view class="form-group">
+    <text class="label">教师备忘 / Memo</text>
+    <textarea class="textarea memo" value="{{memo}}" placeholder="仅内部可见" maxlength="800" bindinput="onMemoInput" />
+    <text class="count">{{memo.length || 0}} / 800</text>
+  </view>
+
+  <view class="form-group">
+    <text class="label">作品图片（可重新选择替换）</text>
+    <view bindtap="chooseImage" class="image-box">
+      <image wx:if="{{imgUrl}}" src="{{imgUrl}}" mode="aspectFill" class="preview-img"></image>
+      <view class="plus-overlay"><text class="plus">+</text></view>
+    </view>
+    <view wx:if="{{imgUrls.length > 0}}" class="thumbs-wrap">
+      <text class="thumbs-count">已选 {{imgUrls.length}} 张</text>
+      <scroll-view scroll-x="true" class="thumbs-row">
+        <block wx:for="{{imgUrls}}" wx:key="*this">
+          <image class="thumb" src="{{item}}" mode="aspectFill"></image>
+        </block>
+      </scroll-view>
+    </view>
+  </view>
+
+  <button class="submit-btn" bindtap="submit">保存</button>
+</view>

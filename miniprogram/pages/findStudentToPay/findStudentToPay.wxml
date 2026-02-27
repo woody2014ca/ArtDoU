@@ -1,0 +1,22 @@
+<view class="container">
+  <view class="header-section">
+    <text class="brand-small">意向学员缴费</text>
+    <text class="main-title">查找学员并缴费</text>
+    <text class="sub-title-en">意向登记或已录入的学员姓名 + 家长手机号</text>
+  </view>
+
+  <view class="input-group">
+    <text class="label">学员姓名</text>
+    <input class="input" placeholder="选填，若该手机号只对应一名学员可不填" value="{{studentName}}" bindinput="onStudentNameInput" />
+  </view>
+  <view class="input-group">
+    <text class="label">家长手机号</text>
+    <input class="input" type="number" maxlength="11" placeholder="必填，老师登记的手机号" value="{{phone}}" bindinput="onPhoneInput" />
+  </view>
+
+  <view class="tip">意向登记后或老师已录入学员后，在此填写即可提交缴费凭证。老师确认入账（或「确认入账并转为正式学员」）后，可用同一手机号在首页「我是家长，绑定手机号」登录。</view>
+
+  <button class="submit-btn" loading="{{loading}}" disabled="{{loading}}" bindtap="findAndGoPay">查找并去缴费</button>
+
+  <view class="back-row" bindtap="goBack"><text>返回</text></view>
+</view>

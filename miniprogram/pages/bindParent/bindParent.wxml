@@ -1,0 +1,40 @@
+<!-- pages/bindParent/bindParent.wxml -->
+<view class="container">
+  <view class="header-section">
+    <text class="brand-small">家长入口</text>
+    <text class="main-title">绑定手机号</text>
+    <text class="sub-title-en">请使用在机构登记的家长手机号</text>
+  </view>
+
+  <view class="input-group">
+    <text class="label">家长手机号</text>
+    <input
+      class="input-phone"
+      type="number"
+      maxlength="11"
+      placeholder="请输入手机号"
+      placeholder-class="placeholder"
+      value="{{phone}}"
+      bindinput="onPhoneInput"
+    />
+  </view>
+
+  <view class="tip">仅已完成缴费的学员家长可绑定，如有疑问请联系老师。</view>
+
+  <view class="openid-section">
+    <text class="openid-label">或由老师用 OpenID 绑定：您的 OpenID</text>
+    <view class="openid-value-row">
+      <text class="openid-value" selectable>{{myOpenid || '加载中...'}}</text>
+      <text class="openid-copy" bindtap="copyOpenid">复制</text>
+    </view>
+    <text class="openid-tip">请将 OpenID 发给老师，老师在「编辑学员」中为您绑定后，您再打开小程序即为家长端。</text>
+  </view>
+
+  <button class="brand-submit-btn" loading="{{loading}}" disabled="{{loading}}" bindtap="submitBind">
+    确认绑定
+  </button>
+
+  <view class="back-row" bindtap="goBack">
+    <text>返回上一页</text>
+  </view>
+</view>

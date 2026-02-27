@@ -1,0 +1,56 @@
+/* pages/enroll/enroll.wxss */
+page { background: #fff; }
+.container { padding: 40rpx; } 
+
+.input-group { margin-bottom: 40rpx; }
+.label { font-size: 28rpx; font-weight: bold; color: #333; margin-bottom: 20rpx; display: block; }
+
+/* 修复：给固定高度，垂直居中，防止文字被切割 */
+.input-field { 
+  background: #f8f8f8; 
+  height: 100rpx;       /* 1. 设定固定高度 */
+  line-height: 100rpx;  /* 2. 设定行高与高度一致，保证文字垂直居中 */
+  padding: 0 30rpx;     /* 3. 只留左右内边距，取消上下内边距 */
+  border-radius: 16rpx; 
+  font-size: 30rpx; 
+  width: 100%;
+  box-sizing: border-box; 
+  color: #333;
+}
+
+/* 选择器样式 */
+.picker-box { 
+  background: #f8f8f8; 
+  height: 100rpx;       /* 固定高度 */
+  line-height: 100rpx;  
+  padding: 0 30rpx; 
+  border-radius: 16rpx; 
+  font-size: 30rpx; 
+  color: #333; 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center;
+}
+
+/* 文本域样式 */
+.textarea-field { 
+  background: #f8f8f8; 
+  padding: 30rpx; 
+  border-radius: 16rpx; 
+  font-size: 30rpx; 
+  width: 100%; 
+  height: 200rpx; 
+  box-sizing: border-box;
+}
+
+.arrow { color: #ccc; font-size: 24rpx; }
+
+.referrer-value {
+  background: #f8f8f8;
+  height: 100rpx;
+  line-height: 100rpx;
+  padding: 0 30rpx;
+  border-radius: 16rpx;
+  font-size: 30rpx;
+  color: #666;
+}

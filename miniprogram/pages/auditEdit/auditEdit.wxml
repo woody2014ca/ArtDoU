@@ -1,0 +1,20 @@
+<view class="container">
+  <view class="header-section">
+    <text class="title">编辑项目 / Edit Item</text>
+  </view>
+
+  <view class="form-group">
+    <text class="label">项目名称 / Item Name</text>
+    <input class="input" placeholder="例如：办公用纸" value="{{name}}" bindinput="onNameInput" />
+  </view>
+  <view class="form-group">
+    <text class="label">供应商编号 / Contact</text>
+    <input class="input" placeholder="请输入编号" value="{{contact}}" bindinput="onContactInput" />
+  </view>
+  <view class="form-group">
+    <text class="label">入库数量 / Quantity</text>
+    <input class="input" type="number" placeholder="0" value="{{left}}" bindinput="onLeftInput" />
+  </view>
+
+  <button class="submit-btn" bindtap="submit">保存</button>
+</view>

@@ -1,0 +1,31 @@
+<!-- pages/leaveManage/leaveManage.wxml -->
+<view class="container">
+  <view class="header">
+    <text class="title">{{ isAudit ? '变动确认' : '请假审批' }}</text>
+    <text class="subtitle">{{ isAudit ? 'DATA VERIFICATION' : 'LEAVE APPROVAL' }}</text>
+  </view>
+
+  <view class="leave-list">
+    <block wx:for="{{pendingList}}" wx:key="_id">
+      <view class="manage-card">
+        <view class="card-top">
+          <text class="student">{{ isAudit ? '对象: ' : '学生: ' }}{{item.student_name}}</text>
+          <text class="date">{{item.date}}</text>
+        </view>
+        <view class="card-mid">
+          <text class="reason-label">说明：</text>
+          <text class="reason-content">{{item.reason || '无'}}</text>
+        </view>
+        <view class="card-bottom">
+          <view class="btn approve" bindtap="approveLeave" data-id="{{item._id}}" data-name="{{item.student_name}}">
+            {{ isAudit ? '确认变更' : '批准请假' }}
+          </view>
+        </view>
+      </view>
+    </block>
+
+    <view wx:if="{{pendingList.length === 0}}" class="empty-state">
+      {{ isAudit ? '无待确认变更' : '暂无待批请假' }}
+    </view>
+  </view>
+</view>

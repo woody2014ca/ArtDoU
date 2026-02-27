@@ -1,0 +1,52 @@
+<view class="container">
+
+<view class="header-center">
+  <view class="page-title">{{ isLocalMode ? '档案维护' : '编辑学员信息' }}</view>
+  <view class="page-subtitle">{{ isLocalMode ? 'DATA MAINTENANCE' : 'EDIT STUDENT PROFILE' }}</view>
+</view>
+
+<!-- ✅ 只要 loadingStudent=true，页面上不能出现任何 input -->
+<view wx:if="{{loadingStudent}}">
+  <view class="form-group">
+    <view class="label">加载中...</view>
+  </view>
+</view>
+
+<view wx:else>
+  <view class="form-group">
+    <view class="label">{{ isLocalMode ? '登记名称 / Registered Name' : '学员姓名 / Name' }}</view>
+    <input controlled value="{{student.name || ''}}" data-field="name" bindinput="onInput" />
+  </view>
+
+  <view class="form-group">
+    <view class="label">{{ isLocalMode ? '联络标识 / Contact Ref' : '家长电话 / Phone' }}</view>
+    <input controlled value="{{(student.phone || student.parent_phone) || ''}}" data-field="phone" bindinput="onInput" />
+  </view>
+
+  <view class="form-group last-group">
+    <view class="label">{{ isLocalMode ? '剩余额度 / Balance' : '剩余课时 / Lessons Left' }}</view>
+    <input controlled type="text" value="{{student.left_classes == null ? '' : student.left_classes}}" data-field="left_classes" bindinput="onInput" placeholder="可填负数" />
+    <view wx:if="{{!isLocalMode}}" class="warning-text">
+      * 修改此处将直接同步更新课时数，请谨慎操作。
+    </view>
+  </view>
+
+  <view wx:if="{{!isLocalMode && studentId}}" class="share-row">
+    <button open-type="share" class="share-link-btn">分享缴费页给家长（点卡片直达缴费）</button>
+    <button bindtap="copyPaymentLink" class="share-link-btn copy-tip-btn">复制缴费说明（粘贴发家长）</button>
+  </view>
+  <view wx:if="{{!isLocalMode && studentId}}" class="form-group open-parent-row">
+    <view class="label">老学员补开家长端</view>
+    <button bindtap="openParentBind" class="openid-btn">开放家长手机号绑定</button>
+    <view class="hint">学员已有档案、未经过小程序缴费时使用。开放后家长用上方手机号在首页「我是家长，绑定手机号」登录。</view>
+  </view>
+  <view wx:if="{{!isLocalMode && studentId}}" class="form-group">
+    <view class="label">家长 OpenID（指定该学员的家长微信）</view>
+    <input class="input-openid" placeholder="粘贴家长发来的 OpenID" value="{{parentOpenid}}" bindinput="onParentOpenidInput" />
+    <button bindtap="setParentByOpenid" class="openid-btn">设为该学员家长</button>
+  </view>
+  <button bindtap="updateStudent" class="save-btn">{{ isLocalMode ? '保存更新' : '保存修改' }}</button>
+  <button bindtap="deleteStudent" class="delete-btn">{{ isLocalMode ? '移除此条目' : '删除该学员' }}</button>
+</view>
+
+</view>

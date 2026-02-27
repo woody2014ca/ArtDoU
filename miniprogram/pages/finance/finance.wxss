@@ -1,0 +1,54 @@
+/** pages/finance/finance.wxss **/
+.container { padding: 60rpx 40rpx; background: #fff; min-height: 100vh; box-sizing: border-box; }
+
+.header { margin-bottom: 60rpx; display: flex; flex-direction: column; }
+.title { font-size: 56rpx; font-weight: 900; color: #1a1a1a; letter-spacing: -1rpx; }
+.subtitle { font-size: 16rpx; color: #00539C; font-weight: bold; text-transform: uppercase; letter-spacing: 12rpx; margin-top: 15rpx; }
+
+.payment-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28rpx 32rpx;
+  margin-bottom: 24rpx;
+  background: #EFF6FF;
+  border: 1rpx solid #8ab4d7;
+  border-radius: 16rpx;
+}
+.payment-entry-label { font-size: 30rpx; font-weight: 600; color: #005387; }
+.payment-entry-arrow { font-size: 28rpx; color: #005387; }
+
+.summary-box {
+  background: #00539C;
+  border-radius: 24rpx;
+  padding: 40rpx 20rpx;
+  color: white;
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 60rpx;
+  box-shadow: 0 20rpx 40rpx rgba(0, 83, 156, 0.15);
+}
+.sum-item { text-align: center; }
+.sum-label { font-size: 18rpx; opacity: 0.7; display: block; margin-bottom: 8rpx; }
+.sum-value { font-size: 36rpx; font-weight: bold; }
+.sum-line { width: 1rpx; background: rgba(255,255,255,0.2); height: 50rpx; align-self: center; }
+
+.record-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 35rpx 0;
+  border-bottom: 1rpx solid #f8f8f8;
+}
+
+.r-name { font-size: 32rpx; font-weight: bold; color: #333; display: block; text-transform: capitalize; }
+.r-date { font-size: 22rpx; color: #ccc; margin-top: 8rpx; display: block; }
+
+.r-right { text-align: right; display: flex; flex-direction: column; align-items: flex-end; }
+.r-amount { font-size: 32rpx; font-weight: 800; color: #00539C; display: block; margin-bottom: 5rpx; }
+.r-price { font-size: 24rpx; color: #FF4D4F; font-weight: bold; display: block; }
+.r-actions { display: flex; flex-direction: row; justify-content: flex-end; gap: 24rpx; margin-top: 12rpx; }
+.r-edit { font-size: 24rpx; color: #00539C; padding: 6rpx 16rpx; }
+.r-delete { font-size: 24rpx; color: #999; padding: 6rpx 16rpx; }
+
+.empty { text-align: center; padding-top: 200rpx; color: #ccc; font-size: 28rpx; }
