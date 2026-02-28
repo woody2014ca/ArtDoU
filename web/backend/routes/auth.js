@@ -3,7 +3,7 @@ import { getDb, find, add, update } from '../db.js';
 import { signToken, authMiddleware } from '../middleware/auth.js';
 
 const router = Router();
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'ArtDoU2026';
 
 /** GET /api/auth/init — 同小程序 init：返回当前身份，可选带 token */
 router.get('/init', authMiddleware, async (req, res) => {
