@@ -37,7 +37,7 @@ export default function Checkin() {
     e.preventDefault();
     if (!count || Number(count) < 1) { setMsg('请输入消课数量'); return; }
     setMsg('');
-    if (!isRealStudent) { setMsg('核销成功（演示）'); setTimeout(() => navigate(-1), 1200); return; }
+    if (!isRealStudent) { setMsg('请从学员名录进入'); return; }
     if (role !== 'admin' && role !== 'teacher') { setMsg('仅老师可操作'); return; }
     setLoading(true);
     try {

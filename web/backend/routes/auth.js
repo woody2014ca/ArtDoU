@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getDb, find, getDoc, add, update } from '../db.js';
+import { getDb, find, add, update } from '../db.js';
 import { signToken, authMiddleware } from '../middleware/auth.js';
 
 const router = Router();
@@ -10,16 +10,10 @@ router.get('/init', authMiddleware, async (req, res) => {
   try {
     const db = getDb();
     if (!db) return res.json({ success: false, msg: 'Database not connected' });
-    let isAuditModeFromDB = true;
-    try {
-      const config = await getDoc('configs', 'system_config');
-      if (config && config.isAuditMode === false) isAuditModeFromDB = false;
-    } catch (e) {}
     res.json({
       success: true,
       role: req.role,
       myStudentId: req.myStudentId,
-      isAuditOpen: isAuditModeFromDB,
     });
   } catch (e) {
     res.status(500).json({ success: false, error: e.message });

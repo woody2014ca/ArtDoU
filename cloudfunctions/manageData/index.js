@@ -9,14 +9,6 @@ exports.main = async (event, context) => {
   const { collection, action, id, data } = event
 
   try {
-    let isAuditModeFromDB = true
-    try {
-      const configRes = await db.collection('configs').doc('system_config').get()
-      isAuditModeFromDB = configRes.data.isAuditMode !== false 
-    } catch (e) {
-      console.log('读取配置失败，默认开启审核模式')
-    }
-
     let userRole = 'guest'
     let myStudentId = null
     const openidMatch = (a, b) => String(a || '').trim() === String(b || '').trim()
@@ -60,47 +52,17 @@ console.log('[RID]', rid, 'IN', { action, collection, id, dataKeys: data ? Objec
           success: true, 
           role: userRole, 
           myStudentId: myStudentId,
-          isAuditOpen: isAuditModeFromDB, 
           debug_openid: OPENID_RAW 
         }
 
       case 'get': {
-  // ==============================================================
-  // ✅ GET：查询数据（列表 / 单条）
-  // 目标：
-  // 1) 保留原有权限与过滤逻辑（审核模式、管理员/家长）
-  // 2) 修复“switch 穿透”风险：确保 get 绝不可能落入 add
-  // 3) 支持两种查询：
-  //    - Situation A: id === 'all'  -> 查列表（最多 100 条）
-  //    - Situation B: id !== 'all'  -> 查单条（doc(id)）
-  // ==============================================================
-
-  // ✅ 正确的日志标签：这里是 get，不是 add
-  console.log('[RID]', rid, 'HIT case:get', {
-    role: userRole,
-    collection,
-    id,
-    dataKeys: data ? Object.keys(data) : null
-  })
-
-  // 脱敏逻辑 - 【保留原逻辑】
-  // 审核模式开启时，陌生人(guest)禁止读取任何数据 —— 除非是「家长分享链接」查看该学员信息与作品
-  if (userRole === 'guest' && isAuditModeFromDB) {
-    const shareStudentId = (id && id !== 'all') ? id : (event.search_student_id || (data && data.search_student_id))
-    const allowShareStudents = collection === 'Students' && id && id !== 'all'
-    const allowShareLogs = collection === 'Attendance_logs' && id === 'all' && shareStudentId
-    if (allowShareStudents) {
-      const one = await db.collection(collection).doc(id).get()
-      return { success: true, data: one.data }
-    }
-    if (allowShareLogs) {
-      const result = await db.collection(collection).where({ student_id: shareStudentId }).limit(100).get()
-      return { success: true, data: result.data }
-    }
-    return { success: false, msg: 'Audit Mode' }
+  // GET：仅教师(admin)与家长(parent)可读数据，guest 需先登录
+  console.log('[RID]', rid, 'HIT case:get', { role: userRole, collection, id, dataKeys: data ? Object.keys(data) : null })
+  if (userRole === 'guest') {
+    return { success: false, msg: '请先登录' }
   }
 
-  // ✅ Situation A: 查列表 (id === 'all')
+  // Situation A: 查列表 (id === 'all')
   if (id === 'all') {
     let filter = {}
     // 查 Attendance_logs 且带了 search_student_id 时，只返回该学员记录（教师端生成海报用）

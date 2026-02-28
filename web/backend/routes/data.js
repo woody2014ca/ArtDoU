@@ -6,16 +6,7 @@ const router = Router();
 
 router.use(authMiddleware);
 
-const getIsAuditOpen = async () => {
-  try {
-    const c = await getDoc('configs', 'system_config');
-    return c && c.isAuditMode !== false;
-  } catch (e) {
-    return true;
-  }
-};
-
-/** GET /api/data/:collection/:id? — 对应 manageData action=get */
+/** GET /api/data/:collection/:id? — 仅教师与家长可读数据，未登录不可读 */
 router.get('/:collection/:id?', async (req, res) => {
   try {
     const db = getDb();
@@ -25,19 +16,9 @@ router.get('/:collection/:id?', async (req, res) => {
     const data = { search_student_id: searchStudentId };
     const userRole = req.role;
     const myStudentId = req.myStudentId;
-    const isAuditModeFromDB = await getIsAuditOpen();
 
-    if (userRole === 'guest' && isAuditModeFromDB) {
-      const shareStudentId = (id && id !== 'all') ? id : searchStudentId;
-      if (collection === 'Students' && id && id !== 'all') {
-        const one = await getDoc(collection, id);
-        return res.json({ success: true, data: one });
-      }
-      if (collection === 'Attendance_logs' && id === 'all' && shareStudentId) {
-        const list = await find(collection, { student_id: shareStudentId }, 100);
-        return res.json({ success: true, data: list });
-      }
-      return res.json({ success: false, msg: 'Audit Mode' });
+    if (userRole === 'guest') {
+      return res.json({ success: false, msg: '请先登录' });
     }
 
     const docId = (id === 'all' || !id) ? null : id;
