@@ -12,12 +12,11 @@
 
 ---
 
-## 2. 指定后端目录（必做，否则会 Build failed）
+## 2. 不要设置 Root Directory（重要）
 
-- 点进刚创建的服务（Service）。
-- 打开 **Settings**，找到 **Root Directory**（或 **Source** / **Build** 里的路径）。
-- 填：**web/backend**，保存。
-- 若之前部署失败过，改完后点 **Redeploy** 或 **Deploy** 再试一次。
+- 仓库**根目录**已放好 **Dockerfile**，Railway 会据此用 Docker 构建，避免 “Error creating build plan with Railpack”。
+- 点进服务后，在 **Settings** 里确认 **Root Directory** 为**空**（不要填 `web/backend`）。根目录的 Dockerfile 会自动把 `web/backend` 拷进镜像并运行。
+- 若之前部署失败过，保存后点 **Redeploy** 再试一次。
 
 ---
 

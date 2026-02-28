@@ -1,0 +1,8 @@
+# 根目录 Dockerfile 的构建上下文：排除无关目录，只保留 web/backend
+.git
+**/node_modules
+miniprogram
+web/frontend
+*.md
+.env*
+.DS_Store
