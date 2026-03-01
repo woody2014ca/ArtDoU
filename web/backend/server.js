@@ -6,6 +6,11 @@ import authRoutes from './routes/auth.js';
 import dataRoutes from './routes/data.js';
 import paymentRoutes from './routes/payment.js';
 
+// 防止未处理的 Promise rejection 导致进程退出（避免 502）
+process.on('unhandledRejection', (reason, p) => {
+  console.error('Unhandled Rejection:', reason);
+});
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 

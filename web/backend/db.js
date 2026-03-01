@@ -18,6 +18,9 @@ export async function connect() {
   client = new MongoClient(uri, {
     serverSelectionTimeoutMS: 10000,
     connectTimeoutMS: 10000,
+    // 避免 Node 17+ 的 IPv6 优先导致 Atlas 出现 SSL alert 80
+    autoSelectFamily: false,
+    family: 4,
   });
   await client.connect();
   db = client.db(dbName);
