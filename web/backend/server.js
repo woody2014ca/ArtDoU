@@ -12,7 +12,11 @@ process.on('unhandledRejection', (reason, p) => {
 });
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = Number(process.env.PORT);
+if (!PORT) {
+  console.error('❌ PORT not provided by Railway');
+  process.exit(1);
+}
 
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
@@ -21,15 +25,19 @@ app.use('/api/auth', authRoutes);
 app.use('/api/data', dataRoutes);
 app.use('/api/payment', paymentRoutes);
 
-app.get('/health', (req, res) => res.json({ ok: true }));
+app.get('/health', (_, res) => res.status(200).json({ status: 'ok', ok: true }));
 
-// 先启动 HTTP 服务，再在后台连接 MongoDB，避免连接挂起导致 Railway 502
+// 不配 MONGODB_URI 时完全不连数据库，只支持老师密码登录，无 502、无 Atlas
 function start() {
   app.listen(PORT, '0.0.0.0', () => {
-    console.log('API listening on', PORT);
-    connect()
-      .then(() => console.log('MongoDB connected'))
-      .catch((e) => console.error('MongoDB connect failed:', e.message));
+    console.log(`✅ API listening on ${PORT}`);
+    if (process.env.MONGODB_URI || process.env.MONGO_URL) {
+      connect()
+        .then(() => console.log('MongoDB connected'))
+        .catch((e) => console.error('MongoDB connect failed:', e.message));
+    } else {
+      console.log('No MONGODB_URI/MONGO_URL: teacher login only, no database.');
+    }
   });
 }
 
