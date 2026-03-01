@@ -22,8 +22,10 @@ export async function connect() {
     autoSelectFamily: false,
     family: 4,
   };
-  // Railway + Atlas 常报 SSL alert 80，放宽 TLS 校验作兼容（Atlas 证书有效，仅握手环境差异）
-  if (isAtlas) opts.tlsAllowInvalidCertificates = true;
+  if (isAtlas) {
+    opts.tlsAllowInvalidCertificates = true;
+    opts.tlsAllowInvalidHostnames = true;
+  }
   client = new MongoClient(uri, opts);
   await client.connect();
   db = client.db(dbName);

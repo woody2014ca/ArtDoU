@@ -1,69 +1,46 @@
-# 后端部署到 Railway（最短清单）
+# 后端部署到 Railway（极简）
 
-下面这些步骤需要你在浏览器里自己完成（约 5 分钟）。代码已准备好，Railway 会自动识别并运行。
+**只做 3 件事**，老师就能用密码登录 www.kunlunfo.com。
 
 ---
 
-## 1. 注册并创建项目
+## 1. 创建项目并部署
 
 - 打开 https://railway.app ，用 **GitHub** 登录。
-- 点 **New Project** → **Deploy from GitHub repo**。
-- 选择仓库 **woody2014ca/ArtDoU**（和前端同一个仓库）。
+- **New Project** → **Deploy from GitHub repo** → 选 **woody2014ca/ArtDoU**。
+- 等它自动构建、部署（根目录有 Dockerfile，不用改）。
 
 ---
 
-## 2. 不要设置 Root Directory（重要）
+## 2. 只配 2 个变量
 
-- 仓库**根目录**已放好 **Dockerfile**，Railway 会据此用 Docker 构建，避免 “Error creating build plan with Railpack”。
-- 点进服务后，在 **Settings** 里确认 **Root Directory** 为**空**（不要填 `web/backend`）。根目录的 Dockerfile 会自动把 `web/backend` 拷进镜像并运行。
-- 若之前部署失败过，保存后点 **Redeploy** 再试一次。
+- 点进该服务 → **Variables**。
+- 添加：
 
----
-
-## 3. 添加环境变量
-
-- 在同一服务的 **Variables** 里，点 **Add Variable** 或 **RAW Editor**。
-- 至少添加（把示例值改成你自己的）：
-
-| 变量名 | 值（示例） |
-|--------|------------|
-| MONGODB_URI | 你的 MongoDB 连接串（Atlas 免费可申请） |
-| MONGODB_DB | artdou |
+| 变量名 | 值 |
+|--------|-----|
 | ADMIN_PASSWORD | ArtDoU2026 |
-| JWT_SECRET | 随便一串英文/数字，如 mySecret2026 |
+| JWT_SECRET | mySecret2026 |
 
-没有 MongoDB？去 https://www.mongodb.com/cloud/atlas 注册，建一个免费集群，复制连接字符串填到 MONGODB_URI。
-
----
-
-## 4. 生成公网地址
-
-- 同一服务里，**Settings** → **Networking** → **Generate Domain**。
-- 复制生成的地址（如 https://xxx.up.railway.app）。
+**不要**填 MONGODB_URI、MONGODB_DB。不填数据库也能用：老师密码登录正常，/health 正常；家长绑定、学员数据等会提示「暂未开放」或「未配置数据库」。
 
 ---
 
-## 5. 让前端连到这个地址
+## 3. 生成域名并让前端连上
 
-- 打开 https://vercel.com ，进入你的前端项目。
-- **Settings** → **Environment Variables** → 添加：
-  - Name：**VITE_API_URL**
-  - Value：第 4 步复制的地址（如 https://xxx.up.railway.app）
-- 保存后，**Deployments** → 对最新部署点 **Redeploy**。
-
----
-
-做完以上 5 步，等 1～2 分钟再打开 www.kunlunfo.com 用密码 **ArtDoU2026** 登录即可。
+- 同一服务 **Settings** → **Networking** → **Generate Domain**，复制地址（如 https://xxx.up.railway.app）。
+- 到 **Vercel** 你的前端项目 → **Settings** → **Environment Variables** → 添加：
+  - **VITE_API_URL** = 上一步的地址
+- **Deployments** → 最新部署点 **Redeploy**。
 
 ---
 
-## 若出现 502 Bad Gateway
+完成。等 1～2 分钟访问 www.kunlunfo.com，用密码 **ArtDoU2026** 登录即可。
 
-1. **看日志**：Railway 项目 → 选中该服务 → **Deployments** → 点最新部署 → **View Logs**。关注：
-   - 是否出现 `API listening on 8080`（或其它 PORT）：有则说明进程已监听，502 可能是偶发或路由问题。
-   - 是否出现 `MongoDB connect failed:`：说明 DB 连不上，但不影响 `/health` 和老师登录（登录不依赖 DB）。
-   - 是否有未捕获异常或进程退出：会直接导致 502。
+以后如果需要学员名单、考勤、家长绑定等，再在 Railway 的 Variables 里加上 **MONGODB_URI**（Atlas 连接串）和 **MONGODB_DB=artdou** 即可。
 
-2. **端口**：Railway 通过环境变量 **PORT**（常为 8080）暴露服务，代码已使用 `process.env.PORT`，无需改 3001。
+---
 
-3. **启动顺序**：代码已改为**先启动 HTTP 再后台连 MongoDB**，这样即使 Atlas 慢或失败，`/health` 也能返回 `{"ok":true}`，避免因连接挂起导致 502。
+## 若连 Atlas 报 SSL alert 80
+
+- 在 Atlas 控制台：你的集群 → **Connect** → **Drivers**，复制 **「Standard connection string」**（不是 mongodb+srv 那条，是带具体主机和 27017 的那条），贴到 Railway 的 **MONGODB_URI**，保存后重新部署。
