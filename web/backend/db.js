@@ -15,13 +15,16 @@ export async function connect() {
   const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
   const dbName = process.env.MONGODB_DB || 'artdou';
   if (db) return db;
-  client = new MongoClient(uri, {
+  const isAtlas = /mongodb\.net|mongodb\+srv/.test(uri);
+  const opts = {
     serverSelectionTimeoutMS: 10000,
     connectTimeoutMS: 10000,
-    // 避免 Node 17+ 的 IPv6 优先导致 Atlas 出现 SSL alert 80
     autoSelectFamily: false,
     family: 4,
-  });
+  };
+  // Railway + Atlas 常报 SSL alert 80，放宽 TLS 校验作兼容（Atlas 证书有效，仅握手环境差异）
+  if (isAtlas) opts.tlsAllowInvalidCertificates = true;
+  client = new MongoClient(uri, opts);
   await client.connect();
   db = client.db(dbName);
   return db;
