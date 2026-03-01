@@ -13,7 +13,7 @@ export function toId(id) {
 }
 
 export async function connect() {
-  let uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+  let uri = process.env.MONGODB_URI || process.env.MONGO_URL || 'mongodb://localhost:27017';
   const dbName = process.env.MONGODB_DB || 'artdou';
   if (db) return db;
   const isAtlas = /mongodb\.net|mongodb\+srv/.test(uri);

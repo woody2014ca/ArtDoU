@@ -41,7 +41,19 @@
 
 ---
 
-## 若连 Atlas 报 SSL alert 80
+## 若连 Atlas 一直报 SSL alert 80（推荐：改用 Railway 自带 MongoDB）
 
-Atlas 界面里**没有**「Standard connection string」选项，只给 `mongodb+srv://...`，用这条即可。  
-代码里已做：Node 18、强制 IPv4、TLS 放宽、MongoDB 驱动升级到 6.21。若仍报错，可检查 Atlas **Network Access** 是否加了 **0.0.0.0/0**（Allow access from anywhere），保存后 Railway 再部署一次。
+Railway 的 Node 环境和 Atlas 的 TLS 存在兼容问题，多次尝试仍可能报错。**最稳的做法**是改用 Railway 自带的 MongoDB，走内网、无 TLS：
+
+1. 在 **同一 Railway 项目** 里，点 **+ New**（或 `Ctrl+K`）→ 选 **Database** 或从模板选 **MongoDB**，部署一个 MongoDB 服务（名字如 `Mongo`）。
+2. 部署好后，点进 **ArtDoU** 服务 → **Variables** → **Add Variable** 或 **RAW Editor**：
+   - **MONGODB_URI**：点「引用其他服务变量」，选刚建的 Mongo 服务的 **MONGO_URL**（或手动填 `${{Mongo.MONGO_URL}}`，其中 `Mongo` 换成你起的服务名）。
+   - **MONGODB_DB**：`artdou`（保持不变）。
+3. 保存后 **Deploy** ArtDoU。  
+代码已支持用 **MONGO_URL**（Railway MongoDB 提供的变量名）当连接串，不填 MONGODB_URI 只填 MONGO_URL 也可。
+
+这样数据库和 API 在同一项目内网互通，不再连 Atlas，SSL 80 问题自然消失。若 Atlas 里已有数据，可用 `mongodump`/`mongorestore` 或 Atlas 导出后导入到 Railway 的 MongoDB。
+
+---
+
+若坚持用 Atlas：检查 **Network Access** 是否包含 **0.0.0.0/0**；界面只给 `mongodb+srv://...`，用该串即可。
