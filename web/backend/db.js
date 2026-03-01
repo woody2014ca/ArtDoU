@@ -1,4 +1,5 @@
 import { MongoClient, ObjectId } from 'mongodb';
+import resolveMongodbSrv from 'resolve-mongodb-srv';
 
 let client = null;
 let db = null;
@@ -12,10 +13,17 @@ export function toId(id) {
 }
 
 export async function connect() {
-  const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+  let uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
   const dbName = process.env.MONGODB_DB || 'artdou';
   if (db) return db;
   const isAtlas = /mongodb\.net|mongodb\+srv/.test(uri);
+  if (uri.startsWith('mongodb+srv://')) {
+    try {
+      uri = await resolveMongodbSrv(uri);
+    } catch (e) {
+      console.error('resolveMongodbSrv failed:', e.message);
+    }
+  }
   const opts = {
     serverSelectionTimeoutMS: 10000,
     connectTimeoutMS: 10000,
