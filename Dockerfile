@@ -5,5 +5,5 @@ WORKDIR /app
 COPY web/backend/package*.json ./
 RUN npm install --production
 COPY web/backend/ .
-EXPOSE 3001
+EXPOSE 8080
 CMD ["node", "server.js"]

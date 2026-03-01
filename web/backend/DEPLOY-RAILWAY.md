@@ -37,6 +37,8 @@
 
 完成。等 1～2 分钟访问 www.kunlunfo.com，用密码 **ArtDoU2026** 登录即可。
 
+**若 /health 仍 502**：到该服务 **Settings** → **Networking**（或 **Deploy** 相关），确认 **Port** / 内部端口为 **8080**（与代码监听一致）；Dockerfile 已 EXPOSE 8080。
+
 以后如果需要学员名单、考勤、家长绑定等，再在 Railway 的 Variables 里加上 **MONGODB_URI**（Atlas 连接串）和 **MONGODB_DB=artdou** 即可。
 
 ---

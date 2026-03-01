@@ -12,10 +12,10 @@ process.on('unhandledRejection', (reason, p) => {
 });
 
 const app = express();
-const PORT = Number(process.env.PORT);
-if (!PORT) {
-  console.error('❌ PORT not provided by Railway');
-  process.exit(1);
+// Railway 注入 PORT=8080；无 fallback 到 3001，仅 fallback 到 8080，且必须 0.0.0.0
+const PORT = Number(process.env.PORT) || 8080;
+if (!process.env.PORT) {
+  console.warn('⚠️ PORT not in env, using 8080');
 }
 
 app.use(cors({ origin: true, credentials: true }));
