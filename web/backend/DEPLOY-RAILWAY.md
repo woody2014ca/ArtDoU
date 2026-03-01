@@ -43,4 +43,5 @@
 
 ## 若连 Atlas 报 SSL alert 80
 
-- 在 Atlas 控制台：你的集群 → **Connect** → **Drivers**，复制 **「Standard connection string」**（不是 mongodb+srv 那条，是带具体主机和 27017 的那条），贴到 Railway 的 **MONGODB_URI**，保存后重新部署。
+Atlas 界面里**没有**「Standard connection string」选项，只给 `mongodb+srv://...`，用这条即可。  
+代码里已做：Node 18、强制 IPv4、TLS 放宽、MongoDB 驱动升级到 6.21。若仍报错，可检查 Atlas **Network Access** 是否加了 **0.0.0.0/0**（Allow access from anywhere），保存后 Railway 再部署一次。
