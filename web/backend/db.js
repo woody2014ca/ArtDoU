@@ -15,7 +15,10 @@ export async function connect() {
   const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
   const dbName = process.env.MONGODB_DB || 'artdou';
   if (db) return db;
-  client = new MongoClient(uri);
+  client = new MongoClient(uri, {
+    serverSelectionTimeoutMS: 10000,
+    connectTimeoutMS: 10000,
+  });
   await client.connect();
   db = client.db(dbName);
   return db;

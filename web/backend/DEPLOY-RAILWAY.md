@@ -54,3 +54,16 @@
 ---
 
 做完以上 5 步，等 1～2 分钟再打开 www.kunlunfo.com 用密码 **ArtDoU2026** 登录即可。
+
+---
+
+## 若出现 502 Bad Gateway
+
+1. **看日志**：Railway 项目 → 选中该服务 → **Deployments** → 点最新部署 → **View Logs**。关注：
+   - 是否出现 `API listening on 8080`（或其它 PORT）：有则说明进程已监听，502 可能是偶发或路由问题。
+   - 是否出现 `MongoDB connect failed:`：说明 DB 连不上，但不影响 `/health` 和老师登录（登录不依赖 DB）。
+   - 是否有未捕获异常或进程退出：会直接导致 502。
+
+2. **端口**：Railway 通过环境变量 **PORT**（常为 8080）暴露服务，代码已使用 `process.env.PORT`，无需改 3001。
+
+3. **启动顺序**：代码已改为**先启动 HTTP 再后台连 MongoDB**，这样即使 Atlas 慢或失败，`/health` 也能返回 `{"ok":true}`，避免因连接挂起导致 502。
