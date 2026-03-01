@@ -1,5 +1,9 @@
-// 本地开发走 Vite 代理 /api；Vercel 部署时在项目里设置 VITE_API_URL 为后端地址
-const API_BASE = import.meta.env.VITE_API_URL || '/api';
+// 本地开发走 Vite 代理 /api；Vercel 部署时设置 VITE_API_URL 为后端地址（可带或不带 /api，这里会统一成带 /api）
+const rawBase = import.meta.env.VITE_API_URL || '/api';
+const API_BASE =
+  rawBase.startsWith('http') && !rawBase.replace(/\/$/, '').endsWith('/api')
+    ? rawBase.replace(/\/$/, '') + '/api'
+    : rawBase;
 
 function getToken() {
   return localStorage.getItem('artdou_token') || '';

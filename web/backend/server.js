@@ -6,6 +6,8 @@ import authRoutes from './routes/auth.js';
 import dataRoutes from './routes/data.js';
 import paymentRoutes from './routes/payment.js';
 
+console.log('[ArtDoU] process starting, PORT from env:', process.env.PORT);
+
 // 防止未处理的 Promise rejection 导致进程退出（避免 502）
 process.on('unhandledRejection', (reason, p) => {
   console.error('Unhandled Rejection:', reason);
@@ -17,6 +19,7 @@ const PORT = Number(process.env.PORT) || 8080;
 if (!process.env.PORT) {
   console.warn('⚠️ PORT not in env, using 8080');
 }
+console.log('[ArtDoU] will listen on 0.0.0.0:' + PORT);
 
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
