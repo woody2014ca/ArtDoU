@@ -19,6 +19,7 @@ export default function Poster() {
   const [loading, setLoading] = useState(true);
   const [posterDone, setPosterDone] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState('');
+  const [posterImageUrl, setPosterImageUrl] = useState(null);
   const posterRef = useRef(null);
 
   useEffect(() => {
@@ -88,9 +89,16 @@ export default function Poster() {
   const showPosterImage = () => {
     capturePosterAsImage().then((canvas) => {
       if (!canvas) return;
-      const dataUrl = canvas.toDataURL('image/png');
-      window.open(dataUrl, '_blank', 'noopener');
+      setPosterImageUrl(canvas.toDataURL('image/png'));
     }).catch(() => alert('生成图片失败，请重试'));
+  };
+
+  const downloadPoster = () => {
+    if (!posterImageUrl) return;
+    const a = document.createElement('a');
+    a.download = `艺术成长报告-${name}.png`;
+    a.href = posterImageUrl;
+    a.click();
   };
 
   if (!id) {
@@ -221,12 +229,41 @@ export default function Poster() {
                 🎁 我也要报名
               </button>
             )}
-            <p style={{ fontSize: 12, color: '#888', marginTop: 4 }}>点击后在新窗口打开海报，长按或右键保存图片</p>
             <button type="button" onClick={() => navigate(-1)} style={{ padding: 12, background: '#f0f0f0', border: 0, borderRadius: 10, cursor: 'pointer' }}>
               返回
             </button>
           </div>
         </>
+      )}
+
+      {posterImageUrl && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.9)',
+            zIndex: 10000,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16,
+          }}
+          onClick={() => setPosterImageUrl(null)}
+        >
+          <div onClick={(e) => e.stopPropagation()} style={{ maxWidth: '100%', maxHeight: '85%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <img src={posterImageUrl} alt="海报" style={{ maxWidth: '100%', maxHeight: '75vh', objectFit: 'contain' }} />
+            <p style={{ color: '#fff', fontSize: 14, marginTop: 12 }}>长按图片保存 · 或点击下方下载</p>
+            <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
+              <button type="button" onClick={downloadPoster} style={{ padding: '12px 24px', background: '#005387', color: '#fff', border: 0, borderRadius: 10, cursor: 'pointer' }}>
+                下载图片
+              </button>
+              <button type="button" onClick={() => setPosterImageUrl(null)} style={{ padding: '12px 24px', background: '#666', color: '#fff', border: 0, borderRadius: 10, cursor: 'pointer' }}>
+                关闭
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       <style>{`
