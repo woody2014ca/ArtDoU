@@ -78,30 +78,66 @@ export default function Poster() {
     .map((k) => flatCandidates.find((c) => c.key === k))
     .filter(Boolean);
 
-  const capturePosterAsImage = () => {
-    if (!posterRef.current) return Promise.resolve(null);
-    const timeout = 15000;
-    const p = html2canvas(posterRef.current, {
+  /** 等待海报内所有 img 加载/解码完成，避免未加载就截图导致空白（审计要点 B1） */
+  const waitForImages = (root, timeoutMs = 8000) => {
+    const imgs = Array.from(root.querySelectorAll('img'));
+    const loadTasks = imgs.map((img) => {
+      if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+      return new Promise((resolve, reject) => {
+        const cleanup = (cb) => {
+          img.removeEventListener('load', onLoad);
+          img.removeEventListener('error', onErr);
+          cb();
+        };
+        const onLoad = () => cleanup(resolve);
+        const onErr = () => cleanup(() => reject(new Error('img-load-fail')));
+        img.addEventListener('load', onLoad, { once: true });
+        img.addEventListener('error', onErr, { once: true });
+      });
+    });
+    const decodeTasks = imgs
+      .filter((img) => typeof img.decode === 'function')
+      .map((img) => img.decode().catch(() => {}));
+    const all = Promise.allSettled([...loadTasks, ...decodeTasks]);
+    const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('img-timeout')), timeoutMs));
+    return Promise.race([all, timeout]);
+  };
+
+  const capturePosterAsImage = async () => {
+    if (!posterRef.current) return null;
+    await waitForImages(posterRef.current, 8000);
+    const canvas = await html2canvas(posterRef.current, {
       useCORS: true,
-      allowTaint: true,
-      scale: 2,
+      allowTaint: false,
+      scale: 1,
       backgroundColor: '#ffffff',
     });
-    const t = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), timeout));
-    return Promise.race([p, t]);
+    return canvas;
   };
 
   const runSaveFlow = (hint) => {
     setSaving(true);
-    capturePosterAsImage()
+    const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 15000));
+    Promise.race([Promise.resolve().then(() => capturePosterAsImage()), timeout])
       .then((canvas) => {
         if (!canvas) {
           alert('生成失败，请重试');
           return;
         }
-        setInlineSaveImage({ dataUrl: canvas.toDataURL('image/png'), hint });
+        let dataUrl = '';
+        try {
+          dataUrl = canvas.toDataURL('image/png');
+        } catch (e) {
+          alert('图片跨域限制导致无法生成可保存图片，请稍后重试或使用截屏保存。');
+          return;
+        }
+        if (dataUrl) setInlineSaveImage({ dataUrl, hint });
       })
-      .catch(() => alert('生成图片失败或超时，请重试'))
+      .catch((err) => {
+        if (err?.message === 'img-timeout') alert('图片加载超时，请稍后重试。');
+        else if (err?.message === 'timeout') alert('生成图片超时，请重试。');
+        else alert('生成图片失败或超时，请重试');
+      })
       .finally(() => setSaving(false));
   };
 
@@ -155,7 +191,7 @@ export default function Poster() {
                       position: 'relative',
                     }}
                   >
-                    <img src={item.url} alt="" style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', display: 'block' }} />
+                    <img crossOrigin="anonymous" src={item.url} alt="" style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', display: 'block' }} />
                     {isSel && (
                       <span style={{ position: 'absolute', right: 6, top: 6, background: '#005387', color: '#fff', borderRadius: '50%', width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>✓</span>
                     )}
@@ -200,8 +236,8 @@ export default function Poster() {
                     borderRadius: 12,
                     border: '1px solid #eee',
                     marginBottom: 12,
-                    WebkitUserSelect: 'none',
-                    userSelect: 'none',
+                    WebkitTouchCallout: 'default',
+                    userSelect: 'auto',
                     pointerEvents: 'auto',
                   }}
                 />
@@ -229,7 +265,7 @@ export default function Poster() {
                 <div style={{ display: 'grid', gridTemplateColumns: selectedItems.length <= 2 ? 'repeat(2, 1fr)' : 'repeat(2, 1fr)', gap: 12, maxWidth: 320 }}>
                   {selectedItems.map((item) => (
                     <div key={item.key} style={{ textAlign: 'center' }}>
-                      <img src={item.url} alt="" style={{ width: '100%', borderRadius: 8, display: 'block' }} />
+                      <img crossOrigin="anonymous" src={item.url} alt="" style={{ width: '100%', borderRadius: 8, display: 'block' }} />
                       <div style={{ fontSize: 12, color: '#666', marginTop: 6 }}>
                         {item.work?.date ? new Date(item.work.date).toLocaleDateString('zh-CN') : ''}
                         {item.work?.note && ` · ${item.work.note}`}
