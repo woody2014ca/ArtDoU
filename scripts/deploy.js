@@ -20,6 +20,7 @@ const allPaths = [
   'web/frontend/public',
   'web/frontend/index.html',
   'web/frontend/package.json',
+  'web/frontend/package-lock.json',
   'web/frontend/vite.config.js',
   'web/frontend/vercel.json',
   'web/frontend/VERCEL-API-配置.md',
