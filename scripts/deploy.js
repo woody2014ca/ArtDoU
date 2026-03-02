@@ -26,6 +26,8 @@ const allPaths = [
   'web/frontend/VERCEL-API-配置.md',
   'web/backend/server.js',
   'web/backend/db.js',
+  'web/backend/package.json',
+  'web/backend/package-lock.json',
   'web/backend/routes',
   'web/backend/middleware',
   'web/backend/问题总结-供外部审计.md',

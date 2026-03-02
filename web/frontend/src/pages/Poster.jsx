@@ -1,9 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { dataGet } from '../api';
+import { dataGet, posterRender } from '../api';
 import html2canvas from 'html2canvas';
 import QRCode from 'qrcode';
+
+const blobToDataUrl = (blob) =>
+  new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result);
+    r.onerror = reject;
+    r.readAsDataURL(blob);
+  });
 
 const MAX_SELECT = 4;
 
@@ -115,28 +123,20 @@ export default function Poster() {
     return canvas;
   };
 
+  /** 优先后端生成 PNG（微信内最稳），失败再 fallback 前端 html2canvas */
   const runSaveFlow = (hint) => {
     setSaving(true);
-    const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 15000));
-    Promise.race([Promise.resolve().then(() => capturePosterAsImage()), timeout])
-      .then((canvas) => {
-        if (!canvas) {
-          alert('生成失败，请重试');
-          return;
-        }
-        let dataUrl = '';
-        try {
-          dataUrl = canvas.toDataURL('image/png');
-        } catch (e) {
-          alert('图片跨域限制导致无法生成可保存图片，请稍后重试或使用截屏保存。');
-          return;
-        }
-        if (dataUrl) setInlineSaveImage({ dataUrl, hint });
-      })
+    const imageUrls = selectedItems.map((i) => i.url);
+    posterRender(id, name, imageUrls)
+      .then((blob) => blobToDataUrl(blob))
+      .then((dataUrl) => setInlineSaveImage({ dataUrl, hint }))
       .catch((err) => {
-        if (err?.message === 'img-timeout') alert('图片加载超时，请稍后重试。');
-        else if (err?.message === 'timeout') alert('生成图片超时，请重试。');
-        else alert('生成图片失败或超时，请重试');
+        const msg = err?.message || '生成失败';
+        if (msg.includes('请先登录')) {
+          alert('请先登录后再保存');
+          return;
+        }
+        alert(msg);
       })
       .finally(() => setSaving(false));
   };

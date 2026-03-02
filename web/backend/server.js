@@ -5,6 +5,7 @@ import { connect } from './db.js';
 import authRoutes from './routes/auth.js';
 import dataRoutes from './routes/data.js';
 import paymentRoutes from './routes/payment.js';
+import posterRoutes from './routes/poster.js';
 
 console.log('[ArtDoU] process starting, PORT from env:', process.env.PORT);
 
@@ -27,6 +28,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/data', dataRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/poster', posterRoutes);
 
 app.get('/health', (_, res) => res.status(200).json({ status: 'ok', ok: true }));
 

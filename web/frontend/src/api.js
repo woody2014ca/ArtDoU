@@ -109,4 +109,18 @@ export async function paymentConfirm(paymentId, prospectiveId) {
   return res.json();
 }
 
+/** 后端生成海报 PNG，返回 blob，前端转 dataURL 展示（微信内长按保存最稳） */
+export async function posterRender(id, name, imageUrls) {
+  const res = await fetch(`${API_BASE}/poster/render`, {
+    method: 'POST',
+    headers: headers(),
+    body: JSON.stringify({ id, name, imageUrls }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.msg || `请求失败 ${res.status}`);
+  }
+  return res.blob();
+}
+
 export { getToken, setToken };
