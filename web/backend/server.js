@@ -32,6 +32,17 @@ app.use('/api/poster', posterRoutes);
 
 app.get('/health', (_, res) => res.status(200).json({ status: 'ok', ok: true }));
 
+// 未匹配路由一律返回 JSON，避免任何 HTML 导致前端解析报错
+app.use((_req, res) => {
+  res.status(404).json({ success: false, error: 'Not Found' });
+});
+
+// 全局错误处理，确保异常时也返回 JSON
+app.use((err, _req, res, _next) => {
+  console.error('[ArtDoU] route error:', err);
+  res.status(500).json({ success: false, error: err.message || 'Server Error' });
+});
+
 // 不配 MONGODB_URI 时完全不连数据库，只支持老师密码登录，无 502、无 Atlas
 function start() {
   app.listen(PORT, '0.0.0.0', () => {
