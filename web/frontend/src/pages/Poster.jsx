@@ -19,6 +19,8 @@ export default function Poster() {
   const [loading, setLoading] = useState(true);
   const [posterDone, setPosterDone] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState('');
+  const [posterImageUrl, setPosterImageUrl] = useState(null);
+  const [posterHint, setPosterHint] = useState('');
   const posterRef = useRef(null);
 
   useEffect(() => {
@@ -85,24 +87,48 @@ export default function Poster() {
     });
   };
 
+  const dataUrlToBlob = (dataUrl) => {
+    const arr = dataUrl.split(',');
+    const mime = (arr[0].match(/:(.*?);/) || [])[1] || 'image/png';
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8 = new Uint8Array(n);
+    while (n--) u8[n] = bstr.charCodeAt(n);
+    return new Blob([u8], { type: mime });
+  };
+
+  const tryDownload = (dataUrl, filename) => {
+    try {
+      const blob = dataUrlToBlob(dataUrl);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.download = filename;
+      a.href = url;
+      a.rel = 'noopener';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (e) {}
+  };
+
   const saveToAlbum = () => {
     capturePosterAsImage().then((canvas) => {
       if (!canvas) return;
-      const a = document.createElement('a');
-      a.download = `艺术成长报告-${name}.png`;
-      a.href = canvas.toDataURL('image/png');
-      a.click();
+      const dataUrl = canvas.toDataURL('image/png');
+      tryDownload(dataUrl, `艺术成长报告-${name}.png`);
+      setPosterHint('长按图片保存到相册');
+      setPosterImageUrl(dataUrl);
     }).catch(() => alert('生成图片失败，请重试'));
   };
 
   const shareToMoments = () => {
     capturePosterAsImage().then((canvas) => {
       if (!canvas) return;
-      const a = document.createElement('a');
-      a.download = `艺术成长报告-${name}.png`;
-      a.href = canvas.toDataURL('image/png');
-      a.click();
-      setTimeout(() => alert('海报已保存到相册。\n请打开微信 → 发现 → 朋友圈 → 从相册选择刚保存的图片，配文发布。'), 300);
+      const dataUrl = canvas.toDataURL('image/png');
+      tryDownload(dataUrl, `艺术成长报告-${name}.png`);
+      setPosterHint('长按图片保存后，打开微信 → 朋友圈 → 从相册选择该图片发布');
+      setPosterImageUrl(dataUrl);
     }).catch(() => alert('生成图片失败，请重试'));
   };
 
@@ -231,6 +257,46 @@ export default function Poster() {
             </button>
           </div>
         </>
+      )}
+
+      {posterImageUrl && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.95)',
+            zIndex: 10000,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16,
+          }}
+          onClick={() => setPosterImageUrl(null)}
+        >
+          <div onClick={(e) => e.stopPropagation()} style={{ textAlign: 'center', maxWidth: '100%' }}>
+            <img
+              src={posterImageUrl}
+              alt="海报"
+              style={{ maxWidth: '100%', maxHeight: '70vh', objectFit: 'contain', display: 'block', margin: '0 auto' }}
+            />
+            <p style={{ color: '#fff', fontSize: 15, marginTop: 16, padding: '0 20px' }}>{posterHint}</p>
+            <button
+              type="button"
+              onClick={() => { tryDownload(posterImageUrl, `艺术成长报告-${name}.png`); }}
+              style={{ marginTop: 16, padding: '12px 24px', background: '#005387', color: '#fff', border: 0, borderRadius: 10, cursor: 'pointer', fontSize: 15 }}
+            >
+              再次尝试下载
+            </button>
+            <button
+              type="button"
+              onClick={() => setPosterImageUrl(null)}
+              style={{ display: 'block', margin: '12px auto 0', padding: '10px 20px', background: 'transparent', color: 'rgba(255,255,255,0.8)', border: 0, cursor: 'pointer', fontSize: 14 }}
+            >
+              关闭
+            </button>
+          </div>
+        </div>
       )}
 
       <style>{`
