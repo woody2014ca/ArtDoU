@@ -19,6 +19,8 @@ export default function Poster() {
   const [loading, setLoading] = useState(true);
   const [posterDone, setPosterDone] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState('');
+  /** 点击保存/朋友圈后，在页面内展示的图片（长按保存），不弹窗。{ dataUrl, hint } */
+  const [inlineSaveImage, setInlineSaveImage] = useState(null);
   const posterRef = useRef(null);
 
   useEffect(() => {
@@ -85,48 +87,25 @@ export default function Poster() {
     });
   };
 
-  const dataUrlToBlob = (dataUrl) => {
-    const arr = dataUrl.split(',');
-    const mime = (arr[0].match(/:(.*?);/) || [])[1] || 'image/png';
-    const bstr = atob(arr[1]);
-    let n = bstr.length;
-    const u8 = new Uint8Array(n);
-    while (n--) u8[n] = bstr.charCodeAt(n);
-    return new Blob([u8], { type: mime });
-  };
-
-  /** 直接触发下载，不弹窗 */
-  const doDirectDownload = (dataUrl, filename) => {
-    try {
-      const blob = dataUrlToBlob(dataUrl);
-      const blobUrl = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = blobUrl;
-      a.download = filename || '艺术成长报告.png';
-      a.style.display = 'none';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 500);
-    } catch (e) {
-      alert('保存失败，请重试');
-    }
-  };
-
+  /** 保存/朋友圈：生成图后只在页面内展示，不弹窗。用户长按图片即可保存（微信内最可靠） */
   const saveToAlbum = () => {
+    setInlineSaveImage(null);
     capturePosterAsImage().then((canvas) => {
       if (!canvas) return;
       const dataUrl = canvas.toDataURL('image/png');
-      doDirectDownload(dataUrl, `艺术成长报告-${name}.png`);
+      setInlineSaveImage({ dataUrl, hint: '长按上方图片保存到相册' });
     }).catch(() => alert('生成图片失败，请重试'));
   };
 
   const shareToMoments = () => {
+    setInlineSaveImage(null);
     capturePosterAsImage().then((canvas) => {
       if (!canvas) return;
       const dataUrl = canvas.toDataURL('image/png');
-      doDirectDownload(dataUrl, `艺术成长报告-${name}.png`);
-      alert('图片已保存，请到相册中打开该图片，再在微信里发朋友圈。');
+      setInlineSaveImage({
+        dataUrl,
+        hint: '长按上方图片保存后，打开微信 → 发现 → 朋友圈 → 从相册选择该图片发布',
+      });
     }).catch(() => alert('生成图片失败，请重试'));
   };
 
@@ -254,6 +233,17 @@ export default function Poster() {
               返回
             </button>
           </div>
+
+          {inlineSaveImage && (
+            <div style={{ marginTop: 24, paddingTop: 20, borderTop: '1px solid #eee', textAlign: 'center' }}>
+              <img
+                src={inlineSaveImage.dataUrl}
+                alt="海报"
+                style={{ maxWidth: '100%', width: 320, height: 'auto', display: 'block', margin: '0 auto 12px', borderRadius: 8 }}
+              />
+              <p style={{ fontSize: 14, color: '#333', lineHeight: 1.6 }}>{inlineSaveImage.hint}</p>
+            </div>
+          )}
         </>
       )}
 
