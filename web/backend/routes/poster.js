@@ -83,9 +83,10 @@ router.post('/render', async (req, res) => {
     const gap = 16;
     const pad = 24;
     const topH = 96;
-    const gridTotalW = cell * 2 + gap;
-    const gridStartX = (w - gridTotalW) / 2;
-    const gridH = cell * 2 + gap;
+    // 垂直一列排版，不再并排两列
+    const rows = validImages.length;
+    const gridStartX = (w - cell) / 2;
+    const gridH = rows * cell + (rows - 1) * gap;
     const qrSize = 120;
     const totalH = topH + gridH + 80 + qrSize + 60;
 
@@ -99,9 +100,8 @@ router.post('/render', async (req, res) => {
 
     const imagesSvg = validImages
       .map((dataUrl, i) => {
-        const row = Math.floor(i / 2);
-        const col = i % 2;
-        const x = gridStartX + col * (cell + gap);
+        const row = i;
+        const x = gridStartX;
         const y = topH + row * (cell + gap);
         return `<image href="${escapeAttr(dataUrl)}" x="${x}" y="${y}" width="${cell}" height="${cell}" preserveAspectRatio="xMidYMid slice"/>`;
       })
