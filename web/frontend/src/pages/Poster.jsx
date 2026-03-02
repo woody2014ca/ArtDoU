@@ -79,30 +79,30 @@ export default function Poster() {
     .filter(Boolean);
 
   const capturePosterAsImage = () => {
-    if (!posterRef.current) return null;
-    return html2canvas(posterRef.current, {
+    if (!posterRef.current) return Promise.resolve(null);
+    const timeout = 15000;
+    const p = html2canvas(posterRef.current, {
       useCORS: true,
       allowTaint: true,
       scale: 2,
       backgroundColor: '#ffffff',
     });
+    const t = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), timeout));
+    return Promise.race([p, t]);
   };
 
-  /** 保存/朋友圈：生成图后只展示一张图，长按保存。先清空再等一帧再截图，确保截到的是当前可见的海报 */
   const runSaveFlow = (hint) => {
     setSaving(true);
-    setInlineSaveImage(null);
-    requestAnimationFrame(() => {
-      setTimeout(() => {
-        capturePosterAsImage()
-          .then((canvas) => {
-            if (!canvas) return;
-            setInlineSaveImage({ dataUrl: canvas.toDataURL('image/png'), hint });
-          })
-          .catch(() => alert('生成图片失败，请重试'))
-          .finally(() => setSaving(false));
-      }, 150);
-    });
+    capturePosterAsImage()
+      .then((canvas) => {
+        if (!canvas) {
+          alert('生成失败，请重试');
+          return;
+        }
+        setInlineSaveImage({ dataUrl: canvas.toDataURL('image/png'), hint });
+      })
+      .catch(() => alert('生成图片失败或超时，请重试'))
+      .finally(() => setSaving(false));
   };
 
   const saveToAlbum = () => {
