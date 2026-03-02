@@ -107,6 +107,7 @@ export default function Index() {
   const goEnroll = () => navigate('/enroll');
   const goEnrollList = () => navigate('/enroll/list');
   const goFinance = () => navigate('/finance');
+  const goLeaveList = () => navigate('/leave/list');
   const handleCheckin = (id, name) => navigate(`/checkin?id=${id}&name=${encodeURIComponent(name || '')}`);
   const goToGallery = (id) => navigate(`/parent?id=${id}`);
   const goToEdit = (id) => navigate(`/student/edit/${id}`);
@@ -163,6 +164,26 @@ export default function Index() {
         </button>
       </div>
 
+      {state.stats.pendingCount > 0 && (
+        <div
+          onClick={goLeaveList}
+          role="button"
+          style={{
+            background: '#fff5f5',
+            border: '1px solid #ff4d4f',
+            borderRadius: 12,
+            padding: '14px 16px',
+            marginBottom: 16,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          <span style={{ color: '#c00', fontWeight: 600, fontSize: 14 }}>📋 待处理请假 {state.stats.pendingCount} 条</span>
+          <span style={{ color: '#005387', fontSize: 14 }}>去处理 →</span>
+        </div>
+      )}
       <p onClick={goEnrollList} style={{ fontSize: 14, color: '#005387', marginBottom: 16, cursor: 'pointer', textAlign: 'center' }}>
         管理意向名单 / PROSPECTIVE LIST →
       </p>

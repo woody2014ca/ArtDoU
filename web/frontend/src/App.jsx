@@ -17,6 +17,7 @@ import Finance from './pages/Finance';
 import Poster from './pages/Poster';
 import PosterView from './pages/PosterView';
 import Leave from './pages/Leave';
+import LeaveList from './pages/LeaveList';
 
 function AppRoutes() {
   return (
@@ -31,6 +32,7 @@ function AppRoutes() {
       <Route path="/poster" element={<Poster />} />
       <Route path="/poster/view" element={<PosterView />} />
       <Route path="/leave" element={<Leave />} />
+      <Route path="/leave/list" element={<LeaveList />} />
       <Route path="/checkin" element={<Checkin />} />
       <Route path="/student/add" element={<AddStudent />} />
       <Route path="/student/edit/:id" element={<EditStudent />} />
