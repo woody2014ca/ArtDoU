@@ -205,9 +205,15 @@ export default function ParentHome() {
             type="button"
             onClick={() => {
               const basePath = import.meta.env.BASE_URL.replace(/\/$/, '') || '';
-              const forParent = role !== 'parent'; // 教师发「通知家长」时带上 to=parent，家长打开优先看到绑定引导
-              const url = `${window.location.origin}${basePath}/parent?id=${studentId}&referrer=${studentId}&from=share${forParent ? '&to=parent' : ''}`;
-              navigator.clipboard.writeText(url).then(() => alert('分享链接已复制，可粘贴到朋友圈或发给家长'));
+              if (role === 'parent') {
+                // 分享有奖：朋友打开看到自动生成的海报 + 我也要报名
+                const url = `${window.location.origin}${basePath}/poster/view?id=${studentId}&name=${encodeURIComponent(name)}&from=share`;
+                navigator.clipboard.writeText(url).then(() => alert('分享链接已复制，朋友打开将看到海报与「我也要报名」'));
+              } else {
+                // 通知家长：家长打开看到绑定引导
+                const url = `${window.location.origin}${basePath}/parent?id=${studentId}&referrer=${studentId}&from=share&to=parent`;
+                navigator.clipboard.writeText(url).then(() => alert('分享链接已复制，可发给家长'));
+              }
             }}
             style={{ flex: 1, padding: 14, background: '#fff', color: '#005387', border: '2px solid #005387', borderRadius: 10, cursor: 'pointer' }}
           >

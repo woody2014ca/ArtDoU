@@ -41,9 +41,10 @@ export default function PosterView() {
   });
 
   const keyList = keysParam.split(',').map((k) => k.trim()).filter(Boolean);
-  const selectedItems = keyList
-    .map((k) => flatCandidates.find((c) => c.key === k))
-    .filter(Boolean);
+  const selectedItems =
+    keyList.length > 0
+      ? keyList.map((k) => flatCandidates.find((c) => c.key === k)).filter(Boolean)
+      : flatCandidates.slice(0, 9);
 
   if (!id) {
     return (
@@ -61,8 +62,6 @@ export default function PosterView() {
 
       {loading ? (
         <p style={{ textAlign: 'center', color: '#888' }}>加载中...</p>
-      ) : selectedItems.length === 0 ? (
-        <p style={{ textAlign: 'center', color: '#888' }}>海报内容加载失败或已失效</p>
       ) : (
         <>
           <div style={{ background: '#fff', padding: 24, borderRadius: 12, border: '1px solid #eee', marginBottom: 20 }}>
@@ -71,17 +70,21 @@ export default function PosterView() {
               <div style={{ fontSize: 18, fontWeight: 700, marginTop: 4 }}>艺术成长报告 / ART GROWTH REPORT</div>
               <div style={{ fontSize: 20, fontWeight: 700, marginTop: 8, textDecoration: 'underline' }}>{name}</div>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: selectedItems.length <= 2 ? 'repeat(2, 1fr)' : 'repeat(2, 1fr)', gap: 12 }}>
-              {selectedItems.map((item) => (
-                <div key={item.key} style={{ textAlign: 'center' }}>
-                  <img src={item.url} alt="" style={{ width: '100%', borderRadius: 8, display: 'block' }} />
-                  <div style={{ fontSize: 12, color: '#666', marginTop: 6 }}>
-                    {item.work?.date ? new Date(item.work.date).toLocaleDateString('zh-CN') : ''}
-                    {item.work?.note && ` · ${item.work.note}`}
+            {selectedItems.length > 0 ? (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
+                {selectedItems.map((item) => (
+                  <div key={item.key} style={{ textAlign: 'center' }}>
+                    <img src={item.url} alt="" style={{ width: '100%', borderRadius: 8, display: 'block' }} />
+                    <div style={{ fontSize: 12, color: '#666', marginTop: 6 }}>
+                      {item.work?.date ? new Date(item.work.date).toLocaleDateString('zh-CN') : ''}
+                      {item.work?.note && ` · ${item.work.note}`}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <p style={{ textAlign: 'center', color: '#888', padding: 24 }}>暂无作品，期待下一次创作</p>
+            )}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <button
