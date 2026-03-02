@@ -88,32 +88,29 @@ export default function Poster() {
     });
   };
 
-  /** 保存/朋友圈：生成图后只在页面内展示，不弹窗。用户长按图片即可保存（微信内最可靠） */
-  const saveToAlbum = () => {
+  /** 保存/朋友圈：生成图后只展示一张图，长按保存。先清空再等一帧再截图，确保截到的是当前可见的海报 */
+  const runSaveFlow = (hint) => {
     setSaving(true);
     setInlineSaveImage(null);
-    capturePosterAsImage()
-      .then((canvas) => {
-        if (!canvas) return;
-        setInlineSaveImage({ dataUrl: canvas.toDataURL('image/png'), hint: '长按上方图片保存到相册' });
-      })
-      .catch(() => alert('生成图片失败，请重试'))
-      .finally(() => setSaving(false));
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        capturePosterAsImage()
+          .then((canvas) => {
+            if (!canvas) return;
+            setInlineSaveImage({ dataUrl: canvas.toDataURL('image/png'), hint });
+          })
+          .catch(() => alert('生成图片失败，请重试'))
+          .finally(() => setSaving(false));
+      }, 150);
+    });
+  };
+
+  const saveToAlbum = () => {
+    runSaveFlow('长按图片保存到相册。若长按无反应，请截屏保存。');
   };
 
   const shareToMoments = () => {
-    setSaving(true);
-    setInlineSaveImage(null);
-    capturePosterAsImage()
-      .then((canvas) => {
-        if (!canvas) return;
-        setInlineSaveImage({
-          dataUrl: canvas.toDataURL('image/png'),
-          hint: '长按上方图片保存后，打开微信 → 发现 → 朋友圈 → 从相册选择该图片发布',
-        });
-      })
-      .catch(() => alert('生成图片失败，请重试'))
-      .finally(() => setSaving(false));
+    runSaveFlow('长按图片保存后，打开微信 → 发现 → 朋友圈 → 从相册选择该图片发布。若长按无反应可截屏。');
   };
 
   if (!id) {
@@ -197,7 +194,16 @@ export default function Poster() {
                 <img
                   src={inlineSaveImage.dataUrl}
                   alt="海报"
-                  style={{ width: '100%', display: 'block', borderRadius: 12, border: '1px solid #eee', marginBottom: 12 }}
+                  style={{
+                    width: '100%',
+                    display: 'block',
+                    borderRadius: 12,
+                    border: '1px solid #eee',
+                    marginBottom: 12,
+                    WebkitUserSelect: 'none',
+                    userSelect: 'none',
+                    pointerEvents: 'auto',
+                  }}
                 />
                 <p style={{ fontSize: 14, color: '#333', lineHeight: 1.6 }}>{inlineSaveImage.hint}</p>
               </div>
