@@ -32,7 +32,8 @@ async function fetchJson(url, options) {
     }
   }
   if (text.trim().startsWith('<')) {
-    throw new Error('接口返回了网页而非数据。请确认 Vercel 已配置环境变量 VITE_API_URL 为后端地址（如 Railway 域名）并重新部署。');
+    const host = (() => { try { return new URL(url).origin; } catch { return url.slice(0, 50); } })();
+    throw new Error(`接口返回了网页而非数据。当前请求地址: ${host} —— 若为 kunlunfo.com 请在该站点对应的 Vercel 项目中配置 VITE_API_URL 并重新部署；若为 Railway 域名请检查后端是否正常。`);
   }
   throw new Error(res.status ? `请求失败 ${res.status}` : '网络异常');
 }
