@@ -142,11 +142,11 @@ export default function Poster() {
   };
 
   const saveToAlbum = () => {
-    runSaveFlow('长按图片保存到相册。若长按无反应，请截屏保存。');
+    runSaveFlow('请长按上方图片，在弹出菜单中选择「保存图片」保存到相册。若无菜单可截屏保存。');
   };
 
   const shareToMoments = () => {
-    runSaveFlow('长按图片保存后，打开微信 → 发现 → 朋友圈 → 从相册选择该图片发布。若长按无反应可截屏。');
+    runSaveFlow('请长按上方图片保存后，打开微信 → 发现 → 朋友圈 → 从相册选择该图片发布。若无菜单可截屏。');
   };
 
   if (!id) {
@@ -159,7 +159,7 @@ export default function Poster() {
   }
 
   return (
-    <div style={{ maxWidth: 600, margin: '0 auto', padding: 16 }}>
+    <div style={{ maxWidth: 600, margin: '0 auto', padding: 16, fontFamily: '"Noto Sans SC", sans-serif' }}>
       <h1 style={{ color: '#005387', fontSize: 22, marginBottom: 8 }}>艺术成长报告</h1>
       <p style={{ fontSize: 14, color: '#666', marginBottom: 20 }}>ART GROWTH REPORT</p>
 
@@ -241,7 +241,7 @@ export default function Poster() {
                     pointerEvents: 'auto',
                   }}
                 />
-                <p style={{ fontSize: 14, color: '#333', lineHeight: 1.6 }}>{inlineSaveImage.hint}</p>
+                <p style={{ fontSize: 14, color: '#333', lineHeight: 1.6, fontFamily: '"Noto Sans SC", sans-serif' }}>{inlineSaveImage.hint}</p>
               </div>
             ) : null}
             <div
@@ -252,6 +252,7 @@ export default function Poster() {
                 padding: 24,
                 borderRadius: 12,
                 border: '1px solid #eee',
+                fontFamily: '"Noto Sans SC", sans-serif',
                 ...(inlineSaveImage ? { position: 'absolute', left: '-9999px', top: 0, width: 400 } : {}),
               }}
               aria-hidden={!!inlineSaveImage}

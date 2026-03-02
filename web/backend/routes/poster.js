@@ -85,18 +85,19 @@ router.post('/render', async (req, res) => {
     const qrY = topH + gridH + 80;
     const qrImg = qrDataUrl ? `<image href="${escapeAttr(qrDataUrl)}" x="${qrX}" y="${qrY}" width="${qrSize}" height="${qrSize}"/>` : '';
 
+    const fontFamily = 'Noto Sans CJK SC, Noto Sans SC, sans-serif';
     const svg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${w}" height="${totalH}" viewBox="0 0 ${w} ${totalH}">
   <rect width="${w}" height="${totalH}" fill="#ffffff"/>
-  <text x="${w / 2}" y="28" text-anchor="middle" font-size="12" fill="#005387" letter-spacing="2">ArtDoU</text>
-  <text x="${w / 2}" y="52" text-anchor="middle" font-size="18" font-weight="700" fill="#333">艺术成长报告 / ART GROWTH REPORT</text>
-  <text x="${w / 2}" y="82" text-anchor="middle" font-size="20" font-weight="700" fill="#333" text-decoration="underline">${escapeXml(safeName)}</text>
+  <text x="${w / 2}" y="28" text-anchor="middle" font-size="12" fill="#005387" letter-spacing="2" font-family="${fontFamily}">ArtDoU</text>
+  <text x="${w / 2}" y="52" text-anchor="middle" font-size="18" font-weight="700" fill="#333" font-family="${fontFamily}">艺术成长报告 / ART GROWTH REPORT</text>
+  <text x="${w / 2}" y="82" text-anchor="middle" font-size="20" font-weight="700" fill="#333" text-decoration="underline" font-family="${fontFamily}">${escapeXml(safeName)}</text>
   ${imagesSvg}
   <line x1="${pad}" y1="${topH + gridH + 20}" x2="${w - pad}" y2="${topH + gridH + 20}" stroke="#eee" stroke-width="1"/>
-  <text x="${w / 2}" y="${topH + gridH + 52}" text-anchor="middle" font-size="16" font-weight="700" fill="#005387">🎁 我也要报名</text>
-  <text x="${w / 2}" y="${topH + gridH + 72}" text-anchor="middle" font-size="12" fill="#666">扫码进入报名页</text>
+  <text x="${w / 2}" y="${topH + gridH + 52}" text-anchor="middle" font-size="16" font-weight="700" fill="#005387" font-family="${fontFamily}">🎁 我也要报名</text>
+  <text x="${w / 2}" y="${topH + gridH + 72}" text-anchor="middle" font-size="12" fill="#666" font-family="${fontFamily}">扫码进入报名页</text>
   ${qrImg}
-  <text x="${w / 2}" y="${totalH - 24}" text-anchor="middle" font-size="11" fill="#999">长按保存图片 · 发朋友圈或发给朋友</text>
+  <text x="${w / 2}" y="${totalH - 24}" text-anchor="middle" font-size="11" fill="#999" font-family="${fontFamily}">长按保存图片 · 发朋友圈或发给朋友</text>
 </svg>`;
 
     const png = await sharp(Buffer.from(svg))
