@@ -79,11 +79,12 @@ router.post('/render', async (req, res) => {
     }
 
     const w = 400;
-    const cell = 150;
-    const gap = 12;
+    const cell = 176;
+    const gap = 16;
     const pad = 24;
-    const topH = 100;
-    const gridW = cell * 2 + gap;
+    const topH = 96;
+    const gridTotalW = cell * 2 + gap;
+    const gridStartX = (w - gridTotalW) / 2;
     const gridH = cell * 2 + gap;
     const qrSize = 120;
     const totalH = topH + gridH + 80 + qrSize + 60;
@@ -100,7 +101,7 @@ router.post('/render', async (req, res) => {
       .map((dataUrl, i) => {
         const row = Math.floor(i / 2);
         const col = i % 2;
-        const x = pad + col * (cell + gap);
+        const x = gridStartX + col * (cell + gap);
         const y = topH + row * (cell + gap);
         return `<image href="${escapeAttr(dataUrl)}" x="${x}" y="${y}" width="${cell}" height="${cell}" preserveAspectRatio="xMidYMid slice"/>`;
       })

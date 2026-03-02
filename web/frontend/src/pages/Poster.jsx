@@ -265,10 +265,10 @@ export default function Poster() {
                 <div style={{ fontSize: 20, fontWeight: 700, marginTop: 8, textDecoration: 'underline' }}>{name}</div>
               </div>
               <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
-                <div style={{ display: 'grid', gridTemplateColumns: selectedItems.length <= 2 ? 'repeat(2, 1fr)' : 'repeat(2, 1fr)', gap: 12, maxWidth: 320 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16, width: '100%', maxWidth: 368, margin: '0 auto' }}>
                   {selectedItems.map((item) => (
                     <div key={item.key} style={{ textAlign: 'center' }}>
-                      <img crossOrigin="anonymous" src={item.url} alt="" style={{ width: '100%', borderRadius: 8, display: 'block' }} />
+                      <img crossOrigin="anonymous" src={item.url} alt="" style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', borderRadius: 8, display: 'block' }} />
                       <div style={{ fontSize: 12, color: '#666', marginTop: 6 }}>
                         {item.work?.date ? new Date(item.work.date).toLocaleDateString('zh-CN') : ''}
                         {item.work?.note && ` · ${item.work.note}`}
