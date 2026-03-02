@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { dataGet } from '../api';
 
 export default function Index() {
-  const { role, myStudentId, loading, refresh } = useAuth();
+  const { role, myStudentId, loading, refresh, logout } = useAuth();
   const navigate = useNavigate();
   const [state, setState] = useState({
     isLoading: true,
@@ -102,6 +102,7 @@ export default function Index() {
   }
 
   const goToLogin = () => navigate('/login');
+  const handleLogout = () => { logout(); navigate('/', { replace: true }); };
   const goAdd = () => navigate('/student/add');
   const goEnroll = () => navigate('/enroll');
   const goEnrollList = () => navigate('/enroll/list');
@@ -123,11 +124,16 @@ export default function Index() {
 
   return (
     <div style={{ maxWidth: 600, margin: '0 auto', padding: 16, paddingBottom: 40 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
         <h1 style={{ margin: 0, color: '#005387', fontSize: 22 }}>ArtDoU</h1>
-        <button onClick={goToLogin} style={{ padding: '8px 16px', background: '#f0f0f0', border: 0, borderRadius: 8, cursor: 'pointer' }}>
-          老师登录
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <button type="button" onClick={() => navigate('/parent')} style={{ padding: '8px 14px', background: 'transparent', color: '#005387', border: '1px solid #005387', borderRadius: 8, cursor: 'pointer', fontSize: 14 }}>
+            家长入口
+          </button>
+          <button type="button" onClick={handleLogout} style={{ padding: '8px 16px', background: '#f0f0f0', border: 0, borderRadius: 8, cursor: 'pointer', fontSize: 14 }}>
+            退出
+          </button>
+        </div>
       </div>
 
       <section onClick={goFinance} style={{ background: 'linear-gradient(135deg,#005387 0%,#0077b6 100%)', color: '#fff', borderRadius: 12, padding: 20, marginBottom: 20, cursor: 'pointer' }}>

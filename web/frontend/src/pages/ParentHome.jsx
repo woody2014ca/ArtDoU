@@ -8,6 +8,7 @@ export default function ParentHome() {
   const id = searchParams.get('id') || '';
   const referrer = searchParams.get('referrer') || '';
   const fromShare = searchParams.get('from') === 'share';
+  const toParent = searchParams.get('to') === 'parent';
   const navigate = useNavigate();
   const { role, myStudentId, loading } = useAuth();
   const [student, setStudent] = useState(null);
@@ -137,22 +138,48 @@ export default function ParentHome() {
 
       {isGuest && (
         <div style={{ marginBottom: 20 }}>
-          <button
-            type="button"
-            onClick={goToEnroll}
-            style={{
-              width: '100%',
-              padding: 16,
-              background: 'linear-gradient(135deg,#005387,#0077b6)',
-              color: '#fff',
-              border: 0,
-              borderRadius: 12,
-              fontSize: 16,
-              cursor: 'pointer',
-            }}
-          >
-            🎁 我也要报名 (首次课优享价)
-          </button>
+          {toParent ? (
+            <>
+              <div style={{ background: '#e6f4ff', border: '1px solid #005387', borderRadius: 12, padding: 16, marginBottom: 16 }}>
+                <div style={{ fontSize: 16, fontWeight: 600, color: '#005387', marginBottom: 6 }}>家长您好</div>
+                <div style={{ fontSize: 14, color: '#333' }}>这是您家孩子 <strong>{name}</strong> 的成长展厅。绑定手机号后可查看剩余课时、提交请假、分享有奖等。</div>
+              </div>
+              <button
+                type="button"
+                onClick={() => navigate('/bind')}
+                style={{
+                  width: '100%',
+                  padding: 16,
+                  background: 'linear-gradient(135deg,#005387,#0077b6)',
+                  color: '#fff',
+                  border: 0,
+                  borderRadius: 12,
+                  fontSize: 16,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  marginBottom: 12,
+                }}
+              >
+                绑定手机号，进入家长端
+              </button>
+              <details style={{ fontSize: 14, color: '#888' }}>
+                <summary style={{ cursor: 'pointer' }}>我不是家长，我想报名</summary>
+                <button type="button" onClick={goToEnroll} style={{ width: '100%', marginTop: 10, padding: 12, background: '#f5f5f5', color: '#333', border: 0, borderRadius: 10, cursor: 'pointer' }}>
+                  🎁 我也要报名 (首次课优享价)
+                </button>
+              </details>
+            </>
+          ) : (
+            <>
+              <p style={{ fontSize: 14, color: '#666', marginBottom: 12 }}>您是孩子家长？绑定手机号后可查看课时、请假、分享有奖等。</p>
+              <button type="button" onClick={() => navigate('/bind')} style={{ width: '100%', padding: 14, background: '#fff', color: '#005387', border: '2px solid #005387', borderRadius: 12, fontSize: 16, cursor: 'pointer', marginBottom: 10 }}>
+                我是家长，去绑定
+              </button>
+              <button type="button" onClick={goToEnroll} style={{ width: '100%', padding: 16, background: 'linear-gradient(135deg,#005387,#0077b6)', color: '#fff', border: 0, borderRadius: 12, fontSize: 16, cursor: 'pointer' }}>
+                🎁 我也要报名 (首次课优享价)
+              </button>
+            </>
+          )}
         </div>
       )}
 
@@ -178,8 +205,9 @@ export default function ParentHome() {
             type="button"
             onClick={() => {
               const basePath = import.meta.env.BASE_URL.replace(/\/$/, '') || '';
-            const url = `${window.location.origin}${basePath}/parent?id=${studentId}&referrer=${studentId}&from=share`;
-              navigator.clipboard.writeText(url).then(() => alert('分享链接已复制，可粘贴到朋友圈或发给朋友'));
+              const forParent = role !== 'parent'; // 教师发「通知家长」时带上 to=parent，家长打开优先看到绑定引导
+              const url = `${window.location.origin}${basePath}/parent?id=${studentId}&referrer=${studentId}&from=share${forParent ? '&to=parent' : ''}`;
+              navigator.clipboard.writeText(url).then(() => alert('分享链接已复制，可粘贴到朋友圈或发给家长'));
             }}
             style={{ flex: 1, padding: 14, background: '#fff', color: '#005387', border: '2px solid #005387', borderRadius: 10, cursor: 'pointer' }}
           >
