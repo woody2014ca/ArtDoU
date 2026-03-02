@@ -47,7 +47,11 @@ async function fetchImageBuffer(url, timeoutMs = 8000) {
 /** 用 sharp 将图片缩放到 cell×cell、覆盖裁剪，高质量重采样，避免 SVG 内嵌原图时渲染模糊 */
 async function resizeToCell(buffer, cell) {
   return sharp(buffer)
-    .resize(cell, cell, { fit: 'cover', position: 'center' })
+    .resize(cell, cell, {
+      fit: 'contain', // 保留完整画面，宽图/高图都不裁切
+      position: 'center',
+      background: { r: 255, g: 255, b: 255, alpha: 1 }, // 多余区域用白色填充
+    })
     .png({ compressionLevel: 6 })
     .toBuffer();
 }
@@ -131,7 +135,8 @@ router.post('/render', async (req, res) => {
         const row = i;
         const x = gridStartX;
         const y = topH + row * (cell + gap);
-        return `<image href="${escapeAttr(dataUrl)}" x="${x}" y="${y}" width="${cell}" height="${cell}" preserveAspectRatio="xMidYMid slice"/>`;
+        // preserveAspectRatio 用 meet，配合预先 contain 缩放，保证整张作品完整可见
+        return `<image href="${escapeAttr(dataUrl)}" x="${x}" y="${y}" width="${cell}" height="${cell}" preserveAspectRatio="xMidYMid meet"/>`;
       })
       .join('');
 
