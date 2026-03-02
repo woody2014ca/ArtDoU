@@ -1,5 +1,9 @@
-// 本地开发走 Vite 代理 /api；Vercel 部署时设置 VITE_API_URL 为后端地址（可带或不带 /api，这里会统一成带 /api）
-const rawBase = import.meta.env.VITE_API_URL || '/api';
+// 本地开发走 Vite 代理 /api；生产优先用 VITE_API_URL，未配置时用后备 Railway 地址，避免 Vercel 未注入变量时请求到本站
+const DEFAULT_PROD_API = 'https://artdou-production.up.railway.app';
+const rawBase =
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.PROD ? DEFAULT_PROD_API : '') ||
+  '/api';
 const API_BASE =
   rawBase.startsWith('http') && !rawBase.replace(/\/$/, '').endsWith('/api')
     ? rawBase.replace(/\/$/, '') + '/api'
