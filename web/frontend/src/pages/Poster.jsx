@@ -31,6 +31,8 @@ export default function Poster() {
   const [inlineSaveImage, setInlineSaveImage] = useState(null);
   const [saving, setSaving] = useState(false);
   const posterRef = useRef(null);
+  /** 防止同时点两个按钮或快速连点导致并发请求、结果被覆盖或无法保存 */
+  const savingRef = useRef(false);
 
   useEffect(() => {
     if (!posterDone || !id) return;
@@ -123,9 +125,12 @@ export default function Poster() {
     return canvas;
   };
 
-  /** 优先后端生成 PNG（微信内最稳），失败再 fallback 前端 html2canvas */
+  /** 后端生成 PNG，同一时间只允许一次请求，避免两个按钮同时触发或连点 */
   const runSaveFlow = (hint) => {
+    if (savingRef.current) return;
+    savingRef.current = true;
     setSaving(true);
+    setInlineSaveImage(null);
     const imageUrls = selectedItems.map((i) => i.url);
     posterRender(id, name, imageUrls)
       .then((blob) => blobToDataUrl(blob))
@@ -138,14 +143,21 @@ export default function Poster() {
         }
         alert(msg);
       })
-      .finally(() => setSaving(false));
+      .finally(() => {
+        savingRef.current = false;
+        setSaving(false);
+      });
   };
 
-  const saveToAlbum = () => {
+  const saveToAlbum = (e) => {
+    e?.preventDefault?.();
+    e?.stopPropagation?.();
     runSaveFlow('请长按上方图片，在弹出菜单中选择「保存图片」保存到相册。若无菜单可截屏保存。');
   };
 
-  const shareToMoments = () => {
+  const shareToMoments = (e) => {
+    e?.preventDefault?.();
+    e?.stopPropagation?.();
     runSaveFlow('请长按上方图片保存后，打开微信 → 发现 → 朋友圈 → 从相册选择该图片发布。若无菜单可截屏。');
   };
 
@@ -229,7 +241,8 @@ export default function Poster() {
               <div style={{ textAlign: 'center' }}>
                 <img
                   src={inlineSaveImage.dataUrl}
-                  alt="海报"
+                  alt="海报-长按保存"
+                  crossOrigin="anonymous"
                   style={{
                     width: '100%',
                     display: 'block',
@@ -237,6 +250,7 @@ export default function Poster() {
                     border: '1px solid #eee',
                     marginBottom: 12,
                     WebkitTouchCallout: 'default',
+                    WebkitUserSelect: 'auto',
                     userSelect: 'auto',
                     pointerEvents: 'auto',
                   }}
