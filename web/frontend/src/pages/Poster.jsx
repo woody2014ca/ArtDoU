@@ -21,6 +21,7 @@ export default function Poster() {
   const [qrDataUrl, setQrDataUrl] = useState('');
   /** 点击保存/朋友圈后，在页面内展示的图片（长按保存），不弹窗。{ dataUrl, hint } */
   const [inlineSaveImage, setInlineSaveImage] = useState(null);
+  const [saving, setSaving] = useState(false);
   const posterRef = useRef(null);
 
   useEffect(() => {
@@ -89,24 +90,30 @@ export default function Poster() {
 
   /** 保存/朋友圈：生成图后只在页面内展示，不弹窗。用户长按图片即可保存（微信内最可靠） */
   const saveToAlbum = () => {
+    setSaving(true);
     setInlineSaveImage(null);
-    capturePosterAsImage().then((canvas) => {
-      if (!canvas) return;
-      const dataUrl = canvas.toDataURL('image/png');
-      setInlineSaveImage({ dataUrl, hint: '长按上方图片保存到相册' });
-    }).catch(() => alert('生成图片失败，请重试'));
+    capturePosterAsImage()
+      .then((canvas) => {
+        if (!canvas) return;
+        setInlineSaveImage({ dataUrl: canvas.toDataURL('image/png'), hint: '长按上方图片保存到相册' });
+      })
+      .catch(() => alert('生成图片失败，请重试'))
+      .finally(() => setSaving(false));
   };
 
   const shareToMoments = () => {
+    setSaving(true);
     setInlineSaveImage(null);
-    capturePosterAsImage().then((canvas) => {
-      if (!canvas) return;
-      const dataUrl = canvas.toDataURL('image/png');
-      setInlineSaveImage({
-        dataUrl,
-        hint: '长按上方图片保存后，打开微信 → 发现 → 朋友圈 → 从相册选择该图片发布',
-      });
-    }).catch(() => alert('生成图片失败，请重试'));
+    capturePosterAsImage()
+      .then((canvas) => {
+        if (!canvas) return;
+        setInlineSaveImage({
+          dataUrl: canvas.toDataURL('image/png'),
+          hint: '长按上方图片保存后，打开微信 → 发现 → 朋友圈 → 从相册选择该图片发布',
+        });
+      })
+      .catch(() => alert('生成图片失败，请重试'))
+      .finally(() => setSaving(false));
   };
 
   if (!id) {
@@ -183,42 +190,66 @@ export default function Poster() {
         </>
       ) : (
         <>
-          <div ref={posterRef} className="poster-print-area" style={{ background: '#fff', padding: 24, borderRadius: 12, border: '1px solid #eee', marginBottom: 20, maxWidth: 400, marginLeft: 'auto', marginRight: 'auto' }}>
-            <div style={{ textAlign: 'center', marginBottom: 16 }}>
-              <div style={{ fontSize: 12, color: '#005387', letterSpacing: 2 }}>ArtDoU</div>
-              <div style={{ fontSize: 18, fontWeight: 700, marginTop: 4 }}>艺术成长报告 / ART GROWTH REPORT</div>
-              <div style={{ fontSize: 20, fontWeight: 700, marginTop: 8, textDecoration: 'underline' }}>{name}</div>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: selectedItems.length <= 2 ? 'repeat(2, 1fr)' : 'repeat(2, 1fr)', gap: 12, maxWidth: 320 }}>
-                {selectedItems.map((item) => (
-                  <div key={item.key} style={{ textAlign: 'center' }}>
-                    <img src={item.url} alt="" style={{ width: '100%', borderRadius: 8, display: 'block' }} />
-                    <div style={{ fontSize: 12, color: '#666', marginTop: 6 }}>
-                      {item.work?.date ? new Date(item.work.date).toLocaleDateString('zh-CN') : ''}
-                      {item.work?.note && ` · ${item.work.note}`}
-                    </div>
-                  </div>
-                ))}
+          <div style={{ marginBottom: 20, maxWidth: 400, marginLeft: 'auto', marginRight: 'auto' }}>
+            {/* 有保存图时只显示这一张图（可长按保存），原海报移出视口但保留供再次生成用 */}
+            {inlineSaveImage ? (
+              <div style={{ textAlign: 'center' }}>
+                <img
+                  src={inlineSaveImage.dataUrl}
+                  alt="海报"
+                  style={{ width: '100%', display: 'block', borderRadius: 12, border: '1px solid #eee', marginBottom: 12 }}
+                />
+                <p style={{ fontSize: 14, color: '#333', lineHeight: 1.6 }}>{inlineSaveImage.hint}</p>
               </div>
-            </div>
-            <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid #eee', textAlign: 'center' }}>
-              <div style={{ fontSize: 16, fontWeight: 700, color: '#005387' }}>🎁 我也要报名</div>
-              <div style={{ fontSize: 12, color: '#666', marginTop: 8 }}>扫码进入报名页</div>
-              {qrDataUrl && (
-                <div style={{ marginTop: 10, display: 'flex', justifyContent: 'center' }}>
-                  <img src={qrDataUrl} alt="报名入口" style={{ width: 120, height: 120, display: 'block' }} />
+            ) : null}
+            <div
+              ref={posterRef}
+              className="poster-print-area"
+              style={{
+                background: '#fff',
+                padding: 24,
+                borderRadius: 12,
+                border: '1px solid #eee',
+                ...(inlineSaveImage ? { position: 'absolute', left: '-9999px', top: 0, width: 400 } : {}),
+              }}
+              aria-hidden={!!inlineSaveImage}
+            >
+              <div style={{ textAlign: 'center', marginBottom: 16 }}>
+                <div style={{ fontSize: 12, color: '#005387', letterSpacing: 2 }}>ArtDoU</div>
+                <div style={{ fontSize: 18, fontWeight: 700, marginTop: 4 }}>艺术成长报告 / ART GROWTH REPORT</div>
+                <div style={{ fontSize: 20, fontWeight: 700, marginTop: 8, textDecoration: 'underline' }}>{name}</div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: selectedItems.length <= 2 ? 'repeat(2, 1fr)' : 'repeat(2, 1fr)', gap: 12, maxWidth: 320 }}>
+                  {selectedItems.map((item) => (
+                    <div key={item.key} style={{ textAlign: 'center' }}>
+                      <img src={item.url} alt="" style={{ width: '100%', borderRadius: 8, display: 'block' }} />
+                      <div style={{ fontSize: 12, color: '#666', marginTop: 6 }}>
+                        {item.work?.date ? new Date(item.work.date).toLocaleDateString('zh-CN') : ''}
+                        {item.work?.note && ` · ${item.work.note}`}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              )}
-              <div style={{ fontSize: 11, color: '#999', marginTop: 8 }}>长按保存图片 · 发朋友圈或发给朋友</div>
+              </div>
+              <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid #eee', textAlign: 'center' }}>
+                <div style={{ fontSize: 16, fontWeight: 700, color: '#005387' }}>🎁 我也要报名</div>
+                <div style={{ fontSize: 12, color: '#666', marginTop: 8 }}>扫码进入报名页</div>
+                {qrDataUrl && (
+                  <div style={{ marginTop: 10, display: 'flex', justifyContent: 'center' }}>
+                    <img src={qrDataUrl} alt="报名入口" style={{ width: 120, height: 120, display: 'block' }} />
+                  </div>
+                )}
+                <div style={{ fontSize: 11, color: '#999', marginTop: 8 }}>长按保存图片 · 发朋友圈或发给朋友</div>
+              </div>
             </div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <button type="button" onClick={saveToAlbum} style={{ padding: 14, background: '#005387', color: '#fff', border: 0, borderRadius: 10, cursor: 'pointer' }}>
-              保存到相册
+            <button type="button" onClick={saveToAlbum} disabled={saving} style={{ padding: 14, background: saving ? '#7a9fb5' : '#005387', color: '#fff', border: 0, borderRadius: 10, cursor: saving ? 'wait' : 'pointer', fontSize: 16 }}>
+              {saving ? '生成中...' : '保存到相册'}
             </button>
-            <button type="button" onClick={shareToMoments} style={{ padding: 14, background: '#005387', color: '#fff', border: 0, borderRadius: 10, cursor: 'pointer' }}>
-              分享到朋友圈
+            <button type="button" onClick={shareToMoments} disabled={saving} style={{ padding: 14, background: saving ? '#7a9fb5' : '#005387', color: '#fff', border: 0, borderRadius: 10, cursor: saving ? 'wait' : 'pointer', fontSize: 16 }}>
+              {saving ? '生成中...' : '分享到朋友圈'}
             </button>
             {!isParent && (
               <button
@@ -233,17 +264,6 @@ export default function Poster() {
               返回
             </button>
           </div>
-
-          {inlineSaveImage && (
-            <div style={{ marginTop: 24, paddingTop: 20, borderTop: '1px solid #eee', textAlign: 'center' }}>
-              <img
-                src={inlineSaveImage.dataUrl}
-                alt="海报"
-                style={{ maxWidth: '100%', width: 320, height: 'auto', display: 'block', margin: '0 auto 12px', borderRadius: 8 }}
-              />
-              <p style={{ fontSize: 14, color: '#333', lineHeight: 1.6 }}>{inlineSaveImage.hint}</p>
-            </div>
-          )}
         </>
       )}
 
