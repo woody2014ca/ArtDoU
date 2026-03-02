@@ -198,7 +198,7 @@ export default function Poster() {
               onClick={handleSaveToAlbum}
               style={{ padding: 14, background: '#005387', color: '#fff', border: 0, borderRadius: 10, cursor: 'pointer' }}
             >
-              保存到相册
+              保存到相册（点击下载图片）
             </button>
             <button
               type="button"

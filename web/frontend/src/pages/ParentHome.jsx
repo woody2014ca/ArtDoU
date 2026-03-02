@@ -231,7 +231,7 @@ export default function ParentHome() {
       <section style={{ marginTop: 24 }}>
         <div style={{ marginBottom: 12 }}>
           <span style={{ color: '#005387', fontSize: 18, fontWeight: 700 }}>ART GALLERY</span>
-          <div style={{ fontSize: 14, color: '#333' }}>艺术成长展厅</div>
+          <div style={{ fontSize: 14, color: '#333' }}>艺术成长展厅 · 点击图片可放大</div>
         </div>
         {loadingData ? (
           <p style={{ color: '#888' }}>加载中...</p>
