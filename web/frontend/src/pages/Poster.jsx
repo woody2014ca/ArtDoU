@@ -19,7 +19,6 @@ export default function Poster() {
   const [loading, setLoading] = useState(true);
   const [posterDone, setPosterDone] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState('');
-  const [posterImageUrl, setPosterImageUrl] = useState(null);
   const posterRef = useRef(null);
 
   useEffect(() => {
@@ -86,19 +85,25 @@ export default function Poster() {
     });
   };
 
-  const showPosterImage = () => {
+  const saveToAlbum = () => {
     capturePosterAsImage().then((canvas) => {
       if (!canvas) return;
-      setPosterImageUrl(canvas.toDataURL('image/png'));
+      const a = document.createElement('a');
+      a.download = `艺术成长报告-${name}.png`;
+      a.href = canvas.toDataURL('image/png');
+      a.click();
     }).catch(() => alert('生成图片失败，请重试'));
   };
 
-  const downloadPoster = () => {
-    if (!posterImageUrl) return;
-    const a = document.createElement('a');
-    a.download = `艺术成长报告-${name}.png`;
-    a.href = posterImageUrl;
-    a.click();
+  const shareToMoments = () => {
+    capturePosterAsImage().then((canvas) => {
+      if (!canvas) return;
+      const a = document.createElement('a');
+      a.download = `艺术成长报告-${name}.png`;
+      a.href = canvas.toDataURL('image/png');
+      a.click();
+      setTimeout(() => alert('海报已保存到相册。\n请打开微信 → 发现 → 朋友圈 → 从相册选择刚保存的图片，配文发布。'), 300);
+    }).catch(() => alert('生成图片失败，请重试'));
   };
 
   if (!id) {
@@ -206,18 +211,10 @@ export default function Poster() {
             </div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <button
-              type="button"
-              onClick={showPosterImage}
-              style={{ padding: 14, background: '#005387', color: '#fff', border: 0, borderRadius: 10, cursor: 'pointer' }}
-            >
+            <button type="button" onClick={saveToAlbum} style={{ padding: 14, background: '#005387', color: '#fff', border: 0, borderRadius: 10, cursor: 'pointer' }}>
               保存到相册
             </button>
-            <button
-              type="button"
-              onClick={showPosterImage}
-              style={{ padding: 14, background: '#005387', color: '#fff', border: 0, borderRadius: 10, cursor: 'pointer' }}
-            >
+            <button type="button" onClick={shareToMoments} style={{ padding: 14, background: '#005387', color: '#fff', border: 0, borderRadius: 10, cursor: 'pointer' }}>
               分享到朋友圈
             </button>
             {!isParent && (
@@ -234,36 +231,6 @@ export default function Poster() {
             </button>
           </div>
         </>
-      )}
-
-      {posterImageUrl && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0,0,0,0.9)',
-            zIndex: 10000,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 16,
-          }}
-          onClick={() => setPosterImageUrl(null)}
-        >
-          <div onClick={(e) => e.stopPropagation()} style={{ maxWidth: '100%', maxHeight: '85%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <img src={posterImageUrl} alt="海报" style={{ maxWidth: '100%', maxHeight: '75vh', objectFit: 'contain' }} />
-            <p style={{ color: '#fff', fontSize: 14, marginTop: 12 }}>长按图片保存 · 或点击下方下载</p>
-            <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
-              <button type="button" onClick={downloadPoster} style={{ padding: '12px 24px', background: '#005387', color: '#fff', border: 0, borderRadius: 10, cursor: 'pointer' }}>
-                下载图片
-              </button>
-              <button type="button" onClick={() => setPosterImageUrl(null)} style={{ padding: '12px 24px', background: '#666', color: '#fff', border: 0, borderRadius: 10, cursor: 'pointer' }}>
-                关闭
-              </button>
-            </div>
-          </div>
-        </div>
       )}
 
       <style>{`
