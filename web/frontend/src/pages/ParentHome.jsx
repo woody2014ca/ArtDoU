@@ -238,6 +238,7 @@ export default function ParentHome() {
         ) : works.length === 0 ? (
           <p style={{ color: '#888', fontSize: 14 }}>暂无作品展示，期待下一次创作</p>
         ) : (
+          <>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
             {works.map((w) => {
               const cover = getWorkCover(w);
@@ -278,7 +279,7 @@ export default function ParentHome() {
               );
             })}
           </div>
-      {lightbox && (
+          {lightbox && (
         <div
           role="dialog"
           aria-modal="true"
@@ -333,7 +334,8 @@ export default function ParentHome() {
             </>
           )}
         </div>
-      )}
+          )}
+          </>
         )}
       </section>
 
