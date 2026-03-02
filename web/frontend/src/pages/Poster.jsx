@@ -19,8 +19,7 @@ export default function Poster() {
   const [loading, setLoading] = useState(true);
   const [posterDone, setPosterDone] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState('');
-  const [posterImageUrl, setPosterImageUrl] = useState(null);
-  const [posterHint, setPosterHint] = useState('');
+  const [posterModal, setPosterModal] = useState(null); // { dataUrl, hint, blobUrl }
   const posterRef = useRef(null);
 
   useEffect(() => {
@@ -97,28 +96,25 @@ export default function Poster() {
     return new Blob([u8], { type: mime });
   };
 
-  const tryDownload = (dataUrl, filename) => {
+  const openPosterModal = (dataUrl, hint) => {
+    let blobUrl = '';
     try {
       const blob = dataUrlToBlob(dataUrl);
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.download = filename;
-      a.href = url;
-      a.rel = 'noopener';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      blobUrl = URL.createObjectURL(blob);
     } catch (e) {}
+    setPosterModal({ dataUrl, hint, blobUrl });
+  };
+
+  const closePosterModal = () => {
+    if (posterModal?.blobUrl) URL.revokeObjectURL(posterModal.blobUrl);
+    setPosterModal(null);
   };
 
   const saveToAlbum = () => {
     capturePosterAsImage().then((canvas) => {
       if (!canvas) return;
       const dataUrl = canvas.toDataURL('image/png');
-      tryDownload(dataUrl, `艺术成长报告-${name}.png`);
-      setPosterHint('长按图片保存到相册');
-      setPosterImageUrl(dataUrl);
+      openPosterModal(dataUrl, '长按图片保存到相册');
     }).catch(() => alert('生成图片失败，请重试'));
   };
 
@@ -126,9 +122,7 @@ export default function Poster() {
     capturePosterAsImage().then((canvas) => {
       if (!canvas) return;
       const dataUrl = canvas.toDataURL('image/png');
-      tryDownload(dataUrl, `艺术成长报告-${name}.png`);
-      setPosterHint('长按图片保存后，打开微信 → 朋友圈 → 从相册选择该图片发布');
-      setPosterImageUrl(dataUrl);
+      openPosterModal(dataUrl, '长按图片保存后，打开微信 → 发现 → 朋友圈 → 从相册选择该图片发布');
     }).catch(() => alert('生成图片失败，请重试'));
   };
 
@@ -259,7 +253,7 @@ export default function Poster() {
         </>
       )}
 
-      {posterImageUrl && (
+      {posterModal && (
         <div
           style={{
             position: 'fixed',
@@ -272,26 +266,28 @@ export default function Poster() {
             justifyContent: 'center',
             padding: 16,
           }}
-          onClick={() => setPosterImageUrl(null)}
+          onClick={closePosterModal}
         >
           <div onClick={(e) => e.stopPropagation()} style={{ textAlign: 'center', maxWidth: '100%' }}>
             <img
-              src={posterImageUrl}
+              src={posterModal.dataUrl}
               alt="海报"
-              style={{ maxWidth: '100%', maxHeight: '70vh', objectFit: 'contain', display: 'block', margin: '0 auto' }}
+              style={{ maxWidth: '100%', maxHeight: '60vh', objectFit: 'contain', display: 'block', margin: '0 auto' }}
             />
-            <p style={{ color: '#fff', fontSize: 15, marginTop: 16, padding: '0 20px' }}>{posterHint}</p>
+            <p style={{ color: '#fff', fontSize: 15, marginTop: 16, padding: '0 20px', lineHeight: 1.5 }}>{posterModal.hint}</p>
+            {posterModal.blobUrl ? (
+              <a
+                href={posterModal.blobUrl}
+                download={`艺术成长报告-${name}.png`}
+                style={{ display: 'inline-block', marginTop: 16, padding: '12px 28px', background: '#005387', color: '#fff', border: 0, borderRadius: 10, cursor: 'pointer', fontSize: 16, textDecoration: 'none' }}
+              >
+                点击下载图片
+              </a>
+            ) : null}
             <button
               type="button"
-              onClick={() => { tryDownload(posterImageUrl, `艺术成长报告-${name}.png`); }}
-              style={{ marginTop: 16, padding: '12px 24px', background: '#005387', color: '#fff', border: 0, borderRadius: 10, cursor: 'pointer', fontSize: 15 }}
-            >
-              再次尝试下载
-            </button>
-            <button
-              type="button"
-              onClick={() => setPosterImageUrl(null)}
-              style={{ display: 'block', margin: '12px auto 0', padding: '10px 20px', background: 'transparent', color: 'rgba(255,255,255,0.8)', border: 0, cursor: 'pointer', fontSize: 14 }}
+              onClick={closePosterModal}
+              style={{ display: 'block', margin: '16px auto 0', padding: '10px 24px', background: 'transparent', color: 'rgba(255,255,255,0.9)', border: 0, cursor: 'pointer', fontSize: 15 }}
             >
               关闭
             </button>
