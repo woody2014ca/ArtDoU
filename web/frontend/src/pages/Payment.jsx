@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { dataAdd } from '../api';
 
 export default function Payment() {
@@ -57,8 +57,8 @@ export default function Payment() {
   if (!hasTarget) {
     return (
       <div style={{ maxWidth: 400, margin: '40px auto', padding: 24, textAlign: 'center' }}>
-        <p>请先通过<a href="/pay/find">意向学员缴费</a>查找学员后再提交缴费凭证。</p>
-        <p style={{ marginTop: 16 }}><a href="/">返回首页</a></p>
+        <p>请先通过<Link to="/pay/find">意向学员缴费</Link>查找学员后再提交缴费凭证。</p>
+        <p style={{ marginTop: 16 }}><Link to="/">返回首页</Link></p>
       </div>
     );
   }
@@ -130,9 +130,9 @@ export default function Payment() {
       </form>
 
       <p style={{ marginTop: 24, textAlign: 'center', fontSize: 14 }}>
-        <a href="/" style={{ color: '#666' }}>返回首页</a>
+        <Link to="/" style={{ color: '#666' }}>返回首页</Link>
         <span style={{ margin: '0 8px' }}>·</span>
-        <a href="/pay/find" style={{ color: '#666' }}>重新查找学员</a>
+        <Link to="/pay/find" style={{ color: '#666' }}>重新查找学员</Link>
       </p>
     </div>
   );

@@ -21,6 +21,7 @@ const allPaths = [
   'web/frontend/index.html',
   'web/frontend/package.json',
   'web/frontend/vite.config.js',
+  'web/frontend/vercel.json',
   'web/frontend/VERCEL-API-配置.md',
   'web/backend/server.js',
   'web/backend/db.js',

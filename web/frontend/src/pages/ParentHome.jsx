@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { dataGet } from '../api';
 
@@ -60,8 +60,8 @@ export default function ParentHome() {
   if (!studentId) {
     return (
       <div style={{ maxWidth: 400, margin: '40px auto', padding: 24, textAlign: 'center' }}>
-        <p>未识别到学员，请先<a href="/bind">绑定手机号</a>或通过老师分享的链接进入。</p>
-        <p><a href="/">返回首页</a></p>
+        <p>未识别到学员，请先<Link to="/bind">绑定手机号</Link>或通过老师分享的链接进入。</p>
+        <p><Link to="/">返回首页</Link></p>
       </div>
     );
   }
@@ -177,7 +177,8 @@ export default function ParentHome() {
           <button
             type="button"
             onClick={() => {
-              const url = `${window.location.origin}/parent?id=${studentId}&referrer=${studentId}&from=share`;
+              const basePath = import.meta.env.BASE_URL.replace(/\/$/, '') || '';
+            const url = `${window.location.origin}${basePath}/parent?id=${studentId}&referrer=${studentId}&from=share`;
               navigator.clipboard.writeText(url).then(() => alert('分享链接已复制，可粘贴到朋友圈或发给朋友'));
             }}
             style={{ flex: 1, padding: 14, background: '#fff', color: '#005387', border: '2px solid #005387', borderRadius: 10, cursor: 'pointer' }}
@@ -235,7 +236,7 @@ export default function ParentHome() {
       </section>
 
       <p style={{ marginTop: 24, fontSize: 14 }}>
-        <a href="/">返回首页</a>
+        <Link to="/">返回首页</Link>
       </p>
     </div>
   );

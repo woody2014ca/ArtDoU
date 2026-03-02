@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { dataGet, dataAdd, dataIncrement } from '../api';
 
@@ -118,7 +118,7 @@ export default function Checkin() {
         {msg && <p style={{ color: '#c00', fontSize: 14, marginBottom: 12 }}>{msg}</p>}
         <button type="submit" disabled={loading} style={{ width: '100%', padding: 14, background: '#005387', color: '#fff', border: 0, borderRadius: 10, cursor: loading ? 'wait' : 'pointer', fontSize: 16 }}>{loading ? '提交中...' : isRealStudent ? '确认消课' : '确认核销'}</button>
       </form>
-      <p style={{ marginTop: 24 }}><a href="/">返回首页</a></p>
+      <p style={{ marginTop: 24 }}><Link to="/">返回首页</Link></p>
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { dataGet, dataUpdate, dataDelete } from '../api';
 
@@ -100,7 +100,7 @@ export default function EditStudent() {
     return (
       <div style={{ maxWidth: 480, margin: '0 auto', padding: 20 }}>
         <p style={{ color: '#c00' }}>缺少学员 ID</p>
-        <p><a href="/">返回首页</a></p>
+        <p><Link to="/">返回首页</Link></p>
       </div>
     );
   }
@@ -136,7 +136,7 @@ export default function EditStudent() {
       <button type="button" onClick={handleDelete} disabled={saving} style={{ width: '100%', padding: 12, marginTop: 12, background: '#fff', color: '#c00', border: '1px solid #c00', borderRadius: 10, cursor: saving ? 'wait' : 'pointer', fontSize: 14 }}>
         删除该学员
       </button>
-      <p style={{ marginTop: 24 }}><a href="/">返回首页</a></p>
+      <p style={{ marginTop: 24 }}><Link to="/">返回首页</Link></p>
     </div>
   );
 }

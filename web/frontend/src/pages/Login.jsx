@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { authLogin } from '../api';
 import { useAuth } from '../context/AuthContext';
 
@@ -59,7 +59,7 @@ export default function Login() {
       </form>
       {msg && <p style={{ color: '#c00', fontSize: 14, marginTop: 12 }}>{msg}</p>}
       <p style={{ marginTop: 24, fontSize: 14 }}>
-        <a href="/">返回首页</a> · <a href="/bind">家长绑定手机号</a>
+        <Link to="/">返回首页</Link> · <Link to="/bind">家长绑定手机号</Link>
       </p>
     </div>
   );

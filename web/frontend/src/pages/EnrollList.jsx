@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { dataGet, dataDelete } from '../api';
 
@@ -49,7 +49,7 @@ export default function EnrollList() {
     return (
       <div style={{ padding: 40, textAlign: 'center' }}>
         <p>仅老师可查看意向名单。</p>
-        <p><a href="/">返回首页</a></p>
+        <p><Link to="/">返回首页</Link></p>
       </div>
     );
   }
@@ -80,7 +80,7 @@ export default function EnrollList() {
           ))}
         </ul>
       )}
-      <p style={{ marginTop: 24 }}><a href="/">返回首页</a> · <a href="/enroll">意向登记</a></p>
+      <p style={{ marginTop: 24 }}><Link to="/">返回首页</Link> · <Link to="/enroll">意向登记</Link></p>
     </div>
   );
 }

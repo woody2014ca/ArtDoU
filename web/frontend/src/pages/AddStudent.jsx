@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { dataAdd } from '../api';
 
@@ -70,7 +70,7 @@ export default function AddStudent() {
           {loading ? '录入中...' : '确认录入'}
         </button>
       </form>
-      <p style={{ marginTop: 24 }}><a href="/">返回首页</a></p>
+      <p style={{ marginTop: 24 }}><Link to="/">返回首页</Link></p>
     </div>
   );
 }

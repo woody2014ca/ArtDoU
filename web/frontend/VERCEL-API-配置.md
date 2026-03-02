@@ -1,5 +1,10 @@
 # 前端 www.kunlunfo.com 报「网络错误」— 必查项
 
+## ArtDoU 已放在二级路径
+
+- **应用入口**：**https://www.kunlunfo.com/artdou**（不再在根路径 `/`）
+- 根路径 `www.kunlunfo.com` 可单独做品牌首页；若希望访问 `/` 自动跳转到 ArtDoU，在 Vercel 项目里添加 Redirect：Source `/` → Destination `/artdou`。
+
 ## 原因
 
 前端请求后端时用的是 **VITE_API_URL**。  

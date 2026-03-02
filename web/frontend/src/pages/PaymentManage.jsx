@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { dataGet, dataUpdate, dataIncrement, dataAdd, paymentConfirm } from '../api';
 
@@ -78,7 +78,7 @@ export default function PaymentManage() {
     return (
       <div style={{ padding: 40, textAlign: 'center' }}>
         <p>仅老师可管理缴费。</p>
-        <p><a href="/">返回首页</a></p>
+        <p><Link to="/">返回首页</Link></p>
       </div>
     );
   }
@@ -114,7 +114,7 @@ export default function PaymentManage() {
           ))}
         </ul>
       )}
-      <p style={{ marginTop: 24 }}><a href="/">返回首页</a> · <a href="/finance">财务</a></p>
+      <p style={{ marginTop: 24 }}><Link to="/">返回首页</Link> · <Link to="/finance">财务</Link></p>
     </div>
   );
 }

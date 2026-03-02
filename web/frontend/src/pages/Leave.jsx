@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { dataAdd } from '../api';
 
 export default function Leave() {
@@ -50,7 +50,7 @@ export default function Leave() {
     return (
       <div style={{ maxWidth: 400, margin: '40px auto', padding: 24, textAlign: 'center' }}>
         <p>请从学员展厅点击「请假条」进入。</p>
-        <p style={{ marginTop: 16 }}><a href="/">返回首页</a></p>
+        <p style={{ marginTop: 16 }}><Link to="/">返回首页</Link></p>
       </div>
     );
   }

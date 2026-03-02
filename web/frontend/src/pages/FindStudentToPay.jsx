@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { paymentFindStudent } from '../api';
 
 export default function FindStudentToPay() {
@@ -99,9 +99,9 @@ export default function FindStudentToPay() {
         </button>
       </p>
       <p style={{ marginTop: 16, textAlign: 'center', fontSize: 14 }}>
-        <a href="/" style={{ color: '#666' }}>返回首页</a>
+        <Link to="/" style={{ color: '#666' }}>返回首页</Link>
         <span style={{ margin: '0 8px' }}>·</span>
-        <a href="/bind" style={{ color: '#666' }}>家长绑定</a>
+        <Link to="/bind" style={{ color: '#666' }}>家长绑定</Link>
       </p>
     </div>
   );

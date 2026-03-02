@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { dataAdd, dataGet } from '../api';
 
@@ -145,7 +145,7 @@ export default function Enroll() {
       </form>
 
       <p style={{ marginTop: 24 }}>
-        <a href="/">返回首页</a>
+        <Link to="/">返回首页</Link>
       </p>
     </div>
   );

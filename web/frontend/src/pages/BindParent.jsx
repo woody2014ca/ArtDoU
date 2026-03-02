@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { authBind } from '../api';
 import { useAuth } from '../context/AuthContext';
 
@@ -81,7 +81,7 @@ export default function BindParent() {
         </button>
       </p>
       <p style={{ marginTop: 16, textAlign: 'center', fontSize: 14 }}>
-        <a href="/" style={{ color: '#666' }}>返回首页</a>
+        <Link to="/" style={{ color: '#666' }}>返回首页</Link>
       </p>
     </div>
   );

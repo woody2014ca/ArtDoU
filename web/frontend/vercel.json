@@ -2,10 +2,15 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "vite",
+  "redirects": [
+    { "source": "/", "destination": "/artdou", "permanent": false },
+    { "source": "/login", "destination": "/artdou/login", "permanent": false },
+    { "source": "/parent", "destination": "/artdou/parent", "permanent": false },
+    { "source": "/bind", "destination": "/artdou/bind", "permanent": false }
+  ],
   "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
+    { "source": "/artdou/assets/:path*", "destination": "/assets/:path*" },
+    { "source": "/artdou/:path*", "destination": "/index.html" },
+    { "source": "/artdou", "destination": "/index.html" }
   ]
 }

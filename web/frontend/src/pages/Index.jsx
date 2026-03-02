@@ -14,6 +14,7 @@ export default function Index() {
   });
   const [sortBy, setSortBy] = useState('name'); // 'name' | 'left'
 
+  // 家长与教室首页分离：家长登录后直接进入家长首页，老师进入下方教室工作台
   useEffect(() => {
     if (role === 'parent' && myStudentId) {
       navigate(`/parent?id=${myStudentId}`, { replace: true });

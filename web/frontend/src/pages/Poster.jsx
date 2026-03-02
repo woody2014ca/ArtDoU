@@ -172,7 +172,8 @@ export default function Poster() {
               type="button"
               onClick={() => {
                 const keys = selectedItems.map((i) => i.key).join(',');
-                const url = `${window.location.origin}/poster/view?id=${id}&name=${encodeURIComponent(name)}&keys=${encodeURIComponent(keys)}`;
+                const basePath = import.meta.env.BASE_URL.replace(/\/$/, '') || '';
+                const url = `${window.location.origin}${basePath}/poster/view?id=${id}&name=${encodeURIComponent(name)}&keys=${encodeURIComponent(keys)}`;
                 navigator.clipboard.writeText(url).then(() => alert('分享链接已复制，可粘贴到朋友圈或发给朋友'));
               }}
               style={{ padding: 14, background: '#005387', color: '#fff', border: 0, borderRadius: 10, cursor: 'pointer' }}

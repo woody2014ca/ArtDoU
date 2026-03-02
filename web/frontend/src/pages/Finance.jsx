@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { dataGet, dataDelete } from '../api';
 
@@ -46,7 +46,7 @@ export default function Finance() {
     return (
       <div style={{ padding: 40, textAlign: 'center' }}>
         <p>仅老师可查看财务。</p>
-        <p><a href="/">返回首页</a></p>
+        <p><Link to="/">返回首页</Link></p>
       </div>
     );
   }
@@ -125,7 +125,7 @@ export default function Finance() {
         </>
       )}
 
-      <p style={{ marginTop: 24 }}><a href="/">返回首页</a></p>
+      <p style={{ marginTop: 24 }}><Link to="/">返回首页</Link></p>
     </div>
   );
 }
