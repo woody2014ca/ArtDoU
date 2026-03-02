@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { dataGet } from '../api';
+import html2canvas from 'html2canvas';
 
 const MAX_SELECT = 4;
 
@@ -16,6 +17,7 @@ export default function Poster() {
   const [selected, setSelected] = useState([]);
   const [loading, setLoading] = useState(true);
   const [posterDone, setPosterDone] = useState(false);
+  const posterRef = useRef(null);
 
   useEffect(() => {
     if (!id) {
@@ -64,8 +66,34 @@ export default function Poster() {
     .map((k) => flatCandidates.find((c) => c.key === k))
     .filter(Boolean);
 
-  const handleSave = () => {
-    window.print();
+  const capturePosterAsImage = () => {
+    if (!posterRef.current) return null;
+    return html2canvas(posterRef.current, {
+      useCORS: true,
+      allowTaint: true,
+      scale: 2,
+      backgroundColor: '#ffffff',
+    });
+  };
+
+  const handleSaveToAlbum = () => {
+    capturePosterAsImage().then((canvas) => {
+      if (!canvas) return;
+      const link = document.createElement('a');
+      link.download = `艺术成长报告-${name}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }).catch(() => alert('生成图片失败，请重试'));
+  };
+
+  const handleShareToMoments = () => {
+    capturePosterAsImage().then((canvas) => {
+      if (!canvas) return;
+      const link = document.createElement('a');
+      link.download = `分享海报-${name}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }).catch(() => alert('生成图片失败，请重试'));
   };
 
   if (!id) {
@@ -142,7 +170,7 @@ export default function Poster() {
         </>
       ) : (
         <>
-          <div className="poster-print-area" style={{ background: '#fff', padding: 24, borderRadius: 12, border: '1px solid #eee', marginBottom: 20 }}>
+          <div ref={posterRef} className="poster-print-area" style={{ background: '#fff', padding: 24, borderRadius: 12, border: '1px solid #eee', marginBottom: 20 }}>
             <div style={{ textAlign: 'center', marginBottom: 16 }}>
               <div style={{ fontSize: 12, color: '#005387', letterSpacing: 2 }}>ArtDoU</div>
               <div style={{ fontSize: 18, fontWeight: 700, marginTop: 4 }}>艺术成长报告 / ART GROWTH REPORT</div>
@@ -159,26 +187,25 @@ export default function Poster() {
                 </div>
               ))}
             </div>
+            <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid #eee', textAlign: 'center' }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#005387' }}>🎁 我也要报名</div>
+              <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>长按保存图片 · 发朋友圈或发给朋友</div>
+            </div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <button
               type="button"
-              onClick={handleSave}
+              onClick={handleSaveToAlbum}
               style={{ padding: 14, background: '#005387', color: '#fff', border: 0, borderRadius: 10, cursor: 'pointer' }}
             >
-              保存到相册 / Save（打印或另存为 PDF）
+              保存到相册
             </button>
             <button
               type="button"
-              onClick={() => {
-                const keys = selectedItems.map((i) => i.key).join(',');
-                const basePath = import.meta.env.BASE_URL.replace(/\/$/, '') || '';
-                const url = `${window.location.origin}${basePath}/poster/view?id=${id}&name=${encodeURIComponent(name)}&keys=${encodeURIComponent(keys)}`;
-                navigator.clipboard.writeText(url).then(() => alert('分享链接已复制，可粘贴到朋友圈或发给朋友'));
-              }}
+              onClick={handleShareToMoments}
               style={{ padding: 14, background: '#005387', color: '#fff', border: 0, borderRadius: 10, cursor: 'pointer' }}
             >
-              分享到朋友圈（朋友）
+              分享到朋友圈（下载海报图，发朋友圈时选该图）
             </button>
             {!isParent && (
               <button

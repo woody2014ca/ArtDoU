@@ -15,6 +15,7 @@ export default function ParentHome() {
   const [works, setWorks] = useState([]);
   const [totalRewards, setTotalRewards] = useState(0);
   const [loadingData, setLoadingData] = useState(true);
+  const [lightbox, setLightbox] = useState(null); // { urls: string[], index: number }
 
   const studentId = id || myStudentId;
   const isViewingSharedLink = !!(id && (referrer || fromShare));
@@ -72,6 +73,11 @@ export default function ParentHome() {
   const showRenewAlert = !isGuest && left <= 1;
 
   const getWorkCover = (w) => w.work_imgs?.[0] || w.work_img || w.work_photo || w.photo_url || '';
+  const getWorkAllUrls = (w) => {
+    if (w.work_imgs?.length) return w.work_imgs;
+    const u = w.work_img || w.work_photo || w.photo_url;
+    return u ? [u] : [];
+  };
 
   const goToPoster = () => navigate(`/poster?id=${studentId}&name=${encodeURIComponent(name)}`);
   const goToEnroll = () => navigate(`/enroll?referrer=${referrer || studentId}&from=share`);
@@ -235,16 +241,22 @@ export default function ParentHome() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
             {works.map((w) => {
               const cover = getWorkCover(w);
+              const allUrls = getWorkAllUrls(w);
               const dateStr = w.date ? new Date(w.date).toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
-              const multi = (w.work_imgs && w.work_imgs.length) || (cover ? 1 : 0);
+              const multi = allUrls.length || (cover ? 1 : 0);
               return (
                 <div
                   key={w._id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => cover && setLightbox({ urls: allUrls, index: 0 })}
+                  onKeyDown={(e) => { if (cover && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); setLightbox({ urls: allUrls, index: 0 }); } }}
                   style={{
                     background: '#fff',
                     borderRadius: 10,
                     overflow: 'hidden',
                     boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+                    cursor: cover ? 'pointer' : 'default',
                   }}
                 >
                   {cover ? (
@@ -266,6 +278,62 @@ export default function ParentHome() {
               );
             })}
           </div>
+      {lightbox && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.9)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16,
+          }}
+          onClick={() => setLightbox(null)}
+        >
+          <button
+            type="button"
+            aria-label="关闭"
+            onClick={() => setLightbox(null)}
+            style={{ position: 'absolute', right: 16, top: 16, background: 'rgba(255,255,255,0.2)', color: '#fff', border: 0, borderRadius: 8, padding: '8px 16px', cursor: 'pointer', fontSize: 14 }}
+          >
+            关闭
+          </button>
+          <div onClick={(e) => e.stopPropagation()} style={{ maxWidth: '100%', maxHeight: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <img
+              src={lightbox.urls[lightbox.index]}
+              alt=""
+              style={{ maxWidth: '100%', maxHeight: '90vh', objectFit: 'contain' }}
+            />
+          </div>
+          {lightbox.urls.length > 1 && (
+            <>
+              <button
+                type="button"
+                aria-label="上一张"
+                onClick={(e) => { e.stopPropagation(); setLightbox((l) => ({ ...l, index: (l.index - 1 + l.urls.length) % l.urls.length })); }}
+                style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.2)', color: '#fff', border: 0, borderRadius: 8, padding: '12px 16px', cursor: 'pointer', fontSize: 18 }}
+              >
+                ‹
+              </button>
+              <button
+                type="button"
+                aria-label="下一张"
+                onClick={(e) => { e.stopPropagation(); setLightbox((l) => ({ ...l, index: (l.index + 1) % l.urls.length })); }}
+                style={{ position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.2)', color: '#fff', border: 0, borderRadius: 8, padding: '12px 16px', cursor: 'pointer', fontSize: 18 }}
+              >
+                ›
+              </button>
+              <span style={{ position: 'absolute', bottom: 24, left: '50%', transform: 'translateX(-50%)', color: 'rgba(255,255,255,0.9)', fontSize: 14 }}>
+                {lightbox.index + 1} / {lightbox.urls.length}
+              </span>
+            </>
+          )}
+        </div>
+      )}
         )}
       </section>
 
