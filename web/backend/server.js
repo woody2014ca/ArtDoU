@@ -23,7 +23,8 @@ if (!process.env.PORT) {
 console.log('[ArtDoU] will listen on 0.0.0.0:' + PORT);
 
 app.use(cors({ origin: true, credentials: true }));
-app.use(express.json());
+// 消课会提交作品图 base64，提高限制避免 413 或返回非 JSON
+app.use(express.json({ limit: '10mb' }));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/data', dataRoutes);
@@ -37,10 +38,11 @@ app.use((_req, res) => {
   res.status(404).json({ success: false, error: 'Not Found' });
 });
 
-// 全局错误处理，确保异常时也返回 JSON
+// 全局错误处理，确保异常时也返回 JSON（含 body 过大 413）
 app.use((err, _req, res, _next) => {
   console.error('[ArtDoU] route error:', err);
-  res.status(500).json({ success: false, error: err.message || 'Server Error' });
+  const status = err.status ?? err.statusCode ?? 500;
+  res.status(status).json({ success: false, error: err.message || 'Server Error' });
 });
 
 // 不配 MONGODB_URI 时完全不连数据库，只支持老师密码登录，无 502、无 Atlas
