@@ -1,0 +1,10 @@
+{
+  "name": "artdou",
+  "private": true,
+  "description": "ArtDoU 老师/家长管理端",
+  "scripts": {
+    "dev": "cd web/frontend && npm run dev",
+    "build": "cd web/frontend && npm run build",
+    "deploy": "node scripts/deploy.js"
+  }
+}

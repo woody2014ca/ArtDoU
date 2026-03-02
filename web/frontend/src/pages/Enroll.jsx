@@ -8,9 +8,11 @@ const REAL_LEVELS = ['零基础', '涂鸦期 (3-5岁)', '造型期 (6-8岁)', '�
 export default function Enroll() {
   const [searchParams] = useSearchParams();
   const referrerId = searchParams.get('referrer') || '';
+  const fromShare = searchParams.get('from') === 'share';
   const { role } = useAuth();
   const navigate = useNavigate();
   const isAdmin = role === 'admin' || role === 'teacher';
+  const canSubmit = isAdmin || fromShare || !!referrerId;
 
   const [form, setForm] = useState({ name: '', phone: '', age: '', level: '', note: '' });
   const [referrerDisplay, setReferrerDisplay] = useState('');
@@ -34,8 +36,8 @@ export default function Enroll() {
       return;
     }
     setMsg('');
-    if (!isAdmin) {
-      setMsg('仅老师可录入意向');
+    if (!canSubmit) {
+      setMsg('请从分享链接进入或使用老师账号登录后录入');
       return;
     }
     setLoading(true);
@@ -43,7 +45,7 @@ export default function Enroll() {
       const res = await dataAdd('Prospective_students', {
         ...form,
         status: 'pending',
-        source: '教师录入',
+        source: fromShare || referrerId ? '分享报名' : '教师录入',
         referrer_id: referrerId || undefined,
       });
       if (res.success || res._id) {

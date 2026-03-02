@@ -1,14 +1,17 @@
 import { Router } from 'express';
-import { find, getDoc, add, update } from '../db.js';
+import { getDb, find, getDoc, add, update, incrementLeftClasses } from '../db.js';
 import { authMiddleware } from '../middleware/auth.js';
 
 const router = Router();
 
 router.use(authMiddleware);
 
+const noDb = (res) => res.json({ success: false, msg: '未配置数据库，缴费功能暂不可用' });
+
 /** POST /api/payment/find-student — 缴费前查学员/意向 */
 router.post('/find-student', async (req, res) => {
   try {
+    if (!getDb()) return noDb(res);
     const phoneRaw = String(req.body?.phone || '').trim();
     const studentNameRaw = String(req.body?.studentName || '').trim();
     if (!phoneRaw) return res.json({ success: false, msg: '请输入家长手机号' });
@@ -45,6 +48,7 @@ router.post('/find-student', async (req, res) => {
 router.post('/confirm', async (req, res) => {
   if (req.role !== 'admin') return res.json({ success: false, msg: 'Permission Denied' });
   try {
+    if (!getDb()) return noDb(res);
     const { paymentId, prospectiveId } = req.body || {};
     if (!paymentId || !prospectiveId) return res.json({ success: false, msg: '参数缺失' });
 
@@ -79,6 +83,28 @@ router.post('/confirm', async (req, res) => {
       lessons_deducted: -initialLessons,
       createTime: new Date(),
     });
+
+    // 分享有奖：若意向学员有介绍人（referrer_id），介绍人对应学员自动 +1 课时
+    const referrerId = pros.referrer_id;
+    if (referrerId) {
+      try {
+        const referrerStudent = await getDoc('Students', referrerId);
+        if (referrerStudent) {
+          await incrementLeftClasses('Students', referrerId, 1);
+          await add('Attendance_logs', {
+            student_id: referrerId,
+            student_name: referrerStudent.name || '学员',
+            date: new Date().toLocaleDateString(),
+            type: 'reward',
+            note: '分享有奖 +1 课时',
+            change_num: 1,
+            createTime: new Date(),
+          });
+        }
+      } catch (err) {
+        console.error('分享有奖发放失败:', err.message);
+      }
+    }
 
     return res.json({ success: true, newStudentId });
   } catch (e) {

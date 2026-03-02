@@ -5,15 +5,13 @@ import { signToken, authMiddleware } from '../middleware/auth.js';
 const router = Router();
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'ArtDoU2026';
 
-/** GET /api/auth/init — 同小程序 init：返回当前身份，可选带 token */
+/** GET /api/auth/init — 返回当前身份（不依赖数据库，有 token 即可） */
 router.get('/init', authMiddleware, async (req, res) => {
   try {
-    const db = getDb();
-    if (!db) return res.json({ success: false, msg: 'Database not connected' });
     res.json({
       success: true,
       role: req.role,
-      myStudentId: req.myStudentId,
+      myStudentId: req.myStudentId || null,
     });
   } catch (e) {
     res.status(500).json({ success: false, error: e.message });
@@ -34,7 +32,7 @@ router.post('/login', async (req, res) => {
 router.post('/bind', async (req, res) => {
   try {
     const db = getDb();
-    if (!db) return res.status(500).json({ success: false, msg: 'Database not connected' });
+    if (!db) return res.json({ success: false, msg: '家长绑定暂未开放，请联系老师' });
     const phoneRaw = String(req.body?.phone || '').trim();
     if (!phoneRaw) return res.json({ success: false, msg: '请输入手机号' });
     const phoneNorm = phoneRaw.replace(/\D/g, '');

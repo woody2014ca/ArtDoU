@@ -15,6 +15,7 @@ export default function Payment() {
   const [msg, setMsg] = useState('');
 
   const hasTarget = !!studentId || !!prospectiveId;
+  const displayName = decodeURIComponent(studentName);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -30,7 +31,7 @@ export default function Payment() {
     setLoading(true);
     try {
       const payload = {
-        student_name: decodeURIComponent(studentName),
+        student_name: displayName,
         amount_lessons: parseInt(lessons, 10),
         price: parseFloat(price),
         status: 'pending',
@@ -57,32 +58,82 @@ export default function Payment() {
     return (
       <div style={{ maxWidth: 400, margin: '40px auto', padding: 24, textAlign: 'center' }}>
         <p>请先通过<a href="/pay/find">意向学员缴费</a>查找学员后再提交缴费凭证。</p>
-        <p><a href="/">返回首页</a></p>
+        <p style={{ marginTop: 16 }}><a href="/">返回首页</a></p>
       </div>
     );
   }
 
   return (
-    <div style={{ maxWidth: 480, margin: '0 auto', padding: 20 }}>
-      <h1 style={{ color: '#005387', fontSize: 22, marginBottom: 8 }}>缴费凭证</h1>
-      <p style={{ color: '#666', fontSize: 14, marginBottom: 24 }}>学员：{decodeURIComponent(studentName)}</p>
+    <div style={{ maxWidth: 440, margin: '40px auto', padding: 24 }}>
+      <div style={{ textAlign: 'center', marginBottom: 24 }}>
+        <h1 style={{ margin: 0, color: '#005387', fontSize: 22 }}>提交缴费凭证</h1>
+        <p style={{ marginTop: 4, fontSize: 14, color: '#666' }}>PAYMENT PROOF</p>
+      </div>
+
+      <div style={{ background: '#f8fafc', borderRadius: 12, padding: 16, marginBottom: 20 }}>
+        <div style={{ fontSize: 12, color: '#666', marginBottom: 4 }}>学员 / Student</div>
+        <div style={{ fontSize: 18, fontWeight: 600 }}>{displayName}</div>
+      </div>
+
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: 16 }}>
-          <label style={{ display: 'block', marginBottom: 6, fontSize: 14 }}>购买课时 *</label>
-          <input type="number" min="1" value={lessons} onChange={(e) => setLessons(e.target.value)} placeholder="如 10" style={{ width: '100%', padding: 12, border: '1px solid #ddd', borderRadius: 8 }} />
+          <label style={{ display: 'block', marginBottom: 6, fontSize: 14, color: '#333' }}>购买课时 / Lessons *</label>
+          <input
+            type="number"
+            min={1}
+            value={lessons}
+            onChange={(e) => setLessons(e.target.value)}
+            placeholder="请输入课时数"
+            style={{ width: '100%', padding: 14, border: '1px solid #ddd', borderRadius: 10, fontSize: 16, boxSizing: 'border-box' }}
+          />
         </div>
         <div style={{ marginBottom: 16 }}>
-          <label style={{ display: 'block', marginBottom: 6, fontSize: 14 }}>金额（元）*</label>
-          <input type="number" step="0.01" min="0" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="如 1200" style={{ width: '100%', padding: 12, border: '1px solid #ddd', borderRadius: 8 }} />
+          <label style={{ display: 'block', marginBottom: 6, fontSize: 14, color: '#333' }}>缴费金额（元）/ Amount *</label>
+          <input
+            type="number"
+            step="0.01"
+            min={0}
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            placeholder="请输入金额"
+            style={{ width: '100%', padding: 14, border: '1px solid #ddd', borderRadius: 10, fontSize: 16, boxSizing: 'border-box' }}
+          />
         </div>
-        <div style={{ marginBottom: 16 }}>
-          <label style={{ display: 'block', marginBottom: 6, fontSize: 14 }}>凭证说明（选填）</label>
-          <textarea value={proofNote} onChange={(e) => setProofNote(e.target.value)} placeholder="可填写转账流水号或凭证摘要，图片可稍后由老师补传" rows={2} style={{ width: '100%', padding: 12, border: '1px solid #ddd', borderRadius: 8 }} />
+        <div style={{ marginBottom: 20 }}>
+          <label style={{ display: 'block', marginBottom: 6, fontSize: 14, color: '#333' }}>缴费凭证说明（选填）</label>
+          <textarea
+            value={proofNote}
+            onChange={(e) => setProofNote(e.target.value)}
+            placeholder="可填写转账流水号或凭证摘要，截图可单独发给老师"
+            rows={3}
+            style={{ width: '100%', padding: 12, border: '1px solid #ddd', borderRadius: 10, fontSize: 14, boxSizing: 'border-box' }}
+          />
         </div>
+
         {msg && <p style={{ color: msg.startsWith('提交成功') ? '#0a0' : '#c00', fontSize: 14, marginBottom: 12 }}>{msg}</p>}
-        <button type="submit" disabled={loading} style={{ width: '100%', padding: 14, background: '#005387', color: '#fff', border: 0, borderRadius: 10, cursor: loading ? 'wait' : 'pointer', fontSize: 16 }}>{loading ? '提交中...' : '提交'}</button>
+        <button
+          type="submit"
+          disabled={loading}
+          style={{
+            width: '100%',
+            padding: 14,
+            background: '#005387',
+            color: '#fff',
+            border: 0,
+            borderRadius: 10,
+            cursor: loading ? 'wait' : 'pointer',
+            fontSize: 16,
+          }}
+        >
+          {loading ? '提交中...' : '提交凭证'}
+        </button>
       </form>
-      <p style={{ marginTop: 24 }}><a href="/">返回首页</a> · <a href="/pay/find">重新查找学员</a></p>
+
+      <p style={{ marginTop: 24, textAlign: 'center', fontSize: 14 }}>
+        <a href="/" style={{ color: '#666' }}>返回首页</a>
+        <span style={{ margin: '0 8px' }}>·</span>
+        <a href="/pay/find" style={{ color: '#666' }}>重新查找学员</a>
+      </p>
     </div>
   );
 }

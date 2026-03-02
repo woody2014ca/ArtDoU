@@ -9,8 +9,10 @@ export default function Index() {
   const [state, setState] = useState({
     isLoading: true,
     itemList: [],
+    allItems: [],
     stats: { monthLogs: 0, totalAssets: 0, pendingCount: 0, pendingEnroll: 0 },
   });
+  const [sortBy, setSortBy] = useState('name'); // 'name' | 'left'
 
   useEffect(() => {
     if (role === 'parent' && myStudentId) {
@@ -48,12 +50,10 @@ export default function Index() {
       const totalAssets = students.reduce((acc, cur) => acc + (Number(cur.left_classes) || 0), 0);
       const pendingLeave = requests.filter((i) => i.status === 0).length;
       const pendingEnroll = enrolls.filter((i) => i.status === 'pending').length;
-      setState((s) => ({
-        ...s,
-        isLoading: false,
-        itemList: students,
-        stats: { monthLogs, totalAssets, pendingCount: pendingLeave, pendingEnroll },
-      }));
+      const sorted = [...students].sort((a, b) =>
+          (a.name || '').localeCompare(b.name || '', 'zh-CN')
+        );
+        setState((s) => ({ ...s, isLoading: false, itemList: sorted, allItems: students, stats: { monthLogs, totalAssets, pendingCount: pendingLeave, pendingEnroll } }));
     } catch (e) {
       setState((s) => ({ ...s, isLoading: false }));
     }
@@ -71,20 +71,30 @@ export default function Index() {
 
   if (!isAdmin) {
     return (
-      <div style={{ maxWidth: 400, margin: '40px auto', padding: 24, textAlign: 'center' }}>
-        <h2 style={{ color: '#005387' }}>ArtDoU</h2>
-        <p style={{ color: '#666', marginBottom: 24 }}>家长入口 / Parent Entry</p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <button onClick={() => navigate('/pay/find')} style={{ padding: 16, background: '#005387', color: '#fff', border: 0, borderRadius: 8, cursor: 'pointer', fontSize: 16 }}>
+      <div style={{ maxWidth: 420, margin: '40px auto', padding: 28, textAlign: 'center' }}>
+        <div style={{ fontSize: 28, fontWeight: 700, color: '#005387', letterSpacing: 2, marginBottom: 8 }}>ArtDoU</div>
+        <p style={{ color: '#666', fontSize: 15, marginBottom: 28 }}>家长入口 / Parent Entry</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <button
+            type="button"
+            onClick={() => navigate('/pay/find')}
+            style={{ padding: 18, background: '#005387', color: '#fff', border: 0, borderRadius: 12, cursor: 'pointer', fontSize: 16, fontWeight: 500 }}
+          >
             意向学员缴费
           </button>
-          <button onClick={() => navigate('/bind')} style={{ padding: 16, background: '#fff', color: '#005387', border: '2px solid #005387', borderRadius: 8, cursor: 'pointer', fontSize: 16 }}>
+          <button
+            type="button"
+            onClick={() => navigate('/bind')}
+            style={{ padding: 18, background: '#fff', color: '#005387', border: '2px solid #005387', borderRadius: 12, cursor: 'pointer', fontSize: 16, fontWeight: 500 }}
+          >
             我是家长，绑定手机号
           </button>
         </div>
-        <p style={{ marginTop: 24, fontSize: 14, color: '#888' }}>请点击上方按钮完成缴费或绑定</p>
-        <p style={{ marginTop: 16 }}>
-          <button onClick={() => navigate('/login')} style={{ padding: '8px 16px', background: '#f0f0f0', border: 0, borderRadius: 8, cursor: 'pointer' }}>老师登录</button>
+        <p style={{ marginTop: 28, fontSize: 14, color: '#888', lineHeight: 1.5 }}>请点击上方按钮完成缴费或绑定，绑定后再打开即为家长端。</p>
+        <p style={{ marginTop: 24, fontSize: 14 }}>
+          <button type="button" onClick={() => navigate('/login')} style={{ padding: '10px 20px', background: '#f0f0f0', border: 0, borderRadius: 10, cursor: 'pointer', color: '#333' }}>
+            老师登录
+          </button>
         </p>
       </div>
     );
@@ -96,6 +106,19 @@ export default function Index() {
   const goEnrollList = () => navigate('/enroll/list');
   const goFinance = () => navigate('/finance');
   const handleCheckin = (id, name) => navigate(`/checkin?id=${id}&name=${encodeURIComponent(name || '')}`);
+  const goToGallery = (id) => navigate(`/parent?id=${id}`);
+  const goToEdit = (id) => navigate(`/student/edit/${id}`);
+
+  const handleSort = (by) => {
+    setSortBy(by);
+    setState((s) => {
+      const list = (s.allItems && s.allItems.length) ? s.allItems : s.itemList;
+      const sorted = [...list].sort((a, b) =>
+        by === 'name' ? (a.name || '').localeCompare(b.name || '', 'zh-CN') : (Number(b.left_classes) || 0) - (Number(a.left_classes) || 0)
+      );
+      return { ...s, itemList: sorted };
+    });
+  };
 
   return (
     <div style={{ maxWidth: 600, margin: '0 auto', padding: 16, paddingBottom: 40 }}>
@@ -133,20 +156,28 @@ export default function Index() {
         </button>
       </div>
 
-      <p onClick={goEnrollList} style={{ fontSize: 14, color: '#005387', marginBottom: 16, cursor: 'pointer' }}>
+      <p onClick={goEnrollList} style={{ fontSize: 14, color: '#005387', marginBottom: 16, cursor: 'pointer', textAlign: 'center' }}>
         管理意向名单 / PROSPECTIVE LIST →
       </p>
 
-      <h3 style={{ fontSize: 16, marginBottom: 12 }}>学员名录 / Directory</h3>
+      <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+        <h3 style={{ fontSize: 16, margin: 0 }}>学员名录 / Directory</h3>
+        <button type="button" onClick={() => handleSort('name')} style={{ padding: '4px 10px', fontSize: 12, background: sortBy === 'name' ? '#005387' : '#f0f0f0', color: sortBy === 'name' ? '#fff' : '#333', border: 0, borderRadius: 6, cursor: 'pointer' }}>姓名序</button>
+        <button type="button" onClick={() => handleSort('left')} style={{ padding: '4px 10px', fontSize: 12, background: sortBy === 'left' ? '#005387' : '#e8e8e8', color: sortBy === 'left' ? '#fff' : '#666', border: 0, borderRadius: 6, cursor: 'pointer' }}>余课序</button>
+      </div>
       <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
         {(state.itemList || []).map((item) => (
           <li key={item._id} style={{ background: '#fff', borderRadius: 10, padding: 16, marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{ width: 44, height: 44, borderRadius: '50%', background: '#005387', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, minWidth: 0 }}>
+              <div style={{ width: 44, height: 44, borderRadius: '50%', background: '#005387', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, flexShrink: 0 }}>
                 {(item.name || '?')[0]}
               </div>
-              <div>
-                <div style={{ fontWeight: 600 }}>{item.name}</div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                  <span>{item.name}</span>
+                  <button type="button" onClick={() => goToGallery(item._id)} style={{ padding: 0, border: 0, background: 'none', color: '#005387', cursor: 'pointer', fontSize: 14, textDecoration: 'underline' }}>展厅</button>
+                  <button type="button" onClick={() => goToEdit(item._id)} style={{ padding: 0, border: 0, background: 'none', color: '#666', cursor: 'pointer', fontSize: 14 }}>管理 / Edit</button>
+                </div>
                 <div style={{ fontSize: 14, color: '#666' }}>
                   余课 / Lessons: <span style={{ color: Number(item.left_classes) === 0 ? '#c00' : '' }}>{item.left_classes}</span>
                 </div>
@@ -154,7 +185,7 @@ export default function Index() {
             </div>
             <button
               onClick={() => handleCheckin(item._id, item.name)}
-              style={{ padding: '8px 16px', background: '#005387', color: '#fff', border: 0, borderRadius: 8, cursor: 'pointer' }}
+              style={{ padding: '8px 16px', background: '#005387', color: '#fff', border: 0, borderRadius: 8, cursor: 'pointer', flexShrink: 0 }}
             >
               消课
             </button>

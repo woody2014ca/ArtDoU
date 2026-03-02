@@ -10,7 +10,7 @@ router.use(authMiddleware);
 router.get('/:collection/:id?', async (req, res) => {
   try {
     const db = getDb();
-    if (!db) return res.status(500).json({ success: false, msg: 'Database not connected' });
+    if (!db) return res.json({ success: false, msg: '未配置数据库，仅支持老师登录' });
     const { collection, id } = req.params;
     const searchStudentId = req.query.search_student_id || req.body?.search_student_id;
     const data = { search_student_id: searchStudentId };
@@ -49,12 +49,14 @@ router.get('/:collection/:id?', async (req, res) => {
 /** POST /api/data/:collection — 新增 */
 router.post('/:collection', async (req, res) => {
   try {
+    if (!getDb()) return res.json({ success: false, msg: '未配置数据库，仅支持老师登录' });
     const { collection } = req.params;
     const data = req.body || {};
     const userRole = req.role;
     const isParentRequesting = userRole === 'parent' && collection === 'Leave_requests';
     const isPaymentLogByGuest = collection === 'Payment_logs';
-    if (userRole !== 'admin' && !isParentRequesting && !isPaymentLogByGuest) {
+    const isProspectiveByShare = collection === 'Prospective_students' && (userRole === 'guest' || userRole === 'parent');
+    if (userRole !== 'admin' && !isParentRequesting && !isPaymentLogByGuest && !isProspectiveByShare) {
       return res.json({ success: false, msg: 'Permission Denied' });
     }
     const payload = { ...data, createTime: new Date() };
@@ -69,6 +71,7 @@ router.post('/:collection', async (req, res) => {
 router.patch('/:collection/:id', async (req, res) => {
   if (req.role !== 'admin') return res.json({ success: false, msg: 'Permission Denied' });
   try {
+    if (!getDb()) return res.json({ success: false, msg: '未配置数据库，仅支持老师登录' });
     const { collection, id } = req.params;
     await update(collection, id, req.body || {});
     return res.json({ success: true });
@@ -81,6 +84,7 @@ router.patch('/:collection/:id', async (req, res) => {
 router.delete('/:collection/:id', async (req, res) => {
   if (req.role !== 'admin') return res.json({ success: false, msg: 'Permission Denied' });
   try {
+    if (!getDb()) return res.json({ success: false, msg: '未配置数据库，仅支持老师登录' });
     const { collection, id } = req.params;
     await remove(collection, id);
     return res.json({ success: true });
@@ -93,6 +97,7 @@ router.delete('/:collection/:id', async (req, res) => {
 router.post('/:collection/:id/increment', async (req, res) => {
   if (req.role !== 'admin') return res.json({ success: false, msg: 'Permission Denied' });
   try {
+    if (!getDb()) return res.json({ success: false, msg: '未配置数据库，仅支持老师登录' });
     const { collection, id } = req.params;
     const value = Number(req.body?.value) || 0;
     await incrementLeftClasses(collection, id, value);
