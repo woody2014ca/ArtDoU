@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { dataGet } from '../api';
 import html2canvas from 'html2canvas';
+import QRCode from 'qrcode';
 
 const MAX_SELECT = 4;
 
@@ -17,7 +18,15 @@ export default function Poster() {
   const [selected, setSelected] = useState([]);
   const [loading, setLoading] = useState(true);
   const [posterDone, setPosterDone] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState('');
   const posterRef = useRef(null);
+
+  useEffect(() => {
+    if (!posterDone || !id) return;
+    const basePath = import.meta.env.BASE_URL.replace(/\/$/, '') || '';
+    const signUpUrl = `${window.location.origin}${basePath}/poster/view?id=${id}&referrer=${id}&from=share`;
+    QRCode.toDataURL(signUpUrl, { width: 160, margin: 1 }).then(setQrDataUrl).catch(() => {});
+  }, [posterDone, id]);
 
   useEffect(() => {
     if (!id) {
@@ -76,23 +85,11 @@ export default function Poster() {
     });
   };
 
-  const handleSaveToAlbum = () => {
+  const showPosterImage = () => {
     capturePosterAsImage().then((canvas) => {
       if (!canvas) return;
-      const link = document.createElement('a');
-      link.download = `艺术成长报告-${name}.png`;
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-    }).catch(() => alert('生成图片失败，请重试'));
-  };
-
-  const handleShareToMoments = () => {
-    capturePosterAsImage().then((canvas) => {
-      if (!canvas) return;
-      const link = document.createElement('a');
-      link.download = `分享海报-${name}.png`;
-      link.href = canvas.toDataURL('image/png');
-      link.click();
+      const dataUrl = canvas.toDataURL('image/png');
+      window.open(dataUrl, '_blank', 'noopener');
     }).catch(() => alert('生成图片失败，请重试'));
   };
 
@@ -170,42 +167,50 @@ export default function Poster() {
         </>
       ) : (
         <>
-          <div ref={posterRef} className="poster-print-area" style={{ background: '#fff', padding: 24, borderRadius: 12, border: '1px solid #eee', marginBottom: 20 }}>
+          <div ref={posterRef} className="poster-print-area" style={{ background: '#fff', padding: 24, borderRadius: 12, border: '1px solid #eee', marginBottom: 20, maxWidth: 400, marginLeft: 'auto', marginRight: 'auto' }}>
             <div style={{ textAlign: 'center', marginBottom: 16 }}>
               <div style={{ fontSize: 12, color: '#005387', letterSpacing: 2 }}>ArtDoU</div>
               <div style={{ fontSize: 18, fontWeight: 700, marginTop: 4 }}>艺术成长报告 / ART GROWTH REPORT</div>
               <div style={{ fontSize: 20, fontWeight: 700, marginTop: 8, textDecoration: 'underline' }}>{name}</div>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: selectedItems.length <= 2 ? 'repeat(2, 1fr)' : 'repeat(2, 1fr)', gap: 12 }}>
-              {selectedItems.map((item) => (
-                <div key={item.key} style={{ textAlign: 'center' }}>
-                  <img src={item.url} alt="" style={{ width: '100%', borderRadius: 8, display: 'block' }} />
-                  <div style={{ fontSize: 12, color: '#666', marginTop: 6 }}>
-                    {item.work?.date ? new Date(item.work.date).toLocaleDateString('zh-CN') : ''}
-                    {item.work?.note && ` · ${item.work.note}`}
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: selectedItems.length <= 2 ? 'repeat(2, 1fr)' : 'repeat(2, 1fr)', gap: 12, maxWidth: 320 }}>
+                {selectedItems.map((item) => (
+                  <div key={item.key} style={{ textAlign: 'center' }}>
+                    <img src={item.url} alt="" style={{ width: '100%', borderRadius: 8, display: 'block' }} />
+                    <div style={{ fontSize: 12, color: '#666', marginTop: 6 }}>
+                      {item.work?.date ? new Date(item.work.date).toLocaleDateString('zh-CN') : ''}
+                      {item.work?.note && ` · ${item.work.note}`}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
             <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid #eee', textAlign: 'center' }}>
               <div style={{ fontSize: 16, fontWeight: 700, color: '#005387' }}>🎁 我也要报名</div>
-              <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>长按保存图片 · 发朋友圈或发给朋友</div>
+              <div style={{ fontSize: 12, color: '#666', marginTop: 8 }}>扫码进入报名页</div>
+              {qrDataUrl && (
+                <div style={{ marginTop: 10, display: 'flex', justifyContent: 'center' }}>
+                  <img src={qrDataUrl} alt="报名入口" style={{ width: 120, height: 120, display: 'block' }} />
+                </div>
+              )}
+              <div style={{ fontSize: 11, color: '#999', marginTop: 8 }}>长按保存图片 · 发朋友圈或发给朋友</div>
             </div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <button
               type="button"
-              onClick={handleSaveToAlbum}
+              onClick={showPosterImage}
               style={{ padding: 14, background: '#005387', color: '#fff', border: 0, borderRadius: 10, cursor: 'pointer' }}
             >
-              保存到相册（点击下载图片）
+              保存到相册
             </button>
             <button
               type="button"
-              onClick={handleShareToMoments}
+              onClick={showPosterImage}
               style={{ padding: 14, background: '#005387', color: '#fff', border: 0, borderRadius: 10, cursor: 'pointer' }}
             >
-              分享到朋友圈（下载海报图，发朋友圈时选该图）
+              分享到朋友圈
             </button>
             {!isParent && (
               <button
@@ -216,6 +221,7 @@ export default function Poster() {
                 🎁 我也要报名
               </button>
             )}
+            <p style={{ fontSize: 12, color: '#888', marginTop: 4 }}>点击后在新窗口打开海报，长按或右键保存图片</p>
             <button type="button" onClick={() => navigate(-1)} style={{ padding: 12, background: '#f0f0f0', border: 0, borderRadius: 10, cursor: 'pointer' }}>
               返回
             </button>
