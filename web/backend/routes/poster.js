@@ -31,20 +31,34 @@ router.get('/image/:key', (req, res) => {
   res.type('image/png').send(entry.buffer);
 });
 
-/** 将图片 URL 转为 base64 data URL（服务端请求无 CORS） */
-async function fetchImageAsDataUrl(url, timeoutMs = 8000) {
+/** 将图片 URL 转为 buffer（服务端请求无 CORS） */
+async function fetchImageBuffer(url, timeoutMs = 8000) {
   const c = new AbortController();
   const t = setTimeout(() => c.abort(), timeoutMs);
   try {
     const res = await fetch(url, { signal: c.signal });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const buf = Buffer.from(await res.arrayBuffer());
-    const ct = res.headers.get('content-type') || 'image/jpeg';
-    const base64 = buf.toString('base64');
-    return `data:${ct};base64,${base64}`;
+    return Buffer.from(await res.arrayBuffer());
   } finally {
     clearTimeout(t);
   }
+}
+
+/** 用 sharp 将图片缩放到 cell×cell、覆盖裁剪，高质量重采样，避免 SVG 内嵌原图时渲染模糊 */
+async function resizeToCell(buffer, cell) {
+  return sharp(buffer)
+    .resize(cell, cell, { fit: 'cover', position: 'center' })
+    .png({ compressionLevel: 6 })
+    .toBuffer();
+}
+
+/** data URL 或 http(s) URL 转为 buffer；data URL 直接解码 */
+function urlToBuffer(url) {
+  if (url.startsWith('data:')) {
+    const base64 = url.replace(/^data:image\/\w+;base64,/, '');
+    return Buffer.from(base64, 'base64');
+  }
+  return null;
 }
 
 /** POST /api/poster/render — 后端生成海报 PNG，避免前端 canvas 跨域/卡死 */
@@ -70,18 +84,31 @@ router.post('/render', async (req, res) => {
       console.warn('[poster] QRCode error:', e.message);
     }
 
-    const imageDataUrls = await Promise.all(
-      urls.map((u) => fetchImageAsDataUrl(u).catch(() => null))
+    // 先定分辨率：3 倍基准，作品格约 528px，整图约 1200px 宽，长按保存更清晰
+    const scale = 3;
+    const w = Math.round(400 * scale);
+    const cell = Math.round(176 * scale);
+
+    // 取图：支持 data URL（直接解码）或 HTTP URL（服务端 fetch）
+    const rawBuffers = await Promise.all(
+      urls.map(async (u) => {
+        const dataBuf = urlToBuffer(u);
+        if (dataBuf) return dataBuf;
+        return fetchImageBuffer(u).catch(() => null);
+      })
     );
-    const validImages = imageDataUrls.filter(Boolean);
-    if (validImages.length === 0) {
+    const validBuffers = rawBuffers.filter(Boolean);
+    if (validBuffers.length === 0) {
       return res.status(400).json({ success: false, msg: '图片加载失败，请重试' });
     }
 
-    // 2.5 倍分辨率，便于长按保存后看清（约 1000px 宽）
-    const scale = 2.5;
-    const w = Math.round(400 * scale);
-    const cell = Math.round(176 * scale);
+    // 用 sharp 高质量缩放到 cell×cell 再嵌 SVG，避免 SVG 渲染时缩放导致模糊
+    const resizedBuffers = await Promise.all(
+      validBuffers.map((buf) => resizeToCell(buf, cell))
+    );
+    const validImages = resizedBuffers.map(
+      (buf) => `data:image/png;base64,${buf.toString('base64')}`
+    );
     const gap = Math.round(16 * scale);
     const pad = Math.round(24 * scale);
     const topH = Math.round(96 * scale);

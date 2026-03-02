@@ -225,7 +225,7 @@ export default function Poster() {
         </>
       ) : (
         <>
-          <div style={{ marginBottom: 20, maxWidth: 400, marginLeft: 'auto', marginRight: 'auto' }}>
+          <div style={{ marginBottom: 20, maxWidth: 800, marginLeft: 'auto', marginRight: 'auto' }}>
             {/* 有保存图时只显示这一张图（可长按保存），原海报移出视口但保留供再次生成用 */}
             {inlineSaveImage ? (
               <div style={{ textAlign: 'center' }}>
