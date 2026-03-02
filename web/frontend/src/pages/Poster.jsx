@@ -125,40 +125,30 @@ export default function Poster() {
     return canvas;
   };
 
-  /** 后端生成 PNG，同一时间只允许一次请求，避免两个按钮同时触发或连点 */
-  const runSaveFlow = (hint) => {
+  /** 只保留一个「生成海报图」流程，避免两按钮同时触发；优先用 URL 展示以便微信长按保存 */
+  const runSaveFlow = () => {
     if (savingRef.current) return;
     savingRef.current = true;
     setSaving(true);
     setInlineSaveImage(null);
     const imageUrls = selectedItems.map((i) => i.url);
     posterRender(id, name, imageUrls)
-      .then((blob) => blobToDataUrl(blob))
-      .then((dataUrl) => setInlineSaveImage({ dataUrl, hint }))
+      .then(async ({ blob, posterUrl }) => {
+        const imageSrc = posterUrl || (await blobToDataUrl(blob));
+        setInlineSaveImage({
+          imageSrc,
+          hint: '请长按上方图片 → 选择「保存图片」保存到相册；保存后可到微信 发现→朋友圈→从相册选择 发布。若长按无菜单请截屏。',
+        });
+      })
       .catch((err) => {
         const msg = err?.message || '生成失败';
-        if (msg.includes('请先登录')) {
-          alert('请先登录后再保存');
-          return;
-        }
-        alert(msg);
+        if (msg.includes('请先登录')) alert('请先登录后再保存');
+        else alert(msg);
       })
       .finally(() => {
         savingRef.current = false;
         setSaving(false);
       });
-  };
-
-  const saveToAlbum = (e) => {
-    e?.preventDefault?.();
-    e?.stopPropagation?.();
-    runSaveFlow('请长按上方图片，在弹出菜单中选择「保存图片」保存到相册。若无菜单可截屏保存。');
-  };
-
-  const shareToMoments = (e) => {
-    e?.preventDefault?.();
-    e?.stopPropagation?.();
-    runSaveFlow('请长按上方图片保存后，打开微信 → 发现 → 朋友圈 → 从相册选择该图片发布。若无菜单可截屏。');
   };
 
   if (!id) {
@@ -240,9 +230,8 @@ export default function Poster() {
             {inlineSaveImage ? (
               <div style={{ textAlign: 'center' }}>
                 <img
-                  src={inlineSaveImage.dataUrl}
+                  src={inlineSaveImage.imageSrc}
                   alt="海报-长按保存"
-                  crossOrigin="anonymous"
                   style={{
                     width: '100%',
                     display: 'block',
@@ -250,7 +239,6 @@ export default function Poster() {
                     border: '1px solid #eee',
                     marginBottom: 12,
                     WebkitTouchCallout: 'default',
-                    WebkitUserSelect: 'auto',
                     userSelect: 'auto',
                     pointerEvents: 'auto',
                   }}
@@ -302,11 +290,8 @@ export default function Poster() {
             </div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <button type="button" onClick={saveToAlbum} disabled={saving} style={{ padding: 14, background: saving ? '#7a9fb5' : '#005387', color: '#fff', border: 0, borderRadius: 10, cursor: saving ? 'wait' : 'pointer', fontSize: 16 }}>
-              {saving ? '生成中...' : '保存到相册'}
-            </button>
-            <button type="button" onClick={shareToMoments} disabled={saving} style={{ padding: 14, background: saving ? '#7a9fb5' : '#005387', color: '#fff', border: 0, borderRadius: 10, cursor: saving ? 'wait' : 'pointer', fontSize: 16 }}>
-              {saving ? '生成中...' : '分享到朋友圈'}
+            <button type="button" onClick={runSaveFlow} disabled={saving} style={{ padding: 14, background: saving ? '#7a9fb5' : '#005387', color: '#fff', border: 0, borderRadius: 10, cursor: saving ? 'wait' : 'pointer', fontSize: 16 }}>
+              {saving ? '生成中...' : '生成海报图（长按保存）'}
             </button>
             {!isParent && (
               <button

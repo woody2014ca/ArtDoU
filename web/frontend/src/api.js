@@ -109,7 +109,7 @@ export async function paymentConfirm(paymentId, prospectiveId) {
   return res.json();
 }
 
-/** 后端生成海报 PNG，返回 blob，前端转 dataURL 展示（微信内长按保存最稳） */
+/** 后端生成海报 PNG。优先返回 posterUrl（微信内长按保存更稳），否则返回 blob 转 dataURL */
 export async function posterRender(id, name, imageUrls) {
   const res = await fetch(`${API_BASE}/poster/render`, {
     method: 'POST',
@@ -120,7 +120,11 @@ export async function posterRender(id, name, imageUrls) {
     const data = await res.json().catch(() => ({}));
     throw new Error(data.msg || `请求失败 ${res.status}`);
   }
-  return res.blob();
+  const path = res.headers.get('X-Poster-Url');
+  const origin = API_BASE.replace(/\/api\/?$/, '');
+  const posterUrl = path ? `${origin}${path.startsWith('/') ? path : '/' + path}` : null;
+  const blob = await res.blob();
+  return { blob, posterUrl };
 }
 
 export { getToken, setToken };

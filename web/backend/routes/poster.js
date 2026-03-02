@@ -2,9 +2,34 @@ import { Router } from 'express';
 import sharp from 'sharp';
 import QRCode from 'qrcode';
 import { authMiddleware } from '../middleware/auth.js';
+import crypto from 'crypto';
 
 const router = Router();
 router.use(authMiddleware);
+
+/** 内存缓存：key -> { buffer, createdAt }，供前端用 URL 长按保存（微信内 data URL 常无法保存） */
+const posterCache = new Map();
+const CACHE_MAX = 20;
+const CACHE_TTL_MS = 10 * 60 * 1000;
+
+function pruneCache() {
+  const now = Date.now();
+  for (const [k, v] of posterCache.entries()) {
+    if (now - v.createdAt > CACHE_TTL_MS) posterCache.delete(k);
+  }
+  while (posterCache.size > CACHE_MAX) {
+    const first = posterCache.keys().next().value;
+    if (first) posterCache.delete(first);
+  }
+}
+
+/** GET /api/poster/image/:key — 返回缓存的 PNG，用于 <img src=url> 长按保存 */
+router.get('/image/:key', (req, res) => {
+  const entry = posterCache.get(req.params.key);
+  if (!entry) return res.status(404).send('Not Found');
+  res.set('Cache-Control', 'public, max-age=300');
+  res.type('image/png').send(entry.buffer);
+});
 
 /** 将图片 URL 转为 base64 data URL（服务端请求无 CORS） */
 async function fetchImageAsDataUrl(url, timeoutMs = 8000) {
@@ -104,7 +129,13 @@ router.post('/render', async (req, res) => {
       .png()
       .toBuffer();
 
+    const key = crypto.randomBytes(8).toString('hex');
+    pruneCache();
+    posterCache.set(key, { buffer: png, createdAt: Date.now() });
+
     res.set('Cache-Control', 'no-store');
+    res.set('Access-Control-Expose-Headers', 'X-Poster-Url');
+    res.set('X-Poster-Url', `/api/poster/image/${key}`);
     res.type('image/png').send(png);
   } catch (e) {
     console.error('[poster] render error:', e);
