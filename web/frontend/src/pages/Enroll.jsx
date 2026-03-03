@@ -14,7 +14,7 @@ export default function Enroll() {
   const isAdmin = role === 'admin' || role === 'teacher';
   const canSubmit = isAdmin || fromShare || !!referrerId;
 
-  const [form, setForm] = useState({ name: '', phone: '', age: '', level: '', note: '' });
+  const [form, setForm] = useState({ name: '', phone: '', age: '', level: '', note: '', referrer: '' });
   const [referrerDisplay, setReferrerDisplay] = useState('');
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState('');
@@ -22,7 +22,10 @@ export default function Enroll() {
   React.useEffect(() => {
     if (referrerId) {
       dataGet('Students', referrerId).then((res) => {
-        if (res.success && res.data && res.data.name) setReferrerDisplay(res.data.name);
+        if (res.success && res.data && res.data.name) {
+          setReferrerDisplay(res.data.name);
+          setForm((f) => ({ ...f, referrer: res.data.name }));
+        }
       });
     }
   }, [referrerId]);
@@ -43,7 +46,12 @@ export default function Enroll() {
     setLoading(true);
     try {
       const res = await dataAdd('Prospective_students', {
-        ...form,
+        name: form.name,
+        phone: form.phone,
+        age: form.age,
+        level: form.level,
+        note: form.note,
+        referrer: form.referrer || undefined,
         status: 'pending',
         source: fromShare || referrerId ? '分享报名' : '教师录入',
         referrer_id: referrerId || undefined,
@@ -65,13 +73,17 @@ export default function Enroll() {
     <div style={{ maxWidth: 480, margin: '0 auto', padding: 20 }}>
       <h1 style={{ color: '#005387', fontSize: 22, marginBottom: 24 }}>意向登记</h1>
 
-      {referrerId && (
-        <p style={{ marginBottom: 16, fontSize: 14, color: '#666' }}>
-          推荐人：{referrerDisplay || '已填写（来自分享）'}
-        </p>
-      )}
-
       <form onSubmit={handleSubmit}>
+        <div style={{ marginBottom: 16 }}>
+          <label style={{ display: 'block', marginBottom: 6, fontSize: 14 }}>推荐人（选填）</label>
+          <input
+            type="text"
+            value={form.referrer}
+            onChange={(e) => handleChange('referrer', e.target.value)}
+            placeholder="填写推荐人，可享受首次课优惠价！"
+            style={{ width: '100%', padding: 12, border: '1px solid #ddd', borderRadius: 8 }}
+          />
+        </div>
         <div style={{ marginBottom: 16 }}>
           <label style={{ display: 'block', marginBottom: 6, fontSize: 14 }}>姓名 *</label>
           <input
