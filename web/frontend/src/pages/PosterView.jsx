@@ -26,7 +26,7 @@ export default function PosterView() {
         setWorks(withImg.slice(0, 18));
       }
       setLoading(false);
-    });
+    }).catch(() => setLoading(false));
   }, [id]);
 
   useEffect(() => {

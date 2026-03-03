@@ -6,7 +6,7 @@ const router = Router();
 
 router.use(authMiddleware);
 
-/** GET /api/data/:collection/:id? — 仅教师与家长可读数据，未登录不可读 */
+/** GET /api/data/:collection/:id? — 教师/家长需登录；分享链接（仅查 Attendance_logs+search_student_id）允许未登录 */
 router.get('/:collection/:id?', async (req, res) => {
   try {
     const db = getDb();
@@ -17,11 +17,12 @@ router.get('/:collection/:id?', async (req, res) => {
     const userRole = req.role;
     const myStudentId = req.myStudentId;
 
-    if (userRole === 'guest') {
+    const docId = (id === 'all' || !id) ? null : id;
+    const isShareView = collection === 'Attendance_logs' && searchStudentId && (docId === 'all' || !docId);
+    if (userRole === 'guest' && !isShareView) {
       return res.json({ success: false, msg: '请先登录' });
     }
 
-    const docId = (id === 'all' || !id) ? null : id;
     if (docId === 'all' || !docId) {
       let filter = {};
       if (collection === 'Attendance_logs' && data.search_student_id) {
