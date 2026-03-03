@@ -50,10 +50,12 @@ export default function PosterView() {
   });
 
   const keyList = keysParam.split(',').map((k) => k.trim()).filter(Boolean);
+  // 陌生人打开分享链接：只展示最多 2 张图，竖向排成「一张海报」；带 keys 时按选定展示
+  const posterMaxImages = keyList.length > 0 ? 9 : 2;
   const selectedItems =
     keyList.length > 0
       ? keyList.map((k) => flatCandidates.find((c) => c.key === k)).filter(Boolean)
-      : flatCandidates.slice(0, 9);
+      : flatCandidates.slice(0, posterMaxImages);
 
   if (!id) {
     return (
@@ -64,30 +66,30 @@ export default function PosterView() {
     );
   }
 
+  const isPosterStyle = keyList.length === 0;
   return (
-    <div style={{ maxWidth: 600, margin: '0 auto', padding: 16 }}>
-      <h1 style={{ color: '#005387', fontSize: 22, marginBottom: 8, textAlign: 'center' }}>艺术成长报告</h1>
-      <p style={{ fontSize: 14, color: '#666', marginBottom: 20, textAlign: 'center' }}>ART GROWTH REPORT</p>
-
+    <div style={{ maxWidth: 420, margin: '0 auto', padding: 16 }}>
       {loading ? (
         <p style={{ textAlign: 'center', color: '#888' }}>加载中...</p>
       ) : (
         <>
-          <div style={{ background: '#fff', padding: 24, borderRadius: 12, border: '1px solid #eee', marginBottom: 20 }}>
-            <div style={{ textAlign: 'center', marginBottom: 16 }}>
+          <div style={{ background: '#fff', padding: isPosterStyle ? 20 : 24, borderRadius: 12, border: '1px solid #eee', marginBottom: 20, boxShadow: isPosterStyle ? '0 2px 12px rgba(0,0,0,0.08)' : 'none' }}>
+            <div style={{ textAlign: 'center', marginBottom: isPosterStyle ? 12 : 16 }}>
               <div style={{ fontSize: 12, color: '#005387', letterSpacing: 2 }}>ArtDoU</div>
-              <div style={{ fontSize: 18, fontWeight: 700, marginTop: 4 }}>艺术成长报告 / ART GROWTH REPORT</div>
-              <div style={{ fontSize: 20, fontWeight: 700, marginTop: 8, textDecoration: 'underline' }}>{name}</div>
+              <div style={{ fontSize: isPosterStyle ? 14 : 18, fontWeight: 700, marginTop: 4, color: '#333' }}>{isPosterStyle ? '邀请你看' : '艺术成长报告 / ART GROWTH REPORT'}</div>
+              <div style={{ fontSize: 20, fontWeight: 700, marginTop: 6, textDecoration: 'underline' }}>{name}</div>
             </div>
             {selectedItems.length > 0 ? (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isPosterStyle ? '1fr' : 'repeat(2, 1fr)', gap: isPosterStyle ? 12 : 12 }}>
                 {selectedItems.map((item) => (
                   <div key={item.key} style={{ textAlign: 'center' }}>
                     <img src={item.url} alt="" style={{ width: '100%', borderRadius: 8, display: 'block' }} />
-                    <div style={{ fontSize: 12, color: '#666', marginTop: 6 }}>
-                      {item.work?.date ? new Date(item.work.date).toLocaleDateString('zh-CN') : ''}
-                      {item.work?.note && ` · ${item.work.note}`}
-                    </div>
+                    {!isPosterStyle && (
+                      <div style={{ fontSize: 12, color: '#666', marginTop: 6 }}>
+                        {item.work?.date ? new Date(item.work.date).toLocaleDateString('zh-CN') : ''}
+                        {item.work?.note && ` · ${item.work.note}`}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
