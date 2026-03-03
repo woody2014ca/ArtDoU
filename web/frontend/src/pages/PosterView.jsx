@@ -50,8 +50,8 @@ export default function PosterView() {
   });
 
   const keyList = keysParam.split(',').map((k) => k.trim()).filter(Boolean);
-  // 陌生人打开分享链接：只展示最多 2 张图，竖向排成「一张海报」；带 keys 时按选定展示
-  const posterMaxImages = keyList.length > 0 ? 9 : 2;
+  // 陌生人打开分享链接：最多 3 张图竖向排；带 keys 时按选定展示
+  const posterMaxImages = keyList.length > 0 ? 9 : 3;
   const selectedItems =
     keyList.length > 0
       ? keyList.map((k) => flatCandidates.find((c) => c.key === k)).filter(Boolean)
@@ -96,13 +96,15 @@ export default function PosterView() {
             ) : (
               <p style={{ textAlign: 'center', color: '#888', padding: 24 }}>暂无作品，期待下一次创作</p>
             )}
-            <div style={{ borderTop: '1px solid #eee', marginTop: 20, paddingTop: 20, textAlign: 'center' }}>
-              <div style={{ fontSize: 16, fontWeight: 700, color: '#005387', marginBottom: 8 }}>🎁 我也要报名</div>
-              <div style={{ fontSize: 13, color: '#666', marginBottom: 12 }}>扫码进入报名页</div>
-              {qrDataUrl && (
-                <img src={qrDataUrl} alt="报名" style={{ display: 'block', margin: '0 auto', width: 140, height: 140 }} />
-              )}
-            </div>
+            {!isPosterStyle && (
+              <div style={{ borderTop: '1px solid #eee', marginTop: 20, paddingTop: 20, textAlign: 'center' }}>
+                <div style={{ fontSize: 16, fontWeight: 700, color: '#005387', marginBottom: 8 }}>🎁 我也要报名</div>
+                <div style={{ fontSize: 13, color: '#666', marginBottom: 12 }}>扫码进入报名页</div>
+                {qrDataUrl && (
+                  <img src={qrDataUrl} alt="报名" style={{ display: 'block', margin: '0 auto', width: 140, height: 140 }} />
+                )}
+              </div>
+            )}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <button
@@ -112,9 +114,11 @@ export default function PosterView() {
             >
               🎁 我也要报名
             </button>
-            <button type="button" onClick={() => navigate('/')} style={{ padding: 12, background: '#f0f0f0', border: 0, borderRadius: 10, cursor: 'pointer' }}>
-              返回首页
-            </button>
+            {!isPosterStyle && (
+              <button type="button" onClick={() => navigate('/')} style={{ padding: 12, background: '#f0f0f0', border: 0, borderRadius: 10, cursor: 'pointer' }}>
+                返回首页
+              </button>
+            )}
           </div>
         </>
       )}
