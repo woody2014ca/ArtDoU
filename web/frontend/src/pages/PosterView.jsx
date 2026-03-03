@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import QRCode from 'qrcode';
 import { dataGet } from '../api';
 
 export default function PosterView() {
@@ -10,6 +11,7 @@ export default function PosterView() {
   const navigate = useNavigate();
   const [works, setWorks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [qrDataUrl, setQrDataUrl] = useState('');
 
   useEffect(() => {
     if (!id) {
@@ -25,6 +27,13 @@ export default function PosterView() {
       }
       setLoading(false);
     });
+  }, [id]);
+
+  useEffect(() => {
+    if (!id) return;
+    const basePath = import.meta.env.BASE_URL.replace(/\/$/, '') || '';
+    const signUpUrl = `${window.location.origin}${basePath}/enroll?referrer=${id}&from=share`;
+    QRCode.toDataURL(signUpUrl, { width: 200, margin: 1 }).then(setQrDataUrl).catch(() => {});
   }, [id]);
 
   const getUrls = (w) => {
@@ -85,6 +94,13 @@ export default function PosterView() {
             ) : (
               <p style={{ textAlign: 'center', color: '#888', padding: 24 }}>暂无作品，期待下一次创作</p>
             )}
+            <div style={{ borderTop: '1px solid #eee', marginTop: 20, paddingTop: 20, textAlign: 'center' }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#005387', marginBottom: 8 }}>🎁 我也要报名</div>
+              <div style={{ fontSize: 13, color: '#666', marginBottom: 12 }}>扫码进入报名页</div>
+              {qrDataUrl && (
+                <img src={qrDataUrl} alt="报名" style={{ display: 'block', margin: '0 auto', width: 140, height: 140 }} />
+              )}
+            </div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <button
