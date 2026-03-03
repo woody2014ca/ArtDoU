@@ -219,9 +219,9 @@ export default function ParentHome() {
             onClick={() => {
               const basePath = import.meta.env.BASE_URL.replace(/\/$/, '') || '';
               if (role === 'parent') {
-                // 分享有奖：朋友打开看到自动生成的海报 + 我也要报名
+                // 分享有奖：复制链接并提示奖励规则
                 const url = `${window.location.origin}${basePath}/poster/view?id=${studentId}&name=${encodeURIComponent(name)}&from=share`;
-                navigator.clipboard.writeText(url).then(() => alert('分享链接已复制，朋友打开将看到海报与「我也要报名」'));
+                navigator.clipboard.writeText(url).then(() => alert('分享奖励：每位新朋友报名并成功缴纳首月学费后，您都将获得1个课时奖励。新朋友也将获得首次课优惠价。\n\n分享链接已生成，直接粘贴即可发送给您的朋友。'));
               } else {
                 // 通知家长：家长打开看到绑定引导
                 const url = `${window.location.origin}${basePath}/parent?id=${studentId}&referrer=${studentId}&from=share&to=parent`;

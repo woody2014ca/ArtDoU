@@ -98,7 +98,7 @@ export default function Enroll() {
             type="text"
             value={form.age}
             onChange={(e) => handleChange('age', e.target.value)}
-            placeholder="如 5"
+            placeholder=""
             style={{ width: '100%', padding: 12, border: '1px solid #ddd', borderRadius: 8 }}
           />
         </div>
