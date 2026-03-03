@@ -10,7 +10,7 @@ export default function ParentHome() {
   const fromShare = searchParams.get('from') === 'share';
   const toParent = searchParams.get('to') === 'parent';
   const navigate = useNavigate();
-  const { role, myStudentId, loading } = useAuth();
+  const { role, myStudentId, loading, logout } = useAuth();
   const [student, setStudent] = useState(null);
   const [works, setWorks] = useState([]);
   const [totalRewards, setTotalRewards] = useState(0);
@@ -83,10 +83,17 @@ export default function ParentHome() {
   const goToEnroll = () => navigate(`/enroll?referrer=${referrer || studentId}&from=share`);
   const goToPayment = () => navigate(`/payment?studentId=${studentId}&studentName=${encodeURIComponent(name)}`);
 
+  const isParentLoggedIn = role === 'parent';
+
   return (
     <div style={{ maxWidth: 600, margin: '0 auto', padding: 16, paddingBottom: 40 }}>
-      <div style={{ textAlign: 'center', marginBottom: 8 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
         <span style={{ color: '#005387', fontSize: 28, fontWeight: 700, letterSpacing: 2 }}>ArtDoU</span>
+        {isParentLoggedIn && (
+          <button type="button" onClick={() => { logout(); navigate('/', { replace: true }); }} style={{ padding: '10px 16px', background: '#fff', border: '2px solid #005387', borderRadius: 10, cursor: 'pointer', fontSize: 15, fontWeight: 600, color: '#005387' }}>
+            退出登录
+          </button>
+        )}
       </div>
 
       <div style={{ marginBottom: 16 }}>

@@ -71,10 +71,22 @@ export default function Index() {
   const isAdmin = role === 'admin' || role === 'teacher';
 
   if (!isAdmin) {
+    const isParent = role === 'parent';
     return (
       <div style={{ maxWidth: 420, margin: '40px auto', padding: 28, textAlign: 'center' }}>
         <div style={{ fontSize: 28, fontWeight: 700, color: '#005387', letterSpacing: 2, marginBottom: 8 }}>ArtDoU</div>
-        <p style={{ color: '#666', fontSize: 15, marginBottom: 28 }}>家长入口 / Parent Entry</p>
+        <p style={{ color: '#666', fontSize: 15, marginBottom: 12 }}>家长入口 / Parent Entry</p>
+        <div style={{ marginBottom: 20, padding: '10px 14px', background: '#f5f5f5', borderRadius: 10, fontSize: 14, color: '#333', textAlign: 'left' }}>
+          <div style={{ fontWeight: 600, marginBottom: 4 }}>本机当前身份</div>
+          {isParent ? (
+            <div>家长（学员 ID: {String(myStudentId || '').slice(-6)}）</div>
+          ) : (
+            <div>未登录</div>
+          )}
+          <button type="button" onClick={() => { logout(); window.location.reload(); }} style={{ marginTop: 8, padding: '6px 12px', fontSize: 13, background: '#fff', border: '1px solid #ccc', borderRadius: 6, cursor: 'pointer' }}>
+            {isParent ? '退出登录（清除本机家长身份）' : '清除本机身份'}
+          </button>
+        </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <button
             type="button"

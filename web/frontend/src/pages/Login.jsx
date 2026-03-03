@@ -9,7 +9,7 @@ export default function Login() {
   const [msg, setMsg] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { refresh } = useAuth();
+  const { role, myStudentId, refresh, logout } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -58,6 +58,12 @@ export default function Login() {
         </button>
       </form>
       {msg && <p style={{ color: '#c00', fontSize: 14, marginTop: 12 }}>{msg}</p>}
+      {(role || myStudentId) && (
+        <div style={{ marginTop: 16, padding: 12, background: '#f5f5f5', borderRadius: 8, fontSize: 13 }}>
+          <div style={{ color: '#666', marginBottom: 6 }}>本机当前身份：{role === 'admin' || role === 'teacher' ? '老师' : role === 'parent' ? `家长（学员尾号 ${String(myStudentId || '').slice(-6)}）` : '未知'}</div>
+          <button type="button" onClick={() => { logout(); window.location.reload(); }} style={{ padding: '6px 12px', fontSize: 12, background: '#fff', border: '1px solid #ccc', borderRadius: 6, cursor: 'pointer' }}>退出登录（清除本机身份）</button>
+        </div>
+      )}
       <p style={{ marginTop: 24, fontSize: 14 }}>
         <Link to="/">返回首页</Link> · <Link to="/bind">家长绑定手机号</Link>
       </p>
