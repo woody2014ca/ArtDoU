@@ -10,6 +10,7 @@
   ],
   "rewrites": [
     { "source": "/artdou/assets/:path*", "destination": "/assets/:path*" },
+    { "source": "/artdou/og-share.png", "destination": "/og-share.png" },
     { "source": "/artdou/:path*", "destination": "/index.html" },
     { "source": "/artdou", "destination": "/index.html" }
   ]
