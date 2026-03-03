@@ -76,11 +76,12 @@ export default function Enroll() {
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: 16 }}>
           <label style={{ display: 'block', marginBottom: 6, fontSize: 14 }}>推荐人（选填）</label>
+          <p style={{ margin: '0 0 8px 0', fontSize: 12, color: '#c00' }}>填写推荐人，可享受首次课优惠价！</p>
           <input
             type="text"
             value={form.referrer}
             onChange={(e) => handleChange('referrer', e.target.value)}
-            placeholder="填写推荐人，可享受首次课优惠价！"
+            placeholder=""
             style={{ width: '100%', padding: 12, border: '1px solid #ddd', borderRadius: 8 }}
           />
         </div>
