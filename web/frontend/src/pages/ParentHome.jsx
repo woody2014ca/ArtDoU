@@ -16,6 +16,7 @@ export default function ParentHome() {
   const [totalRewards, setTotalRewards] = useState(0);
   const [loadingData, setLoadingData] = useState(true);
   const [lightbox, setLightbox] = useState(null); // { urls: string[], index: number }
+  const [sharePreviewUrl, setSharePreviewUrl] = useState('');
 
   const studentId = id || myStudentId;
   const isViewingSharedLink = !!(id && (referrer || fromShare));
@@ -219,19 +220,71 @@ export default function ParentHome() {
             onClick={() => {
               const basePath = import.meta.env.BASE_URL.replace(/\/$/, '') || '';
               if (role === 'parent') {
-                // 分享有奖：复制链接并提示奖励规则
+                // 分享有奖：复制链接并提示奖励规则与下一步操作
                 const url = `${window.location.origin}${basePath}/poster/view?id=${studentId}&name=${encodeURIComponent(name)}&from=share`;
-                navigator.clipboard.writeText(url).then(() => alert('分享奖励：每位新朋友报名并成功缴纳首月学费后，您都将获得1个课时奖励。新朋友也将获得首次课优惠价。\n\n分享链接已生成，直接粘贴即可发送给您的朋友。'));
+                navigator.clipboard.writeText(url).then(() => {
+                  setSharePreviewUrl(url);
+                  alert(
+                    '分享奖励：每位新朋友报名并成功缴纳首月学费后，您都将获得1个课时奖励，新朋友也将获得首次课优惠价。\n\n链接已为您复制到剪贴板。\n\n下一步：请打开微信，选择一个聊天窗口，在输入框长按“粘贴”并发送。\n\n下面的“分享效果预览卡片”仅供参考，真实卡片样式以微信为准。'
+                  );
+                });
               } else {
                 // 通知家长：家长打开看到绑定引导
                 const url = `${window.location.origin}${basePath}/parent?id=${studentId}&referrer=${studentId}&from=share&to=parent`;
-                navigator.clipboard.writeText(url).then(() => alert('分享链接已复制，可发给家长'));
+                navigator.clipboard.writeText(url).then(() => alert('分享链接已复制，请打开微信粘贴发送给家长。'));
               }
             }}
             style={{ flex: 1, padding: 14, background: '#fff', color: '#005387', border: '2px solid #005387', borderRadius: 10, cursor: 'pointer' }}
           >
             🎁 {role === 'parent' ? '分享有奖' : '通知家长'}
           </button>
+        </div>
+      )}
+
+      {sharePreviewUrl && (
+        <div
+          style={{
+            marginBottom: 20,
+            padding: 12,
+            borderRadius: 12,
+            background: '#f5f8fb',
+            border: '1px dashed #b3c7dd',
+          }}
+        >
+          <div style={{ fontSize: 13, color: '#555', marginBottom: 8, lineHeight: 1.5 }}>
+            链接已复制。您在微信聊天窗口里粘贴并发送后，对方看到的大致效果如下（仅为预览示意）：
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              background: '#fff',
+              borderRadius: 10,
+              overflow: 'hidden',
+              boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+            }}
+          >
+            <div style={{ width: 96, height: 96, flexShrink: 0, background: '#eee' }}>
+              <img
+                src={`${import.meta.env.BASE_URL.replace(/\/$/, '') || ''}/og-share.png`}
+                alt="知否艺术 · 邀请你看"
+                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              />
+            </div>
+            <div style={{ padding: 10, flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 14, fontWeight: 600, color: '#111', marginBottom: 4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                知否艺术 · 邀请你看
+              </div>
+              <div style={{ fontSize: 13, color: '#555', lineHeight: 1.4, maxHeight: 36, overflow: 'hidden' }}>
+                点击查看成长报告，我也要报名
+              </div>
+              <div style={{ fontSize: 11, color: '#999', marginTop: 6 }}>
+                {new URL(sharePreviewUrl).host}
+              </div>
+            </div>
+          </div>
+          <div style={{ marginTop: 8, fontSize: 12, color: '#888' }}>
+            提示：微信中的真实卡片由微信生成，样式可能略有不同。
+          </div>
         </div>
       )}
 
