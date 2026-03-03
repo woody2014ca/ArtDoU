@@ -93,7 +93,7 @@ export default function Enroll() {
           />
         </div>
         <div style={{ marginBottom: 16 }}>
-          <label style={{ display: 'block', marginBottom: 6, fontSize: 14 }}>年龄（选填）</label>
+          <label style={{ display: 'block', marginBottom: 6, fontSize: 14 }}>年龄</label>
           <input
             type="text"
             value={form.age}
@@ -103,7 +103,7 @@ export default function Enroll() {
           />
         </div>
         <div style={{ marginBottom: 16 }}>
-          <label style={{ display: 'block', marginBottom: 6, fontSize: 14 }}>阶段（选填）</label>
+          <label style={{ display: 'block', marginBottom: 6, fontSize: 14 }}>阶段</label>
           <select
             value={form.level}
             onChange={(e) => handleChange('level', e.target.value)}
