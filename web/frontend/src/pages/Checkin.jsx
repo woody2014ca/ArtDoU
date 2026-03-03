@@ -10,6 +10,54 @@ function makePosterNote(text) {
   return first.length > 24 ? first.slice(0, 24) + '...' : first;
 }
 
+/** 单张超过此大小则自动缩小并压成 JPEG，避免 request entity too large */
+const MAX_FILE_BYTES = 1 * 1024 * 1024; // 1MB 以上即压缩
+const MAX_SIDE_PX = 1600;
+const JPEG_QUALITY = 0.8;
+
+function fileToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    if (file.size <= MAX_FILE_BYTES) {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result);
+      r.onerror = reject;
+      r.readAsDataURL(file);
+      return;
+    }
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
+    img.onload = () => {
+      let w = img.naturalWidth;
+      let h = img.naturalHeight;
+      if (w > MAX_SIDE_PX || h > MAX_SIDE_PX) {
+        if (w >= h) {
+          h = Math.round((h * MAX_SIDE_PX) / w);
+          w = MAX_SIDE_PX;
+        } else {
+          w = Math.round((w * MAX_SIDE_PX) / h);
+          h = MAX_SIDE_PX;
+        }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(objectUrl);
+      try {
+        resolve(canvas.toDataURL('image/jpeg', JPEG_QUALITY));
+      } catch (e) {
+        reject(e);
+      }
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error('图片加载失败'));
+    };
+    img.src = objectUrl;
+  });
+}
+
 export default function Checkin() {
   const [searchParams] = useSearchParams();
   const id = searchParams.get('id') || '';
@@ -90,11 +138,9 @@ export default function Checkin() {
                   onChange={(e) => {
                     const files = e.target.files;
                     if (!files?.length) return;
-                    Promise.all(
-                      Array.from(files).map(
-                        (f) => new Promise((resolve) => { const r = new FileReader(); r.onload = () => resolve(r.result); r.readAsDataURL(f); })
-                      )
-                    ).then((urls) => setWorkImages((prev) => [...prev, ...urls]));
+                    Promise.all(Array.from(files).map((f) => fileToDataUrl(f)))
+                      .then((urls) => setWorkImages((prev) => [...prev, ...urls]))
+                      .catch(() => setMsg('图片处理失败，请换一张或缩小后重试'));
                     e.target.value = '';
                   }}
                 />
