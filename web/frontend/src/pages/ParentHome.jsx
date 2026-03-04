@@ -221,7 +221,8 @@ export default function ParentHome() {
               const basePath = import.meta.env.BASE_URL.replace(/\/$/, '') || '';
               if (role === 'parent') {
                 // 分享有奖：复制链接并提示奖励规则与下一步操作
-                const url = `${window.location.origin}${basePath}/poster/view?id=${studentId}&name=${encodeURIComponent(name)}&from=share`;
+                const v = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+                const url = `${window.location.origin}${basePath}/poster/view?id=${studentId}&name=${encodeURIComponent(name)}&from=share&v=${v}`;
                 navigator.clipboard.writeText(url).then(() => {
                   setSharePreviewUrl(url);
                   alert(
