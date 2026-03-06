@@ -15,7 +15,7 @@ export default function ParentHome() {
   const [works, setWorks] = useState([]);
   const [totalRewards, setTotalRewards] = useState(0);
   const [loadingData, setLoadingData] = useState(true);
-  const [lightbox, setLightbox] = useState(null); // { urls: string[], index: number }
+  const [lightbox, setLightbox] = useState(null); // { urls: string[], index: number, work?: object }
   const [sharePreviewUrl, setSharePreviewUrl] = useState('');
 
   const studentId = id || myStudentId;
@@ -311,8 +311,8 @@ export default function ParentHome() {
                   key={w._id}
                   role="button"
                   tabIndex={0}
-                  onClick={() => cover && setLightbox({ urls: allUrls, index: 0 })}
-                  onKeyDown={(e) => { if (cover && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); setLightbox({ urls: allUrls, index: 0 }); } }}
+                  onClick={() => cover && setLightbox({ urls: allUrls, index: 0, work: w })}
+                  onKeyDown={(e) => { if (cover && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); setLightbox({ urls: allUrls, index: 0, work: w }); } }}
                   style={{
                     background: '#fff',
                     borderRadius: 10,
@@ -367,12 +367,17 @@ export default function ParentHome() {
           >
             关闭
           </button>
-          <div onClick={(e) => e.stopPropagation()} style={{ maxWidth: '100%', maxHeight: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ maxWidth: '100%', maxHeight: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
             <img
               src={lightbox.urls[lightbox.index]}
               alt=""
-              style={{ maxWidth: '100%', maxHeight: '90vh', objectFit: 'contain' }}
+              style={{ maxWidth: '100%', maxHeight: '70vh', objectFit: 'contain' }}
             />
+            {(lightbox.work?.note || lightbox.work?.brief || lightbox.work?.teacher_notes) && (
+              <div style={{ maxWidth: '100%', padding: '0 24px', color: 'rgba(255,255,255,0.95)', fontSize: 15, lineHeight: 1.6, textAlign: 'center' }}>
+                {lightbox.work.note || lightbox.work.brief || lightbox.work.teacher_notes}
+              </div>
+            )}
           </div>
           {lightbox.urls.length > 1 && (
             <>
