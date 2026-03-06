@@ -271,8 +271,10 @@ export default function Poster() {
                       <img crossOrigin="anonymous" src={item.url} alt="" style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', borderRadius: 8, display: 'block' }} />
                       <div style={{ fontSize: 12, color: '#666', marginTop: 6 }}>
                         {item.work?.date ? new Date(item.work.date).toLocaleDateString('zh-CN') : ''}
-                        {item.work?.note && ` · ${item.work.note}`}
                       </div>
+                      {(item.work?.note || item.work?.brief || item.work?.teacher_notes) && (
+                        <div style={{ fontSize: 12, color: '#333', marginTop: 4, textAlign: 'left', lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{item.work.note || item.work.brief || item.work.teacher_notes}</div>
+                      )}
                     </div>
                   ))}
                 </div>

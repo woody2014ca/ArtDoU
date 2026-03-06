@@ -336,7 +336,7 @@ export default function ParentHome() {
                     日期: {dateStr}
                     {multi > 1 && ` 共${multi}张`}
                     {(w.note || w.brief || w.teacher_notes) && (
-                      <div style={{ marginTop: 6, color: '#333', lineHeight: 1.5, maxHeight: 160, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }} title="可滑动查看完整评语">{w.note || w.brief || w.teacher_notes}</div>
+                      <div style={{ marginTop: 6, color: '#333', lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{w.note || w.brief || w.teacher_notes}</div>
                     )}
                   </div>
                 </div>
