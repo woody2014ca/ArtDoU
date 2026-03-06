@@ -336,7 +336,7 @@ export default function ParentHome() {
                     日期: {dateStr}
                     {multi > 1 && ` 共${multi}张`}
                     {(w.note || w.brief || w.teacher_notes) && (
-                      <div style={{ marginTop: 6, color: '#333', lineHeight: 1.5, maxHeight: 100, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>{w.note || w.brief || w.teacher_notes}</div>
+                      <div style={{ marginTop: 6, color: '#333', lineHeight: 1.5, maxHeight: 160, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }} title="可滑动查看完整评语">{w.note || w.brief || w.teacher_notes}</div>
                     )}
                   </div>
                 </div>
@@ -367,16 +367,19 @@ export default function ParentHome() {
           >
             关闭
           </button>
-          <div onClick={(e) => e.stopPropagation()} style={{ maxWidth: '100%', maxHeight: '100%', overflowY: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', gap: 16, paddingBottom: 24 }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ maxWidth: '100%', width: '100%', height: '100%', overflowY: 'auto', overflowX: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', gap: 16, padding: '60px 16px 32px' }}>
             <img
               src={lightbox.urls[lightbox.index]}
               alt=""
-              style={{ maxWidth: '100%', maxHeight: '70vh', objectFit: 'contain', flexShrink: 0 }}
+              style={{ maxWidth: '100%', maxHeight: '60vh', objectFit: 'contain', flexShrink: 0 }}
             />
             {(lightbox.work?.note || lightbox.work?.brief || lightbox.work?.teacher_notes) && (
-              <div style={{ maxWidth: '100%', padding: '0 24px', color: 'rgba(255,255,255,0.95)', fontSize: 15, lineHeight: 1.6, textAlign: 'center', flexShrink: 0 }}>
-                {lightbox.work.note || lightbox.work.brief || lightbox.work.teacher_notes}
-              </div>
+              <>
+                <div style={{ maxWidth: '100%', width: '100%', padding: '0 24px', color: 'rgba(255,255,255,0.95)', fontSize: 15, lineHeight: 1.6, textAlign: 'center', flexShrink: 0 }}>
+                  {lightbox.work.note || lightbox.work.brief || lightbox.work.teacher_notes}
+                </div>
+                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>↑ 可上下滑动查看完整评语</div>
+              </>
             )}
           </div>
           {lightbox.urls.length > 1 && (

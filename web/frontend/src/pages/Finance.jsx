@@ -110,7 +110,7 @@ export default function Finance() {
                     <div style={{ color: '#005387', fontWeight: 600, fontSize: 14 }}>
                       消耗 {Math.abs(Number(item.change_num) || 0)} 课时
                     </div>
-                    <div style={{ fontSize: 12, color: '#999', marginTop: 4 }}>{item.note || item.teacher_comment || '常规消课'}</div>
+                    <div style={{ fontSize: 12, color: '#999', marginTop: 4, maxHeight: 120, overflowY: 'auto', textAlign: 'left', lineHeight: 1.5 }}>{item.note || item.brief || item.teacher_notes || item.teacher_comment || '常规消课'}</div>
                     {item._id && (
                       <div style={{ marginTop: 8, fontSize: 12 }}>
                         <button type="button" onClick={() => window.confirm('编辑消课记录功能开发中，敬请期待')} style={{ background: 'none', border: 0, color: '#005387', cursor: 'pointer', padding: 0, marginRight: 8 }}>编辑</button>
