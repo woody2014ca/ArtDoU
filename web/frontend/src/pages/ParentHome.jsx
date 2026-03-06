@@ -335,8 +335,8 @@ export default function ParentHome() {
                   <div style={{ padding: 8, fontSize: 12, color: '#666' }}>
                     日期: {dateStr}
                     {multi > 1 && ` 共${multi}张`}
-                    {(w.note || w.brief || w.teacher_notes) && (
-                      <div style={{ marginTop: 6, color: '#333', lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{w.note || w.brief || w.teacher_notes}</div>
+                    {(w.brief || w.note || w.teacher_notes) && (
+                      <div style={{ marginTop: 6, color: '#333', lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{w.brief || w.note || w.teacher_notes}</div>
                     )}
                   </div>
                 </div>
@@ -373,9 +373,9 @@ export default function ParentHome() {
               alt=""
               style={{ maxWidth: '100%', width: 'auto', height: 'auto', maxHeight: '70vh', objectFit: 'contain' }}
             />
-            {(lightbox.work?.note || lightbox.work?.brief || lightbox.work?.teacher_notes) && (
+            {(lightbox.work?.brief || lightbox.work?.note || lightbox.work?.teacher_notes) && (
               <div style={{ width: '100%', maxWidth: 480, padding: '0 24px', color: 'rgba(255,255,255,0.95)', fontSize: 15, lineHeight: 1.7, textAlign: 'center', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                {lightbox.work.note || lightbox.work.brief || lightbox.work.teacher_notes}
+                {lightbox.work.brief || lightbox.work.note || lightbox.work.teacher_notes}
               </div>
             )}
           </div>

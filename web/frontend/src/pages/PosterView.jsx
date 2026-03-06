@@ -89,8 +89,8 @@ export default function PosterView() {
                         <div style={{ fontSize: 12, color: '#666', marginTop: 6 }}>
                           {item.work?.date ? new Date(item.work.date).toLocaleDateString('zh-CN') : ''}
                         </div>
-                        {(item.work?.note || item.work?.brief || item.work?.teacher_notes) && (
-                          <div style={{ fontSize: 12, color: '#333', marginTop: 4, textAlign: 'left', lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{item.work.note || item.work.brief || item.work.teacher_notes}</div>
+                        {(item.work?.brief || item.work?.note || item.work?.teacher_notes) && (
+                          <div style={{ fontSize: 12, color: '#333', marginTop: 4, textAlign: 'left', lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{item.work.brief || item.work.note || item.work.teacher_notes}</div>
                         )}
                       </>
                     )}

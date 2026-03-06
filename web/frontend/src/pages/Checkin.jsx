@@ -4,10 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { dataGet, dataAdd, dataIncrement } from '../api';
 
 function makePosterNote(text) {
-  const s = String(text || '').trim();
-  if (!s) return '';
-  const first = s.split(/[\n。！？!?\r]/).filter(Boolean)[0] || s;
-  return first.length > 24 ? first.slice(0, 24) + '...' : first;
+  return String(text || '').trim();
 }
 
 /** 单张超过此大小则自动缩小并压成 JPEG，避免 request entity too large */
