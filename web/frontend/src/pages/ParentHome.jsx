@@ -352,34 +352,31 @@ export default function ParentHome() {
             inset: 0,
             background: 'rgba(0,0,0,0.9)',
             zIndex: 9999,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 16,
+            overflowY: 'auto',
+            overflowX: 'hidden',
+            padding: '56px 16px 80px',
+            boxSizing: 'border-box',
           }}
           onClick={() => setLightbox(null)}
         >
           <button
             type="button"
             aria-label="关闭"
-            onClick={() => setLightbox(null)}
-            style={{ position: 'absolute', right: 16, top: 16, background: 'rgba(255,255,255,0.2)', color: '#fff', border: 0, borderRadius: 8, padding: '8px 16px', cursor: 'pointer', fontSize: 14 }}
+            onClick={(e) => { e.stopPropagation(); setLightbox(null); }}
+            style={{ position: 'fixed', right: 16, top: 16, zIndex: 10000, background: 'rgba(255,255,255,0.2)', color: '#fff', border: 0, borderRadius: 8, padding: '8px 16px', cursor: 'pointer', fontSize: 14 }}
           >
             关闭
           </button>
-          <div onClick={(e) => e.stopPropagation()} style={{ maxWidth: '100%', width: '100%', height: '100%', overflowY: 'auto', overflowX: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', gap: 16, padding: '60px 16px 32px' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, minHeight: 'min-content' }}>
             <img
               src={lightbox.urls[lightbox.index]}
               alt=""
-              style={{ maxWidth: '100%', maxHeight: '60vh', objectFit: 'contain', flexShrink: 0 }}
+              style={{ maxWidth: '100%', width: 'auto', height: 'auto', maxHeight: '70vh', objectFit: 'contain' }}
             />
             {(lightbox.work?.note || lightbox.work?.brief || lightbox.work?.teacher_notes) && (
-              <>
-                <div style={{ maxWidth: '100%', width: '100%', padding: '0 24px', color: 'rgba(255,255,255,0.95)', fontSize: 15, lineHeight: 1.6, textAlign: 'center', flexShrink: 0 }}>
-                  {lightbox.work.note || lightbox.work.brief || lightbox.work.teacher_notes}
-                </div>
-                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>↑ 可上下滑动查看完整评语</div>
-              </>
+              <div style={{ width: '100%', maxWidth: 480, padding: '0 24px', color: 'rgba(255,255,255,0.95)', fontSize: 15, lineHeight: 1.7, textAlign: 'center', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                {lightbox.work.note || lightbox.work.brief || lightbox.work.teacher_notes}
+              </div>
             )}
           </div>
           {lightbox.urls.length > 1 && (
@@ -388,7 +385,7 @@ export default function ParentHome() {
                 type="button"
                 aria-label="上一张"
                 onClick={(e) => { e.stopPropagation(); setLightbox((l) => ({ ...l, index: (l.index - 1 + l.urls.length) % l.urls.length })); }}
-                style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.2)', color: '#fff', border: 0, borderRadius: 8, padding: '12px 16px', cursor: 'pointer', fontSize: 18 }}
+                style={{ position: 'fixed', left: 16, top: '50%', transform: 'translateY(-50%)', zIndex: 10000, background: 'rgba(255,255,255,0.2)', color: '#fff', border: 0, borderRadius: 8, padding: '12px 16px', cursor: 'pointer', fontSize: 18 }}
               >
                 ‹
               </button>
@@ -396,11 +393,11 @@ export default function ParentHome() {
                 type="button"
                 aria-label="下一张"
                 onClick={(e) => { e.stopPropagation(); setLightbox((l) => ({ ...l, index: (l.index + 1) % l.urls.length })); }}
-                style={{ position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.2)', color: '#fff', border: 0, borderRadius: 8, padding: '12px 16px', cursor: 'pointer', fontSize: 18 }}
+                style={{ position: 'fixed', right: 16, top: '50%', transform: 'translateY(-50%)', zIndex: 10000, background: 'rgba(255,255,255,0.2)', color: '#fff', border: 0, borderRadius: 8, padding: '12px 16px', cursor: 'pointer', fontSize: 18 }}
               >
                 ›
               </button>
-              <span style={{ position: 'absolute', bottom: 24, left: '50%', transform: 'translateX(-50%)', color: 'rgba(255,255,255,0.9)', fontSize: 14 }}>
+              <span style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 10000, color: 'rgba(255,255,255,0.9)', fontSize: 14 }}>
                 {lightbox.index + 1} / {lightbox.urls.length}
               </span>
             </>
