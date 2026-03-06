@@ -152,13 +152,12 @@ export default function Checkin() {
         )}
         <div style={{ marginBottom: 16 }}>
           <label style={{ display: 'block', marginBottom: 6, fontSize: 14 }}>{isRealStudent ? '课堂简评' : '备注'}</label>
-          <textarea value={isRealStudent ? brief : remark} onChange={(e) => (isRealStudent ? setBrief(e.target.value) : setRemark(e.target.value))} placeholder={isRealStudent ? '课堂简评（用于海报）' : '请输入'} maxLength={isRealStudent ? 80 : undefined} rows={3} style={{ width: '100%', padding: 12, border: '1px solid #ddd', borderRadius: 8 }} />
+          <textarea value={isRealStudent ? brief : remark} onChange={(e) => (isRealStudent ? setBrief(e.target.value) : setRemark(e.target.value))} placeholder={isRealStudent ? '课堂简评（用于海报）' : '请输入'} rows={3} style={{ width: '100%', padding: 12, border: '1px solid #ddd', borderRadius: 8 }} />
         </div>
         {isRealStudent && (
           <div style={{ marginBottom: 16 }}>
             <label style={{ display: 'block', marginBottom: 6, fontSize: 14 }}>教师备忘</label>
-            <textarea value={memo} onChange={(e) => setMemo(e.target.value)} placeholder="仅内部" maxLength={800} rows={4} style={{ width: '100%', padding: 12, border: '1px solid #ddd', borderRadius: 8 }} />
-            <div style={{ fontSize: 12, color: '#888' }}>{memo.length} / 800</div>
+            <textarea value={memo} onChange={(e) => setMemo(e.target.value)} placeholder="仅内部" rows={4} style={{ width: '100%', padding: 12, border: '1px solid #ddd', borderRadius: 8 }} />
           </div>
         )}
         {msg && <p style={{ color: '#c00', fontSize: 14, marginBottom: 12 }}>{msg}</p>}

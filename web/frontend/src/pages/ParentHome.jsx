@@ -335,6 +335,9 @@ export default function ParentHome() {
                   <div style={{ padding: 8, fontSize: 12, color: '#666' }}>
                     日期: {dateStr}
                     {multi > 1 && ` 共${multi}张`}
+                    {(w.note || w.brief || w.teacher_notes) && (
+                      <div style={{ marginTop: 6, color: '#333', lineHeight: 1.5 }}>{w.note || w.brief || w.teacher_notes}</div>
+                    )}
                   </div>
                 </div>
               );
