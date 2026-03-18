@@ -160,6 +160,11 @@ export default function Checkin() {
         {msg && <p style={{ color: '#c00', fontSize: 14, marginBottom: 12 }}>{msg}</p>}
         <button type="submit" disabled={loading} style={{ width: '100%', padding: 14, background: '#005387', color: '#fff', border: 0, borderRadius: 10, cursor: loading ? 'wait' : 'pointer', fontSize: 16 }}>{loading ? '提交中...' : isRealStudent ? '确认消课' : '确认核销'}</button>
       </form>
+      {isRealStudent && id && (
+        <p style={{ marginTop: 16 }}>
+          <Link to={`/checkin-logs?id=${encodeURIComponent(id)}`} style={{ color: '#005387', fontSize: 15 }}>查看该学员消课记录 →</Link>
+        </p>
+      )}
       <p style={{ marginTop: 24 }}><Link to="/">返回首页</Link></p>
     </div>
   );

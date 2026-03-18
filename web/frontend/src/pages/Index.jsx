@@ -108,6 +108,7 @@ export default function Index() {
   const goEnroll = () => navigate('/enroll');
   const goEnrollList = () => navigate('/enroll/list');
   const goFinance = () => navigate('/finance');
+  const goCheckinLogs = () => navigate('/checkin-logs');
   const goLeaveList = () => navigate('/leave/list');
   const handleCheckin = (id, name) => navigate(`/checkin?id=${id}&name=${encodeURIComponent(name || '')}`);
   const goToGallery = (id) => navigate(`/parent?id=${id}`);
@@ -153,6 +154,15 @@ export default function Index() {
         <div style={{ marginTop: 12, fontSize: 14, opacity: 0.9 }}>财务 / FINANCE →</div>
       </section>
 
+      <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
+        <button
+          type="button"
+          onClick={goCheckinLogs}
+          style={{ flex: 1, padding: 14, background: '#fff', color: '#005387', border: '2px solid #005387', borderRadius: 10, cursor: 'pointer', fontSize: 15, fontWeight: 600 }}
+        >
+          消课记录
+        </button>
+      </div>
       <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
         <button onClick={goAdd} style={{ flex: 1, padding: 16, background: '#005387', color: '#fff', border: 0, borderRadius: 10, cursor: 'pointer' }}>
           + 新学员
@@ -212,12 +222,21 @@ export default function Index() {
                 </div>
               </div>
             </div>
-            <button
-              onClick={() => handleCheckin(item._id, item.name)}
-              style={{ padding: '8px 16px', background: '#005387', color: '#fff', border: 0, borderRadius: 8, cursor: 'pointer', flexShrink: 0 }}
-            >
-              消课
-            </button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0, alignItems: 'stretch' }}>
+              <button
+                type="button"
+                onClick={() => navigate(`/checkin-logs?id=${encodeURIComponent(item._id)}`)}
+                style={{ padding: '6px 12px', background: '#fff', color: '#005387', border: '1px solid #005387', borderRadius: 8, cursor: 'pointer', fontSize: 13 }}
+              >
+                消课记录
+              </button>
+              <button
+                onClick={() => handleCheckin(item._id, item.name)}
+                style={{ padding: '8px 16px', background: '#005387', color: '#fff', border: 0, borderRadius: 8, cursor: 'pointer', fontSize: 14 }}
+              >
+                消课
+              </button>
+            </div>
           </li>
         ))}
       </ul>

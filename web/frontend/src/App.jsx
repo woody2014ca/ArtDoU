@@ -9,6 +9,7 @@ import FindStudentToPay from './pages/FindStudentToPay';
 import Payment from './pages/Payment';
 import PaymentManage from './pages/PaymentManage';
 import Checkin from './pages/Checkin';
+import CheckinLogs from './pages/CheckinLogs';
 import AddStudent from './pages/AddStudent';
 import EditStudent from './pages/EditStudent';
 import Enroll from './pages/Enroll';
@@ -34,6 +35,7 @@ function AppRoutes() {
       <Route path="/leave" element={<Leave />} />
       <Route path="/leave/list" element={<LeaveList />} />
       <Route path="/checkin" element={<Checkin />} />
+      <Route path="/checkin-logs" element={<CheckinLogs />} />
       <Route path="/student/add" element={<AddStudent />} />
       <Route path="/student/edit/:id" element={<EditStudent />} />
       <Route path="/enroll" element={<Enroll />} />
