@@ -105,6 +105,15 @@ export async function dataIncrement(collection, id, value) {
   });
 }
 
+/** 修改消课记录（课时、图片、简评、备忘） */
+export async function checkinAmend(logId, payload) {
+  return fetchJson(`${API_BASE}/checkin/amend/${logId}`, {
+    method: 'POST',
+    headers: headers(),
+    body: JSON.stringify(payload),
+  });
+}
+
 export async function paymentFindStudent(phone, studentName) {
   return fetchJson(`${API_BASE}/payment/find-student`, {
     method: 'POST',
@@ -121,12 +130,16 @@ export async function paymentConfirm(paymentId, prospectiveId) {
   });
 }
 
-/** 后端生成海报 PNG。优先返回 posterUrl（微信内长按保存更稳），否则返回 blob 转 dataURL */
-export async function posterRender(id, name, imageUrls) {
+/** 后端生成海报 PNG。items: [{ url, caption }] 每张图下显示评语；兼容仅传 imageUrls */
+export async function posterRender(id, name, imageUrlsOrItems) {
+  const isItems = Array.isArray(imageUrlsOrItems) && imageUrlsOrItems[0] && typeof imageUrlsOrItems[0] === 'object' && 'url' in imageUrlsOrItems[0];
+  const body = isItems
+    ? { id, name, items: imageUrlsOrItems }
+    : { id, name, imageUrls: imageUrlsOrItems };
   const res = await fetch(`${API_BASE}/poster/render`, {
     method: 'POST',
     headers: headers(),
-    body: JSON.stringify({ id, name, imageUrls }),
+    body: JSON.stringify(body),
   });
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));

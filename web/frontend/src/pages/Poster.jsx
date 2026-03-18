@@ -131,8 +131,19 @@ export default function Poster() {
     savingRef.current = true;
     setSaving(true);
     setInlineSaveImage(null);
-    const imageUrls = selectedItems.map((i) => i.url);
-    posterRender(id, name, imageUrls)
+    const items = selectedItems.map((i) => {
+      const seen = new Set();
+      const parts = [];
+      for (const key of ['brief', 'note', 'teacher_notes']) {
+        const t = String(i.work?.[key] || '').trim();
+        if (t && !seen.has(t)) {
+          seen.add(t);
+          parts.push(t);
+        }
+      }
+      return { url: i.url, caption: parts.join('\n') };
+    });
+    posterRender(id, name, items)
       .then(async ({ blob, posterUrl }) => {
         const imageSrc = posterUrl || (await blobToDataUrl(blob));
         setInlineSaveImage({

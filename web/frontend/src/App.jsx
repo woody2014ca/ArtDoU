@@ -10,6 +10,7 @@ import Payment from './pages/Payment';
 import PaymentManage from './pages/PaymentManage';
 import Checkin from './pages/Checkin';
 import CheckinLogs from './pages/CheckinLogs';
+import EditCheckin from './pages/EditCheckin';
 import AddStudent from './pages/AddStudent';
 import EditStudent from './pages/EditStudent';
 import Enroll from './pages/Enroll';
@@ -36,6 +37,7 @@ function AppRoutes() {
       <Route path="/leave/list" element={<LeaveList />} />
       <Route path="/checkin" element={<Checkin />} />
       <Route path="/checkin-logs" element={<CheckinLogs />} />
+      <Route path="/checkin/edit/:logId" element={<EditCheckin />} />
       <Route path="/student/add" element={<AddStudent />} />
       <Route path="/student/edit/:id" element={<EditStudent />} />
       <Route path="/enroll" element={<Enroll />} />

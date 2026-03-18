@@ -65,16 +65,43 @@ function urlToBuffer(url) {
   return null;
 }
 
-/** POST /api/poster/render — 后端生成海报 PNG，避免前端 canvas 跨域/卡死 */
+function splitCaptionLines(caption, maxChars, maxLines) {
+  if (!caption || !String(caption).trim()) return [];
+  const s = String(caption).trim().slice(0, 500);
+  const lines = [];
+  for (const para of s.split(/\n/)) {
+    let p = para.trim();
+    if (!p) continue;
+    while (p.length > 0 && lines.length < maxLines) {
+      lines.push(p.slice(0, maxChars));
+      p = p.slice(maxChars).trim();
+    }
+    if (lines.length >= maxLines) break;
+  }
+  return lines.slice(0, maxLines);
+}
+
+/** POST /api/poster/render — 后端生成海报 PNG；支持 items[{url,caption}] 在图下展示评语 */
 router.post('/render', async (req, res) => {
   if (req.role === 'guest') {
     return res.status(401).json({ success: false, msg: '请先登录' });
   }
   try {
-    const { id, name, imageUrls } = req.body || {};
+    const { id, name, imageUrls, items: itemsBody } = req.body || {};
     const safeName = (name && String(name).slice(0, 20)) || '学员';
-    const urls = Array.isArray(imageUrls) ? imageUrls.slice(0, 4) : [];
-    if (urls.length === 0) {
+
+    let slots = [];
+    if (Array.isArray(itemsBody) && itemsBody.length > 0) {
+      slots = itemsBody.slice(0, 4).map((it) => ({
+        url: it.url,
+        caption: String(it.caption || '').trim(),
+      }));
+    } else {
+      const urls = Array.isArray(imageUrls) ? imageUrls.slice(0, 4) : [];
+      slots = urls.map((url) => ({ url, caption: '' }));
+    }
+    slots = slots.filter((s) => s.url && String(s.url).length > 0);
+    if (slots.length === 0) {
       return res.status(400).json({ success: false, msg: '请至少选择一张作品' });
     }
 
@@ -88,39 +115,15 @@ router.post('/render', async (req, res) => {
       console.warn('[poster] QRCode error:', e.message);
     }
 
-    // 先定分辨率：3 倍基准，作品格约 528px，整图约 1200px 宽，长按保存更清晰
     const scale = 3;
     const w = Math.round(400 * scale);
     const cell = Math.round(176 * scale);
-
-    // 取图：支持 data URL（直接解码）或 HTTP URL（服务端 fetch）
-    const rawBuffers = await Promise.all(
-      urls.map(async (u) => {
-        const dataBuf = urlToBuffer(u);
-        if (dataBuf) return dataBuf;
-        return fetchImageBuffer(u).catch(() => null);
-      })
-    );
-    const validBuffers = rawBuffers.filter(Boolean);
-    if (validBuffers.length === 0) {
-      return res.status(400).json({ success: false, msg: '图片加载失败，请重试' });
-    }
-
-    // 用 sharp 高质量缩放到 cell×cell 再嵌 SVG，避免 SVG 渲染时缩放导致模糊
-    const resizedBuffers = await Promise.all(
-      validBuffers.map((buf) => resizeToCell(buf, cell))
-    );
-    const validImages = resizedBuffers.map(
-      (buf) => `data:image/png;base64,${buf.toString('base64')}`
-    );
-    const gap = Math.round(16 * scale);
+    const gapImgCaption = Math.round(8 * scale);
+    const gapBetweenWorks = Math.round(20 * scale);
     const pad = Math.round(24 * scale);
     const topH = Math.round(96 * scale);
-    const rows = validImages.length;
     const gridStartX = (w - cell) / 2;
-    const gridH = rows * cell + (rows - 1) * gap;
     const qrSize = Math.round(120 * scale);
-    const totalH = topH + gridH + Math.round(80 * scale) + qrSize + Math.round(60 * scale);
 
     const escapeXml = (s) =>
       String(s)
@@ -129,34 +132,64 @@ router.post('/render', async (req, res) => {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;');
     const escapeAttr = (s) => String(s).replace(/"/g, '&quot;');
-
-    const imagesSvg = validImages
-      .map((dataUrl, i) => {
-        const row = i;
-        const x = gridStartX;
-        const y = topH + row * (cell + gap);
-        // preserveAspectRatio 用 meet，配合预先 contain 缩放，保证整张作品完整可见
-        return `<image href="${escapeAttr(dataUrl)}" x="${x}" y="${y}" width="${cell}" height="${cell}" preserveAspectRatio="xMidYMid meet"/>`;
-      })
-      .join('');
-
-    const qrX = (w - qrSize) / 2;
-    const sepY = topH + gridH + Math.round(20 * scale);
-    const qrY = topH + gridH + Math.round(80 * scale);
-    const qrImg = qrDataUrl ? `<image href="${escapeAttr(qrDataUrl)}" x="${qrX}" y="${qrY}" width="${qrSize}" height="${qrSize}"/>` : '';
-
     const fs = (n) => Math.round(n * scale);
     const fontFamily = 'Noto Sans CJK SC, Noto Sans SC, sans-serif';
+    const captionChars = 26;
+    const captionMaxLines = 5;
+    const captionLineH = fs(15);
+
+    const processed = [];
+    for (const slot of slots) {
+      const u = slot.url;
+      const dataBuf = urlToBuffer(u) || (await fetchImageBuffer(u).catch(() => null));
+      if (!dataBuf) continue;
+      const resized = await resizeToCell(dataBuf, cell);
+      processed.push({
+        dataUrl: `data:image/png;base64,${resized.toString('base64')}`,
+        caption: slot.caption,
+      });
+    }
+    if (processed.length === 0) {
+      return res.status(400).json({ success: false, msg: '图片加载失败，请重试' });
+    }
+
+    let y = topH;
+    const blocks = [];
+    for (const p of processed) {
+      blocks.push(
+        `<image href="${escapeAttr(p.dataUrl)}" x="${gridStartX}" y="${y}" width="${cell}" height="${cell}" preserveAspectRatio="xMidYMid meet"/>`
+      );
+      y += cell + gapImgCaption;
+      const capLines = splitCaptionLines(p.caption, captionChars, captionMaxLines);
+      if (capLines.length > 0) {
+        capLines.forEach((line) => {
+          blocks.push(
+            `<text x="${w / 2}" y="${y + captionLineH}" text-anchor="middle" font-size="${captionLineH - fs(2)}" fill="#444" font-family="${fontFamily}">${escapeXml(line)}</text>`
+          );
+          y += captionLineH + fs(2);
+        });
+      }
+      y += gapBetweenWorks;
+    }
+
+    const sepY = y + Math.round(12 * scale);
+    const footerTop = sepY + Math.round(24 * scale);
+    const qrY = footerTop + fs(28);
+    const totalH = qrY + qrSize + Math.round(48 * scale);
+
+    const qrX = (w - qrSize) / 2;
+    const qrImg = qrDataUrl ? `<image href="${escapeAttr(qrDataUrl)}" x="${qrX}" y="${qrY}" width="${qrSize}" height="${qrSize}"/>` : '';
+
     const svg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${w}" height="${totalH}" viewBox="0 0 ${w} ${totalH}">
   <rect width="${w}" height="${totalH}" fill="#ffffff"/>
   <text x="${w / 2}" y="${fs(28)}" text-anchor="middle" font-size="${fs(12)}" fill="#005387" letter-spacing="${fs(2)}" font-family="${fontFamily}">ArtDoU</text>
   <text x="${w / 2}" y="${fs(52)}" text-anchor="middle" font-size="${fs(18)}" font-weight="700" fill="#333" font-family="${fontFamily}">艺术成长报告 / ART GROWTH REPORT</text>
   <text x="${w / 2}" y="${fs(82)}" text-anchor="middle" font-size="${fs(20)}" font-weight="700" fill="#333" text-decoration="underline" font-family="${fontFamily}">${escapeXml(safeName)}</text>
-  ${imagesSvg}
+  ${blocks.join('\n')}
   <line x1="${pad}" y1="${sepY}" x2="${w - pad}" y2="${sepY}" stroke="#eee" stroke-width="${Math.max(1, Math.round(scale))}"/>
-  <text x="${w / 2}" y="${sepY + fs(32)}" text-anchor="middle" font-size="${fs(16)}" font-weight="700" fill="#005387" font-family="${fontFamily}">🎁 我也要报名</text>
-  <text x="${w / 2}" y="${sepY + fs(52)}" text-anchor="middle" font-size="${fs(12)}" fill="#666" font-family="${fontFamily}">扫码进入报名页</text>
+  <text x="${w / 2}" y="${footerTop}" text-anchor="middle" font-size="${fs(16)}" font-weight="700" fill="#005387" font-family="${fontFamily}">🎁 我也要报名</text>
+  <text x="${w / 2}" y="${footerTop + fs(22)}" text-anchor="middle" font-size="${fs(12)}" fill="#666" font-family="${fontFamily}">扫码进入报名页</text>
   ${qrImg}
   <text x="${w / 2}" y="${totalH - fs(24)}" text-anchor="middle" font-size="${fs(11)}" fill="#999" font-family="${fontFamily}">长按保存图片 · 发朋友圈或发给朋友</text>
 </svg>`;

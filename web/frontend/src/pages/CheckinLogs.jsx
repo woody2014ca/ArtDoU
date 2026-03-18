@@ -132,18 +132,28 @@ export default function CheckinLogs() {
                   )}
                   <div style={{ fontSize: 14, color: '#666' }}>{formatTime(item)}</div>
                 </div>
-                <div
-                  style={{
-                    flexShrink: 0,
-                    padding: '8px 14px',
-                    background: '#e8f4fc',
-                    color: '#005387',
-                    borderRadius: 8,
-                    fontWeight: 700,
-                    fontSize: 16,
-                  }}
-                >
-                  {Math.abs(Number(item.change_num) || 0)} 节
+                <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
+                  <div
+                    style={{
+                      padding: '8px 14px',
+                      background: '#e8f4fc',
+                      color: '#005387',
+                      borderRadius: 8,
+                      fontWeight: 700,
+                      fontSize: 16,
+                    }}
+                  >
+                    {Math.abs(Number(item.change_num) || 0)} 节
+                  </div>
+                  {item._id && (
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/checkin/edit/${item._id}`)}
+                      style={{ padding: '4px 10px', fontSize: 13, background: '#fff', color: '#005387', border: '1px solid #005387', borderRadius: 6, cursor: 'pointer' }}
+                    >
+                      编辑
+                    </button>
+                  )}
                 </div>
               </li>
             ))

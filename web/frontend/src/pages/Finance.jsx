@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+
+function isCheckinLog(item) {
+  const n = Number(item.change_num);
+  return !Number.isNaN(n) && n < 0;
+}
 import { useAuth } from '../context/AuthContext';
 import { dataGet, dataDelete } from '../api';
 
@@ -27,7 +32,7 @@ export default function Finance() {
   }, [role, isAdmin]);
 
   const handleDelete = async (id) => {
-    if (!window.confirm('确定删除这条消课记录？')) return;
+    if (!window.confirm('确定删除这条记录？')) return;
     const res = await dataDelete('Attendance_logs', id);
     if (res.success !== false) {
       setLogs((prev) => prev.filter((i) => i._id !== id));
@@ -113,8 +118,10 @@ export default function Finance() {
                     <div style={{ fontSize: 12, color: '#999', marginTop: 4, maxHeight: 120, overflowY: 'auto', textAlign: 'left', lineHeight: 1.5 }}>{item.note || item.brief || item.teacher_notes || item.teacher_comment || '常规消课'}</div>
                     {item._id && (
                       <div style={{ marginTop: 8, fontSize: 12 }}>
-                        <button type="button" onClick={() => window.confirm('编辑消课记录功能开发中，敬请期待')} style={{ background: 'none', border: 0, color: '#005387', cursor: 'pointer', padding: 0, marginRight: 8 }}>编辑</button>
-                        <button type="button" onClick={() => handleDelete(item._id)} style={{ background: 'none', border: 0, color: '#999', cursor: 'pointer', padding: 0 }}>删除</button>
+                        {isCheckinLog(item) && (
+                          <button type="button" onClick={() => navigate(`/checkin/edit/${item._id}`)} style={{ background: 'none', border: 0, color: '#005387', cursor: 'pointer', padding: 0, marginRight: 8 }}>编辑消课</button>
+                        )}
+                        <button type="button" onClick={() => handleDelete(item._id)} style={{ background: 'none', border: 0, color: '#999', cursor: 'pointer', padding: 0, marginLeft: isCheckinLog(item) ? 8 : 0 }}>删除</button>
                       </div>
                     )}
                   </div>

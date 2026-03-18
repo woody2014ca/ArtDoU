@@ -6,6 +6,7 @@ import authRoutes from './routes/auth.js';
 import dataRoutes from './routes/data.js';
 import paymentRoutes from './routes/payment.js';
 import posterRoutes from './routes/poster.js';
+import checkinAmendRoutes from './routes/checkinAmend.js';
 
 console.log('[ArtDoU] process starting, PORT from env:', process.env.PORT);
 
@@ -30,6 +31,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/data', dataRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/poster', posterRoutes);
+app.use('/api/checkin', checkinAmendRoutes);
 
 app.get('/health', (_, res) => res.status(200).json({ status: 'ok', ok: true }));
 
