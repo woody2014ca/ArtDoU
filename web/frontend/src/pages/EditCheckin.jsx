@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { dataGet, checkinAmend } from '../api';
+import { dataGet, checkinAmend, dataIncrement, dataDelete } from '../api';
 
 const MAX_FILE_BYTES = 1 * 1024 * 1024;
 const MAX_SIDE_PX = 1600;
@@ -57,6 +57,9 @@ export default function EditCheckin() {
   const isTeacher = role === 'admin' || role === 'teacher';
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  /** 本条记录已扣课时，删除时需退回学员余课 */
+  const [deductedLessons, setDeductedLessons] = useState(0);
   const [msg, setMsg] = useState('');
   const [loadError, setLoadError] = useState('');
   const [studentId, setStudentId] = useState('');
@@ -86,7 +89,9 @@ export default function EditCheckin() {
       }
       setStudentId(log.student_id || '');
       setStudentName(log.student_name || '学员');
-      setCount(String(Math.abs(cn)));
+      const abs = Math.abs(cn);
+      setDeductedLessons(abs);
+      setCount(String(abs));
       setBrief(log.brief ?? '');
       setMemo(log.memo ?? '');
       let imgs = [];
@@ -124,6 +129,36 @@ export default function EditCheckin() {
       setMsg(err.message || '网络异常');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!window.confirm(`确定删除本条消课记录？将退回学员 ${deductedLessons} 节余课，且不可恢复。`)) return;
+    setMsg('');
+    setDeleting(true);
+    try {
+      if (studentId && deductedLessons > 0) {
+        const inc = await dataIncrement('Students', studentId, deductedLessons);
+        if (!inc.success) {
+          setMsg(inc.msg || '退回课时失败，未删除记录');
+          setDeleting(false);
+          return;
+        }
+      }
+      const del = await dataDelete('Attendance_logs', logId);
+      if (del.success === false) {
+        setMsg(del.msg || '删除失败');
+        if (studentId && deductedLessons > 0) {
+          await dataIncrement('Students', studentId, -deductedLessons).catch(() => {});
+        }
+        setDeleting(false);
+        return;
+      }
+      navigate('/finance', { replace: true });
+    } catch (err) {
+      setMsg(err.message || '操作失败');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -249,7 +284,7 @@ export default function EditCheckin() {
           {msg && <p style={{ color: '#c00', fontSize: 14 }}>{msg}</p>}
           <button
             type="submit"
-            disabled={saving}
+            disabled={saving || deleting}
             style={{
               width: '100%',
               padding: 14,
@@ -257,13 +292,32 @@ export default function EditCheckin() {
               color: '#fff',
               border: 0,
               borderRadius: 10,
-              cursor: saving ? 'wait' : 'pointer',
+              cursor: saving || deleting ? 'wait' : 'pointer',
               fontSize: 16,
             }}
           >
             {saving ? '保存中...' : '保存修改'}
           </button>
       </form>
+
+      <button
+        type="button"
+        onClick={handleDelete}
+        disabled={saving || deleting}
+        style={{
+          width: '100%',
+          marginTop: 14,
+          padding: 14,
+          background: '#fff',
+          color: '#c00',
+          border: '1px solid #c00',
+          borderRadius: 10,
+          cursor: saving || deleting ? 'not-allowed' : 'pointer',
+          fontSize: 16,
+        }}
+      >
+        {deleting ? '处理中...' : '删除本条消课记录'}
+      </button>
 
       <p style={{ marginTop: 24 }}>
         <Link to="/finance">财务流水</Link>
