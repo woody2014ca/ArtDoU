@@ -15,6 +15,30 @@ const blobToDataUrl = (blob) =>
 
 const MAX_SELECT = 4;
 
+/** 合并简评/note/教师备注，去重 */
+function getWorkCaptionText(work) {
+  if (!work) return '';
+  const seen = new Set();
+  const parts = [];
+  for (const key of ['brief', 'note', 'teacher_notes']) {
+    const t = String(work[key] || '').trim();
+    if (t && !seen.has(t)) {
+      seen.add(t);
+      parts.push(t);
+    }
+  }
+  return parts.join('\n');
+}
+
+/** 同一节课（同一条 Attendance_logs）选多张图时，只在第一张选中图下显示评语 */
+function showCaptionOnlyFirstSlotForSameWork(item, selectedList) {
+  const wid = item.work?._id;
+  if (wid === undefined || wid === null || wid === '') return true;
+  const myIndex = selectedList.findIndex((x) => x.key === item.key);
+  const firstIndex = selectedList.findIndex((x) => String(x.work?._id) === String(wid));
+  return myIndex === firstIndex;
+}
+
 export default function Poster() {
   const [searchParams] = useSearchParams();
   const id = searchParams.get('id') || '';
@@ -131,18 +155,10 @@ export default function Poster() {
     savingRef.current = true;
     setSaving(true);
     setInlineSaveImage(null);
-    const items = selectedItems.map((i) => {
-      const seen = new Set();
-      const parts = [];
-      for (const key of ['brief', 'note', 'teacher_notes']) {
-        const t = String(i.work?.[key] || '').trim();
-        if (t && !seen.has(t)) {
-          seen.add(t);
-          parts.push(t);
-        }
-      }
-      return { url: i.url, caption: parts.join('\n') };
-    });
+    const items = selectedItems.map((i) => ({
+      url: i.url,
+      caption: showCaptionOnlyFirstSlotForSameWork(i, selectedItems) ? getWorkCaptionText(i.work) : '',
+    }));
     posterRender(id, name, items)
       .then(async ({ blob, posterUrl }) => {
         const imageSrc = posterUrl || (await blobToDataUrl(blob));
@@ -277,17 +293,21 @@ export default function Poster() {
               </div>
               <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16, width: '100%', maxWidth: 368, margin: '0 auto' }}>
-                  {selectedItems.map((item) => (
+                  {selectedItems.map((item) => {
+                    const captionText = getWorkCaptionText(item.work);
+                    const showCaption = showCaptionOnlyFirstSlotForSameWork(item, selectedItems) && captionText;
+                    return (
                     <div key={item.key} style={{ textAlign: 'center' }}>
                       <img crossOrigin="anonymous" src={item.url} alt="" style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', borderRadius: 8, display: 'block' }} />
                       <div style={{ fontSize: 12, color: '#666', marginTop: 6 }}>
                         {item.work?.date ? new Date(item.work.date).toLocaleDateString('zh-CN') : ''}
                       </div>
-                      {(item.work?.brief || item.work?.note || item.work?.teacher_notes) && (
-                        <div style={{ fontSize: 12, color: '#333', marginTop: 4, textAlign: 'left', lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{item.work.brief || item.work.note || item.work.teacher_notes}</div>
+                      {showCaption && (
+                        <div style={{ fontSize: 12, color: '#333', marginTop: 4, textAlign: 'left', lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{captionText}</div>
                       )}
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
               <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid #eee', textAlign: 'center' }}>
