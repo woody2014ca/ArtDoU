@@ -30,12 +30,25 @@ function getWorkCaptionText(work) {
   return parts.join('\n');
 }
 
-/** 同一节课（同一条 Attendance_logs）选多张图时，只在第一张选中图下显示评语 */
+/**
+ * 同一条消课记录展开的多张图共用分组键；避免依赖 _id 一定存在（缺失时此前会每张都显示评语）。
+ */
+function getWorkGroupKey(item) {
+  const w = item?.work;
+  const oid = w?._id ?? w?.id;
+  if (oid != null && String(oid).trim() !== '') return String(oid);
+  // key 形如 {logId}-{图片下标}，同一次消课多图共用一个 logId
+  if (item?.key && /-\d+$/.test(item.key)) {
+    return item.key.replace(/-\d+$/, '');
+  }
+  return `${w?.student_id || ''}|${String(w?.date || w?.createTime || '')}|${String(w?.change_num ?? '')}`;
+}
+
+/** 同一节课（同一条 Attendance_logs）选多张图时，只在选中顺序里该组的第一次出现处显示评语 */
 function showCaptionOnlyFirstSlotForSameWork(item, selectedList) {
-  const wid = item.work?._id;
-  if (wid === undefined || wid === null || wid === '') return true;
+  const groupKey = getWorkGroupKey(item);
   const myIndex = selectedList.findIndex((x) => x.key === item.key);
-  const firstIndex = selectedList.findIndex((x) => String(x.work?._id) === String(wid));
+  const firstIndex = selectedList.findIndex((x) => getWorkGroupKey(x) === groupKey);
   return myIndex === firstIndex;
 }
 
