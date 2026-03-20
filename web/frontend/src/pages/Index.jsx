@@ -162,6 +162,23 @@ export default function Index() {
         >
           消课记录
         </button>
+        <button
+          type="button"
+          onClick={goLeaveList}
+          style={{
+            flex: 1,
+            padding: 14,
+            background: state.stats.pendingCount > 0 ? '#fff5f5' : '#fff',
+            color: state.stats.pendingCount > 0 ? '#c00' : '#005387',
+            border: state.stats.pendingCount > 0 ? '2px solid #ff4d4f' : '2px solid #005387',
+            borderRadius: 10,
+            cursor: 'pointer',
+            fontSize: 15,
+            fontWeight: 600,
+          }}
+        >
+          请假记录{state.stats.pendingCount > 0 ? ` (${state.stats.pendingCount})` : ''}
+        </button>
       </div>
       <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
         <button onClick={goAdd} style={{ flex: 1, padding: 16, background: '#005387', color: '#fff', border: 0, borderRadius: 10, cursor: 'pointer' }}>
