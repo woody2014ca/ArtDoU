@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { dataAdd } from '../api';
+import { useGuestRedirectToBind } from '../hooks/useGuestRedirectToBind';
 
 export default function Payment() {
   const [searchParams] = useSearchParams();
@@ -15,6 +16,7 @@ export default function Payment() {
   const [msg, setMsg] = useState('');
 
   const hasTarget = !!studentId || !!prospectiveId;
+  const guestGate = useGuestRedirectToBind(!!studentId && !prospectiveId);
   const displayName = decodeURIComponent(studentName);
 
   const handleSubmit = async (e) => {
@@ -53,6 +55,17 @@ export default function Payment() {
       setLoading(false);
     }
   };
+
+  if (guestGate.block && guestGate.reason === 'loading') {
+    return (
+      <div style={{ padding: 40, textAlign: 'center', color: '#888' }}>加载中...</div>
+    );
+  }
+  if (guestGate.block && guestGate.reason === 'redirect') {
+    return (
+      <div style={{ padding: 40, textAlign: 'center', color: '#666' }}>正在跳转至绑定页...</div>
+    );
+  }
 
   if (!hasTarget) {
     return (

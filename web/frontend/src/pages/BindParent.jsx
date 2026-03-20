@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { authBind } from '../api';
 import { useAuth } from '../context/AuthContext';
+import { getSafeInternalRedirect } from '../utils/safeRedirect';
 
 export default function BindParent() {
   const [phone, setPhone] = useState('');
   const [msg, setMsg] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { refresh } = useAuth();
 
   const handleSubmit = async (e) => {
@@ -23,7 +25,12 @@ export default function BindParent() {
       const res = await authBind(p);
       if (res.success) {
         await refresh();
-        navigate('/parent' + (res.myStudentId ? `?id=${res.myStudentId}` : ''), { replace: true });
+        const next = getSafeInternalRedirect(searchParams.get('redirect') || '');
+        if (next) {
+          navigate(next, { replace: true });
+        } else {
+          navigate('/parent' + (res.myStudentId ? `?id=${res.myStudentId}` : ''), { replace: true });
+        }
       } else {
         setMsg(res.msg || '绑定失败');
       }

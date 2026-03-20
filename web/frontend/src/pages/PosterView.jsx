@@ -2,16 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import QRCode from 'qrcode';
 import { dataGet } from '../api';
+import { useGuestRedirectToBind } from '../hooks/useGuestRedirectToBind';
 
 export default function PosterView() {
   const [searchParams] = useSearchParams();
   const id = searchParams.get('id') || '';
   const name = decodeURIComponent(searchParams.get('name') || '学员');
   const keysParam = searchParams.get('keys') || '';
+  const toParent = searchParams.get('to') === 'parent';
   const navigate = useNavigate();
   const [works, setWorks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [qrDataUrl, setQrDataUrl] = useState('');
+  const guestGate = useGuestRedirectToBind(!!id && toParent);
 
   useEffect(() => {
     if (!id) {
@@ -63,6 +66,17 @@ export default function PosterView() {
         <p>链接无效</p>
         <button type="button" onClick={() => navigate('/')}>返回首页</button>
       </div>
+    );
+  }
+
+  if (guestGate.block && guestGate.reason === 'loading') {
+    return (
+      <div style={{ padding: 40, textAlign: 'center', color: '#888' }}>加载中...</div>
+    );
+  }
+  if (guestGate.block && guestGate.reason === 'redirect') {
+    return (
+      <div style={{ padding: 40, textAlign: 'center', color: '#666' }}>正在跳转至绑定页...</div>
     );
   }
 

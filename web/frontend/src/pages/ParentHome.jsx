@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { dataGet } from '../api';
+import { useGuestRedirectToBind } from '../hooks/useGuestRedirectToBind';
 
 /** 兼容微信/部分浏览器下 clipboard API 失败，避免点击后无任何反馈 */
 async function copyTextToClipboard(text) {
@@ -57,11 +58,15 @@ export default function ParentHome() {
   const isGuest = isViewingSharedLink && role !== 'parent' && myStudentId !== id;
   const isAdmin = role === 'admin' || role === 'teacher';
 
+  const guestGate = useGuestRedirectToBind(true);
+
   useEffect(() => {
     if (!studentId) {
       setLoadingData(false);
       return;
     }
+    if (loading) return;
+    if (role === 'guest') return;
     (async () => {
       try {
         const [sRes, lRes] = await Promise.all([
@@ -84,7 +89,22 @@ export default function ParentHome() {
         setLoadingData(false);
       }
     })();
-  }, [studentId]);
+  }, [studentId, loading, role]);
+
+  if (guestGate.block && guestGate.reason === 'loading') {
+    return (
+      <div style={{ padding: 40, textAlign: 'center', color: '#888' }}>
+        加载中...
+      </div>
+    );
+  }
+  if (guestGate.block && guestGate.reason === 'redirect') {
+    return (
+      <div style={{ padding: 40, textAlign: 'center', color: '#666' }}>
+        正在跳转至绑定页...
+      </div>
+    );
+  }
 
   if (loading || (role !== 'parent' && !id && !isViewingSharedLink)) {
     return (
