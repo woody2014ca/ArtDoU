@@ -3,6 +3,37 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { dataGet } from '../api';
 
+/** 兼容微信/部分浏览器下 clipboard API 失败，避免点击后无任何反馈 */
+async function copyTextToClipboard(text) {
+  if (typeof navigator !== 'undefined' && navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      /* 走 fallback */
+    }
+  }
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.left = '0';
+    ta.style.top = '0';
+    ta.style.opacity = '0';
+    ta.style.fontSize = '16px';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    ta.setSelectionRange(0, text.length);
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    return ok;
+  } catch {
+    return false;
+  }
+}
+
 export default function ParentHome() {
   const [searchParams] = useSearchParams();
   const id = searchParams.get('id') || '';
@@ -17,6 +48,9 @@ export default function ParentHome() {
   const [loadingData, setLoadingData] = useState(true);
   const [lightbox, setLightbox] = useState(null); // { urls: string[], index: number, work?: object }
   const [sharePreviewUrl, setSharePreviewUrl] = useState('');
+  /** 剪贴板失败时展示，便于微信内长按复制 */
+  const [manualCopyUrl, setManualCopyUrl] = useState('');
+  const [manualCopyHint, setManualCopyHint] = useState('');
 
   const studentId = id || myStudentId;
   const isViewingSharedLink = !!(id && (referrer || fromShare));
@@ -217,28 +251,97 @@ export default function ParentHome() {
           </button>
           <button
             type="button"
-            onClick={() => {
+            onClick={async () => {
               const basePath = import.meta.env.BASE_URL.replace(/\/$/, '') || '';
               if (role === 'parent') {
-                // 分享有奖：复制链接并提示奖励规则与下一步操作
                 const v = new Date().toISOString().slice(0, 10).replace(/-/g, '');
                 const url = `${window.location.origin}${basePath}/poster/view?id=${studentId}&name=${encodeURIComponent(name)}&from=share&v=${v}`;
-                navigator.clipboard.writeText(url).then(() => {
+                const ok = await copyTextToClipboard(url);
+                if (ok) {
+                  setManualCopyUrl('');
                   setSharePreviewUrl(url);
                   alert(
                     '分享奖励：每位新朋友报名并成功缴纳首月学费后，您都将获得1个课时奖励，新朋友也将获得首次课优惠价。\n\n链接已为您复制到剪贴板。\n\n下一步：请打开微信，选择一个聊天窗口，在输入框长按“粘贴”并发送。\n\n下面的“分享效果预览卡片”仅供参考，真实卡片样式以微信为准。'
                   );
-                });
+                } else {
+                  setSharePreviewUrl(url);
+                  setManualCopyUrl(url);
+                  setManualCopyHint('家长分享');
+                  alert('当前环境无法自动复制。请在下方灰色框内长按链接 → 复制，再粘贴到微信发送。');
+                }
               } else {
-                // 通知家长：家长打开看到绑定引导
                 const url = `${window.location.origin}${basePath}/parent?id=${studentId}&referrer=${studentId}&from=share&to=parent`;
-                navigator.clipboard.writeText(url).then(() => alert('分享链接已复制，请打开微信粘贴发送给家长。'));
+                const ok = await copyTextToClipboard(url);
+                if (ok) {
+                  setManualCopyUrl('');
+                  alert('分享链接已复制，请打开微信粘贴发送给家长。');
+                } else {
+                  setManualCopyUrl(url);
+                  setManualCopyHint('通知家长');
+                  alert('无法自动复制（常见于微信内置浏览器）。请在下方灰色框内长按链接 → 复制，再粘贴到微信发给家长。');
+                }
               }
             }}
             style={{ flex: 1, padding: 14, background: '#fff', color: '#005387', border: '2px solid #005387', borderRadius: 10, cursor: 'pointer' }}
           >
             🎁 {role === 'parent' ? '分享有奖' : '通知家长'}
           </button>
+        </div>
+      )}
+
+      {manualCopyUrl && (
+        <div
+          style={{
+            marginBottom: 16,
+            padding: 14,
+            borderRadius: 12,
+            background: '#fffbe6',
+            border: '1px solid #ffe58f',
+          }}
+        >
+          <div style={{ fontSize: 14, color: '#ad6800', fontWeight: 600, marginBottom: 8 }}>
+            {manualCopyHint === '通知家长' ? '请复制链接发给家长' : '请复制链接分享'}
+          </div>
+          <input
+            readOnly
+            value={manualCopyUrl}
+            onFocus={(e) => e.target.select()}
+            onClick={(e) => e.target.select()}
+            style={{
+              width: '100%',
+              boxSizing: 'border-box',
+              padding: 10,
+              fontSize: 13,
+              border: '1px solid #d9d9d9',
+              borderRadius: 8,
+              marginBottom: 10,
+              wordBreak: 'break-all',
+            }}
+          />
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              onClick={async () => {
+                const ok = await copyTextToClipboard(manualCopyUrl);
+                if (ok) {
+                  setManualCopyUrl('');
+                  alert('已复制');
+                } else {
+                  alert('仍无法自动复制，请手动长按上方输入框全选复制');
+                }
+              }}
+              style={{ padding: '8px 14px', background: '#005387', color: '#fff', border: 0, borderRadius: 8, cursor: 'pointer', fontSize: 14 }}
+            >
+              再试复制
+            </button>
+            <button
+              type="button"
+              onClick={() => setManualCopyUrl('')}
+              style={{ padding: '8px 14px', background: '#f0f0f0', color: '#666', border: 0, borderRadius: 8, cursor: 'pointer', fontSize: 14 }}
+            >
+              关闭
+            </button>
+          </div>
         </div>
       )}
 
