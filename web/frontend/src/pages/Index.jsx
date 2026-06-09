@@ -36,7 +36,7 @@ export default function Index() {
       const [sRes, lRes, aRes, pRes] = await Promise.all([
         dataGet('Students', 'all'),
         dataGet('Leave_requests', 'all'),
-        dataGet('Attendance_logs', 'all'),
+        dataGet('Attendance_logs', 'all', { lite: '1' }),
         dataGet('Prospective_students', 'all'),
       ]);
       const students = (sRes.success && sRes.data) ? sRes.data : [];

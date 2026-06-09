@@ -6,7 +6,9 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch server.js"
+    "dev": "node --watch server.js",
+    "migrate:atlas": "node scripts/migrate-to-atlas.mjs",
+    "migrate:atlas:api": "node scripts/migrate-to-atlas.mjs --via-api"
   },
   "dependencies": {
     "cors": "^2.8.5",

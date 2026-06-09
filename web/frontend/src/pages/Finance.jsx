@@ -19,7 +19,7 @@ export default function Finance() {
   useEffect(() => {
     if (!isAdmin) return setLoading(false);
     Promise.all([
-      dataGet('Attendance_logs', 'all'),
+      dataGet('Attendance_logs', 'all', { lite: '1' }),
       dataGet('Payment_logs', 'all'),
     ]).then(([logRes, payRes]) => {
       const data = (logRes.success && logRes.data) ? logRes.data : [];

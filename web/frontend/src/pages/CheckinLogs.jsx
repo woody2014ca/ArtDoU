@@ -45,7 +45,7 @@ export default function CheckinLogs() {
     (async () => {
       try {
         const [logRes, stuRes] = await Promise.all([
-          dataGet('Attendance_logs', 'all'),
+          dataGet('Attendance_logs', 'all', { lite: '1' }),
           studentId ? dataGet('Students', studentId) : Promise.resolve({ success: false }),
         ]);
         const all = (logRes.success && logRes.data) ? logRes.data : [];

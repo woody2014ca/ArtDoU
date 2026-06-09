@@ -4,6 +4,14 @@ import { authMiddleware } from '../middleware/auth.js';
 
 const router = Router();
 
+/** 列表页不需要作品大图，排除后可从百 MB 降到 KB */
+const ATTENDANCE_LITE_PROJECTION = {
+  work_imgs: 0,
+  work_img: 0,
+  work_photo: 0,
+  photo_url: 0,
+};
+
 router.use(authMiddleware);
 
 /** GET /api/data/:collection/:id? — 教师/家长需登录；分享链接（仅查 Attendance_logs+search_student_id）允许未登录 */
@@ -36,7 +44,14 @@ router.get('/:collection/:id?', async (req, res) => {
           filter = collection === 'Students' ? { _id: toId(myStudentId) || myStudentId } : { student_id: myStudentId };
         }
       }
-      const list = await find(collection, filter, 100);
+      const projection =
+        collection === 'Attendance_logs' &&
+        !data.search_student_id &&
+        req.query.full !== '1' &&
+        req.query.full !== 'true'
+          ? ATTENDANCE_LITE_PROJECTION
+          : null;
+      const list = await find(collection, filter, 100, projection);
       return res.json({ success: true, data: list });
     }
 

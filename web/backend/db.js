@@ -44,10 +44,12 @@ export function getDb() {
   return db;
 }
 
-/** 兼容微信云开发用法：列表查询 */
-export async function find(collectionName, filter = {}, limit = 100) {
+/** 兼容微信云开发用法：列表查询；projection 可排除大字段（如消课作品图） */
+export async function find(collectionName, filter = {}, limit = 100, projection = null) {
   const col = db.collection(collectionName);
-  const list = await col.find(filter).limit(limit).toArray();
+  let cursor = col.find(filter);
+  if (projection) cursor = cursor.project(projection);
+  const list = await cursor.limit(limit).toArray();
   return list.map((doc) => {
     const d = { ...doc };
     if (d._id && d._id instanceof ObjectId) d._id = d._id.toString();
