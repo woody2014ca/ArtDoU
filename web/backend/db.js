@@ -6,10 +6,41 @@ let connecting = null;
 
 export function toId(id) {
   if (!id) return id;
+  if (id instanceof ObjectId) return id;
   try {
     if (typeof id === 'string' && /^[a-f0-9]{24}$/i.test(id)) return new ObjectId(id);
   } catch (e) {}
   return id;
+}
+
+function isHexObjectIdString(id) {
+  return typeof id === 'string' && /^[a-f0-9]{24}$/i.test(id);
+}
+
+/** 兼容 _id 存为 string 或 ObjectId（API 迁移导入时可能为 string） */
+async function findById(col, id) {
+  if (id === undefined || id === null || id === '') return null;
+  if (id instanceof ObjectId) return col.findOne({ _id: id });
+  if (isHexObjectIdString(id)) {
+    const oid = toId(id);
+    let doc = await col.findOne({ _id: oid });
+    if (doc) return doc;
+    return col.findOne({ _id: id });
+  }
+  return col.findOne({ _id: id });
+}
+
+async function idFilterFor(col, id) {
+  const doc = await findById(col, id);
+  if (doc) return { _id: doc._id };
+  return { _id: toId(id) };
+}
+
+function serializeDoc(doc) {
+  if (!doc) return null;
+  const d = { ...doc };
+  if (d._id && d._id instanceof ObjectId) d._id = d._id.toString();
+  return d;
 }
 
 function buildClientOptions(isAtlas) {
@@ -96,24 +127,14 @@ export async function find(collectionName, filter = {}, limit = 100, projection 
   let cursor = col.find(filter);
   if (projection) cursor = cursor.project(projection);
   const list = await cursor.limit(limit).toArray();
-  return list.map((doc) => {
-    const d = { ...doc };
-    if (d._id && d._id instanceof ObjectId) d._id = d._id.toString();
-    return d;
-  });
+  return list.map((doc) => serializeDoc(doc));
 }
 
 /** 兼容：单条查询 by _id */
 export async function getDoc(collectionName, id) {
-  if (id === undefined || id === null || id === '') return null;
   const database = await ensureDb();
   const col = database.collection(collectionName);
-  const oid = toId(id);
-  const doc = await col.findOne({ _id: oid });
-  if (!doc) return null;
-  const d = { ...doc };
-  if (d._id && d._id instanceof ObjectId) d._id = d._id.toString();
-  return d;
+  return serializeDoc(await findById(col, id));
 }
 
 /** 新增，返回 _id 字符串 */
@@ -129,22 +150,25 @@ export async function add(collectionName, data) {
 export async function update(collectionName, id, data) {
   const database = await ensureDb();
   const col = database.collection(collectionName);
-  const oid = toId(id);
-  await col.updateOne({ _id: oid }, { $set: { ...data, updateTime: new Date() } });
+  const filter = await idFilterFor(col, id);
+  const res = await col.updateOne(filter, { $set: { ...data, updateTime: new Date() } });
+  if (res.matchedCount === 0) throw new Error('文档不存在或 ID 无效');
 }
 
 /** 删除 */
 export async function remove(collectionName, id) {
   const database = await ensureDb();
   const col = database.collection(collectionName);
-  const oid = toId(id);
-  await col.deleteOne({ _id: oid });
+  const filter = await idFilterFor(col, id);
+  const res = await col.deleteOne(filter);
+  if (res.deletedCount === 0) throw new Error('文档不存在或 ID 无效');
 }
 
 /** 课时增减 */
 export async function incrementLeftClasses(collectionName, id, value) {
   const database = await ensureDb();
   const col = database.collection(collectionName);
-  const oid = toId(id);
-  await col.updateOne({ _id: oid }, { $inc: { left_classes: value } });
+  const filter = await idFilterFor(col, id);
+  const res = await col.updateOne(filter, { $inc: { left_classes: value } });
+  if (res.matchedCount === 0) throw new Error('学员不存在或 ID 无效');
 }

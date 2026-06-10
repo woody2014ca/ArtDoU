@@ -49,8 +49,9 @@ const COLLECTIONS = [
 
 function toPlainDoc(doc) {
   const d = { ...doc };
-  if (d._id && typeof d._id === 'object' && d._id.toString) {
-    d._id = new ObjectId(d._id.toString());
+  if (d._id != null) {
+    const s = String(d._id);
+    if (/^[a-f0-9]{24}$/i.test(s)) d._id = new ObjectId(s);
   }
   return d;
 }
