@@ -11,6 +11,7 @@ export default function Index() {
     itemList: [],
     allItems: [],
     stats: { monthLogs: 0, totalAssets: 0, pendingCount: 0, pendingEnroll: 0 },
+    loadError: '',
   });
   const [sortBy, setSortBy] = useState('name'); // 'name' | 'left'
 
@@ -39,6 +40,15 @@ export default function Index() {
         dataGet('Attendance_logs', 'all', { lite: '1' }),
         dataGet('Prospective_students', 'all'),
       ]);
+      const failed = [sRes, lRes, aRes, pRes].find((r) => r && r.success === false);
+      if (failed) {
+        setState((s) => ({
+          ...s,
+          isLoading: false,
+          loadError: failed.msg || failed.error || '数据加载失败，请稍后重试',
+        }));
+        return;
+      }
       const students = (sRes.success && sRes.data) ? sRes.data : [];
       const logs = (aRes.success && aRes.data) ? aRes.data : [];
       const requests = (lRes.success && lRes.data) ? lRes.data : [];
@@ -54,9 +64,9 @@ export default function Index() {
       const sorted = [...students].sort((a, b) =>
           (a.name || '').localeCompare(b.name || '', 'zh-CN')
         );
-        setState((s) => ({ ...s, isLoading: false, itemList: sorted, allItems: students, stats: { monthLogs, totalAssets, pendingCount: pendingLeave, pendingEnroll } }));
+        setState((s) => ({ ...s, isLoading: false, loadError: '', itemList: sorted, allItems: students, stats: { monthLogs, totalAssets, pendingCount: pendingLeave, pendingEnroll } }));
     } catch (e) {
-      setState((s) => ({ ...s, isLoading: false }));
+      setState((s) => ({ ...s, isLoading: false, loadError: e.message || '网络异常，请刷新重试' }));
     }
   }
 
@@ -138,6 +148,15 @@ export default function Index() {
           </button>
         </div>
       </div>
+
+      {state.loadError ? (
+        <div style={{ marginBottom: 16, padding: '12px 14px', background: '#fff3f3', color: '#b00020', borderRadius: 10, fontSize: 14, lineHeight: 1.5 }}>
+          {state.loadError}
+          <button type="button" onClick={fetchCloudData} style={{ marginLeft: 12, padding: '4px 10px', border: '1px solid #b00020', background: '#fff', borderRadius: 6, cursor: 'pointer', color: '#b00020' }}>
+            重试
+          </button>
+        </div>
+      ) : null}
 
       <section onClick={goFinance} style={{ background: 'linear-gradient(135deg,#005387 0%,#0077b6 100%)', color: '#fff', borderRadius: 12, padding: 20, marginBottom: 20, cursor: 'pointer' }}>
         <div style={{ display: 'flex', justifyContent: 'space-around', textAlign: 'center' }}>

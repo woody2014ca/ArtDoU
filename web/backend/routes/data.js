@@ -17,8 +17,9 @@ router.use(authMiddleware);
 /** GET /api/data/:collection/:id? — 教师/家长需登录；分享链接（仅查 Attendance_logs+search_student_id）允许未登录 */
 router.get('/:collection/:id?', async (req, res) => {
   try {
-    const db = getDb();
-    if (!db) return res.json({ success: false, msg: '未配置数据库，仅支持老师登录' });
+    if (!process.env.MONGODB_URI && !process.env.MONGO_URL) {
+      return res.json({ success: false, msg: '未配置数据库，仅支持老师登录' });
+    }
     const { collection, id } = req.params;
     const searchStudentId = req.query.search_student_id || req.body?.search_student_id;
     const data = { search_student_id: searchStudentId };

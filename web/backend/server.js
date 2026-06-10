@@ -33,7 +33,18 @@ app.use('/api/payment', paymentRoutes);
 app.use('/api/poster', posterRoutes);
 app.use('/api/checkin', checkinAmendRoutes);
 
-app.get('/health', (_, res) => res.status(200).json({ status: 'ok', ok: true }));
+app.get('/health', async (_, res) => {
+  const hasUri = !!(process.env.MONGODB_URI || process.env.MONGO_URL);
+  if (!hasUri) return res.status(200).json({ status: 'ok', ok: true, db: 'none' });
+  try {
+    const { ensureDb } = await import('./db.js');
+    const database = await ensureDb();
+    const n = await database.collection('Students').countDocuments();
+    return res.status(200).json({ status: 'ok', ok: true, db: 'connected', students: n });
+  } catch (e) {
+    return res.status(503).json({ status: 'degraded', ok: false, db: 'error', error: e.message });
+  }
+});
 
 // 未匹配路由一律返回 JSON，避免任何 HTML 导致前端解析报错
 app.use((_req, res) => {
