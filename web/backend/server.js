@@ -33,16 +33,19 @@ app.use('/api/payment', paymentRoutes);
 app.use('/api/poster', posterRoutes);
 app.use('/api/checkin', checkinAmendRoutes);
 
-app.get('/health', async (_, res) => {
+app.get('/health', (_, res) => res.status(200).json({ status: 'ok', ok: true }));
+
+/** 诊断数据库（勿用于 Railway 健康探针，可能较慢） */
+app.get('/health/db', async (_, res) => {
   const hasUri = !!(process.env.MONGODB_URI || process.env.MONGO_URL);
-  if (!hasUri) return res.status(200).json({ status: 'ok', ok: true, db: 'none' });
+  if (!hasUri) return res.status(200).json({ ok: true, db: 'none' });
   try {
     const { ensureDb } = await import('./db.js');
     const database = await ensureDb();
     const n = await database.collection('Students').countDocuments();
-    return res.status(200).json({ status: 'ok', ok: true, db: 'connected', students: n });
+    return res.status(200).json({ ok: true, db: 'connected', students: n });
   } catch (e) {
-    return res.status(503).json({ status: 'degraded', ok: false, db: 'error', error: e.message });
+    return res.status(503).json({ ok: false, db: 'error', error: e.message });
   }
 });
 
