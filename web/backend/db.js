@@ -17,13 +17,15 @@ function buildClientOptions(isAtlas) {
     serverSelectionTimeoutMS: 30000,
     connectTimeoutMS: 30000,
     socketTimeoutMS: 45000,
-    autoSelectFamily: false,
-    family: 4,
     maxPoolSize: 10,
   };
   if (isAtlas) {
     opts.tlsAllowInvalidCertificates = true;
     opts.tlsAllowInvalidHostnames = true;
+  } else {
+    // Railway 内网 Mongo 走 IPv4 更稳
+    opts.autoSelectFamily = false;
+    opts.family = 4;
   }
   return opts;
 }
