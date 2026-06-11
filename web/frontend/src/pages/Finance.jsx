@@ -15,6 +15,7 @@ export default function Finance() {
   const [pendingCount, setPendingCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const isAdmin = role === 'admin' || role === 'teacher';
+  const goPaymentManage = () => navigate('/payment/manage');
 
   useEffect(() => {
     if (!isAdmin) return setLoading(false);
@@ -63,21 +64,38 @@ export default function Finance() {
         <p style={{ marginTop: 4, fontSize: 14, color: '#005387', letterSpacing: 1 }}>FINANCIAL RECORDS</p>
       </div>
 
-      <div style={{ textAlign: 'center', marginBottom: 20 }}>
-        <button
-          type="button"
-          onClick={() => navigate('/payment/manage')}
-          style={{ padding: '12px 24px', background: '#e8f4fc', color: '#005387', border: '1px solid #005387', borderRadius: 10, cursor: 'pointer', fontSize: 15 }}
+      {pendingCount > 0 && (
+        <div
+          onClick={goPaymentManage}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') goPaymentManage(); }}
+          style={{
+            background: '#fff5e6',
+            border: '1px solid #fa8c16',
+            borderRadius: 12,
+            padding: '14px 16px',
+            marginBottom: 16,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
         >
-          待确认缴费 →
-        </button>
-      </div>
+          <span style={{ color: '#d46b08', fontWeight: 600, fontSize: 14 }}>💰 待确认缴费 {pendingCount} 条</span>
+          <span style={{ color: '#005387', fontSize: 14 }}>去确认 →</span>
+        </div>
+      )}
 
       <div style={{ background: '#005387', color: '#fff', borderRadius: 12, padding: 20, marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-around', gap: 16 }}>
-        <div style={{ flex: 1, textAlign: 'center' }}>
+        <Link
+          to="/payment/manage"
+          style={{ flex: 1, textAlign: 'center', color: 'inherit', textDecoration: 'none', cursor: 'pointer' }}
+        >
           <div style={{ fontSize: 12, opacity: 0.9 }}>待确认缴费数</div>
           <div style={{ fontSize: 28, fontWeight: 700 }}>{pendingCount}</div>
-        </div>
+          <div style={{ fontSize: 12, opacity: 0.85, marginTop: 4 }}>点击去确认 →</div>
+        </Link>
         <div style={{ width: 2, height: 48, background: 'rgba(255,255,255,0.4)' }} />
         <div style={{ flex: 1, textAlign: 'center' }}>
           <div style={{ fontSize: 12, opacity: 0.9 }}>本月总消课流水记录数</div>

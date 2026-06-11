@@ -28,8 +28,8 @@ function AppRoutes() {
       <Route path="/finance" element={<Finance />} />
       <Route path="/bind" element={<BindParent />} />
       <Route path="/pay/find" element={<FindStudentToPay />} />
-      <Route path="/payment" element={<Payment />} />
       <Route path="/payment/manage" element={<PaymentManage />} />
+      <Route path="/payment" element={<Payment />} />
       <Route path="/parent" element={<ParentHome />} />
       <Route path="/poster" element={<Poster />} />
       <Route path="/poster/view" element={<PosterView />} />

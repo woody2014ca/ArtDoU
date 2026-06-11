@@ -10,7 +10,7 @@ export default function Index() {
     isLoading: true,
     itemList: [],
     allItems: [],
-    stats: { monthLogs: 0, totalAssets: 0, pendingCount: 0, pendingEnroll: 0 },
+    stats: { monthLogs: 0, totalAssets: 0, pendingCount: 0, pendingEnroll: 0, pendingPayment: 0 },
     loadError: '',
   });
   const [sortBy, setSortBy] = useState('name'); // 'name' | 'left'
@@ -34,13 +34,14 @@ export default function Index() {
 
   async function fetchCloudData() {
     try {
-      const [sRes, lRes, aRes, pRes] = await Promise.all([
+      const [sRes, lRes, aRes, pRes, payRes] = await Promise.all([
         dataGet('Students', 'all'),
         dataGet('Leave_requests', 'all'),
         dataGet('Attendance_logs', 'all', { lite: '1' }),
         dataGet('Prospective_students', 'all'),
+        dataGet('Payment_logs', 'all'),
       ]);
-      const failed = [sRes, lRes, aRes, pRes].find((r) => r && r.success === false);
+      const failed = [sRes, lRes, aRes, pRes, payRes].find((r) => r && r.success === false);
       if (failed) {
         setState((s) => ({
           ...s,
@@ -61,10 +62,12 @@ export default function Index() {
       const totalAssets = students.reduce((acc, cur) => acc + (Number(cur.left_classes) || 0), 0);
       const pendingLeave = requests.filter((i) => i.status === 0).length;
       const pendingEnroll = enrolls.filter((i) => i.status === 'pending').length;
+      const payments = (payRes.success && payRes.data) ? payRes.data : [];
+      const pendingPayment = payments.filter((i) => i.status === 'pending').length;
       const sorted = [...students].sort((a, b) =>
           (a.name || '').localeCompare(b.name || '', 'zh-CN')
         );
-        setState((s) => ({ ...s, isLoading: false, loadError: '', itemList: sorted, allItems: students, stats: { monthLogs, totalAssets, pendingCount: pendingLeave, pendingEnroll } }));
+        setState((s) => ({ ...s, isLoading: false, loadError: '', itemList: sorted, allItems: students, stats: { monthLogs, totalAssets, pendingCount: pendingLeave, pendingEnroll, pendingPayment } }));
     } catch (e) {
       setState((s) => ({ ...s, isLoading: false, loadError: e.message || '网络异常，请刷新重试' }));
     }
@@ -118,6 +121,7 @@ export default function Index() {
   const goEnroll = () => navigate('/enroll');
   const goEnrollList = () => navigate('/enroll/list');
   const goFinance = () => navigate('/finance');
+  const goPaymentManage = () => navigate('/payment/manage');
   const goCheckinLogs = () => navigate('/checkin-logs');
   const goLeaveList = () => navigate('/leave/list');
   const handleCheckin = (id, name) => navigate(`/checkin?id=${id}&name=${encodeURIComponent(name || '')}`);
@@ -229,6 +233,26 @@ export default function Index() {
         >
           <span style={{ color: '#c00', fontWeight: 600, fontSize: 14 }}>📋 待处理请假 {state.stats.pendingCount} 条</span>
           <span style={{ color: '#005387', fontSize: 14 }}>去处理 →</span>
+        </div>
+      )}
+      {state.stats.pendingPayment > 0 && (
+        <div
+          onClick={goPaymentManage}
+          role="button"
+          style={{
+            background: '#fff5e6',
+            border: '1px solid #fa8c16',
+            borderRadius: 12,
+            padding: '14px 16px',
+            marginBottom: 16,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          <span style={{ color: '#d46b08', fontWeight: 600, fontSize: 14 }}>💰 待确认缴费 {state.stats.pendingPayment} 条</span>
+          <span style={{ color: '#005387', fontSize: 14 }}>去确认 →</span>
         </div>
       )}
       <p onClick={goEnrollList} style={{ fontSize: 14, color: '#005387', marginBottom: 16, cursor: 'pointer', textAlign: 'center' }}>
