@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { dataGet, dataUpdate, dataIncrement, dataAdd, paymentConfirm } from '../api';
 
 export default function PaymentManage() {
   const { role } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const prospectiveIdHint = searchParams.get('prospectiveId') || '';
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState('');
@@ -21,6 +23,19 @@ export default function PaymentManage() {
       const pending = data.filter((i) => i.status === 'pending');
       pending.sort((a, b) => new Date(b.create_time || 0) - new Date(a.create_time || 0));
       setList(pending);
+
+      // 从意向名单误跳到本页：若该意向尚无待确认缴费，引导去入账转正页
+      if (prospectiveIdHint) {
+        const matched = pending.filter((p) => String(p.prospective_id) === String(prospectiveIdHint));
+        if (matched.length === 0) {
+          const pros = await dataGet('Prospective_students', prospectiveIdHint);
+          const name = (pros.success && pros.data && pros.data.name) || '学员';
+          navigate(
+            `/payment?prospectiveId=${encodeURIComponent(prospectiveIdHint)}&studentName=${encodeURIComponent(name)}`,
+            { replace: true }
+          );
+        }
+      }
     } catch (e) {
       setMsg('加载失败');
     } finally {
@@ -30,7 +45,7 @@ export default function PaymentManage() {
 
   useEffect(() => {
     fetchPayments();
-  }, [role]);
+  }, [role, prospectiveIdHint]);
 
   const confirmProspective = async (item) => {
     if (!item.prospective_id) return;

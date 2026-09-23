@@ -73,7 +73,17 @@ export default function EnrollList() {
                 {item.note && <div style={{ fontSize: 12, color: '#666', marginTop: 2 }}>{item.note}</div>}
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
-                <button type="button" onClick={() => navigate('/payment/manage?prospectiveId=' + item._id)} style={{ padding: '6px 12px', background: '#005387', color: '#fff', border: 0, borderRadius: 6, cursor: 'pointer', fontSize: 14 }}>缴费确认</button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    navigate(
+                      `/payment?prospectiveId=${encodeURIComponent(item._id)}&studentName=${encodeURIComponent(item.name || '学员')}`
+                    )
+                  }
+                  style={{ padding: '6px 12px', background: '#005387', color: '#fff', border: 0, borderRadius: 6, cursor: 'pointer', fontSize: 14 }}
+                >
+                  缴费确认
+                </button>
                 <button type="button" onClick={() => handleDelete(item)} style={{ padding: '6px 12px', background: '#fff', color: '#c00', border: '1px solid #c00', borderRadius: 6, cursor: 'pointer', fontSize: 14 }}>删除</button>
               </div>
             </li>

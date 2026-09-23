@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
-import { dataAdd } from '../api';
+import { useAuth } from '../context/AuthContext';
+import { dataAdd, paymentConfirm } from '../api';
 import { useGuestRedirectToBind } from '../hooks/useGuestRedirectToBind';
 
 export default function Payment() {
@@ -9,6 +10,8 @@ export default function Payment() {
   const prospectiveId = searchParams.get('prospectiveId') || '';
   const studentName = searchParams.get('studentName') || '学员';
   const navigate = useNavigate();
+  const { role } = useAuth();
+  const isAdmin = role === 'admin' || role === 'teacher';
   const [lessons, setLessons] = useState('');
   const [price, setPrice] = useState('');
   const [proofNote, setProofNote] = useState('');
@@ -18,6 +21,8 @@ export default function Payment() {
   const hasTarget = !!studentId || !!prospectiveId;
   const guestGate = useGuestRedirectToBind(!!studentId && !prospectiveId);
   const displayName = decodeURIComponent(studentName);
+  /** 老师给意向学员入账：提交后直接转正 */
+  const teacherConvert = isAdmin && !!prospectiveId;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -43,12 +48,28 @@ export default function Payment() {
       if (prospectiveId) payload.prospective_id = prospectiveId;
       else payload.student_id = studentId;
       const res = await dataAdd('Payment_logs', payload);
-      if (res.success || res._id) {
-        setMsg('提交成功，老师核销后将增加课时');
-        setTimeout(() => navigate('/'), 2000);
-      } else {
+      if (!(res.success || res._id)) {
         setMsg(res.msg || '提交失败');
+        return;
       }
+      const paymentId = res._id;
+      if (teacherConvert && paymentId) {
+        const conf = await paymentConfirm(paymentId, prospectiveId);
+        if (conf.success) {
+          setMsg('已转正并入账');
+          setTimeout(() => navigate('/enroll/list', { replace: true }), 1500);
+        } else {
+          setMsg(conf.msg || '缴费已记录，但转正失败，请到「待确认缴费」手动确认');
+        }
+        return;
+      }
+      if (isAdmin && studentId && paymentId) {
+        setMsg('缴费已记录，请到「待确认缴费」完成入账');
+        setTimeout(() => navigate('/payment/manage', { replace: true }), 1500);
+        return;
+      }
+      setMsg('提交成功，老师核销后将增加课时');
+      setTimeout(() => navigate('/'), 2000);
     } catch (err) {
       setMsg(err.message || '网络异常');
     } finally {
@@ -79,8 +100,12 @@ export default function Payment() {
   return (
     <div style={{ maxWidth: 440, margin: '40px auto', padding: 24 }}>
       <div style={{ textAlign: 'center', marginBottom: 24 }}>
-        <h1 style={{ margin: 0, color: '#005387', fontSize: 22 }}>提交缴费凭证</h1>
-        <p style={{ marginTop: 4, fontSize: 14, color: '#666' }}>PAYMENT PROOF</p>
+        <h1 style={{ margin: 0, color: '#005387', fontSize: 22 }}>
+          {teacherConvert ? '意向学员入账转正' : '提交缴费凭证'}
+        </h1>
+        <p style={{ marginTop: 4, fontSize: 14, color: '#666' }}>
+          {teacherConvert ? '填写课时与金额后，将转为正式学员' : 'PAYMENT PROOF'}
+        </p>
       </div>
 
       <div style={{ background: '#f8fafc', borderRadius: 12, padding: 16, marginBottom: 20 }}>
@@ -123,7 +148,11 @@ export default function Payment() {
           />
         </div>
 
-        {msg && <p style={{ color: msg.startsWith('提交成功') ? '#0a0' : '#c00', fontSize: 14, marginBottom: 12 }}>{msg}</p>}
+        {msg && (
+          <p style={{ color: msg.includes('成功') || msg.startsWith('已') ? '#0a0' : '#c00', fontSize: 14, marginBottom: 12 }}>
+            {msg}
+          </p>
+        )}
         <button
           type="submit"
           disabled={loading}
@@ -138,14 +167,18 @@ export default function Payment() {
             fontSize: 16,
           }}
         >
-          {loading ? '提交中...' : '提交凭证'}
+          {loading ? '处理中...' : teacherConvert ? '确认入账并转正' : '提交凭证'}
         </button>
       </form>
 
       <p style={{ marginTop: 24, textAlign: 'center', fontSize: 14 }}>
         <Link to="/" style={{ color: '#666' }}>返回首页</Link>
         <span style={{ margin: '0 8px' }}>·</span>
-        <Link to="/pay/find" style={{ color: '#666' }}>重新查找学员</Link>
+        {teacherConvert ? (
+          <Link to="/enroll/list" style={{ color: '#666' }}>意向名单</Link>
+        ) : (
+          <Link to="/pay/find" style={{ color: '#666' }}>重新查找学员</Link>
+        )}
       </p>
     </div>
   );
