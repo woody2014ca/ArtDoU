@@ -49,7 +49,7 @@ export default function PaymentManage() {
 
   const confirmProspective = async (item) => {
     if (!item.prospective_id) return;
-    if (!window.confirm(`确认为意向学员「${item.student_name}」入账 ￥${item.price}，增加 ${item.amount_lessons} 课时，并转为正式学员吗？`)) return;
+    if (!window.confirm(`确认为意向学员「${item.student_name}」入账 $${item.price}，增加 ${item.amount_lessons} 课时，并转为正式学员吗？`)) return;
     setConfirming(item._id);
     try {
       const res = await paymentConfirm(item._id, item.prospective_id);
@@ -66,7 +66,7 @@ export default function PaymentManage() {
 
   const confirmRegular = async (item) => {
     if (item.prospective_id) return confirmProspective(item);
-    if (!window.confirm(`确认收到 ${item.student_name} 的缴费 ￥${item.price} 并增加 ${item.amount_lessons} 课时吗？`)) return;
+    if (!window.confirm(`确认收到 ${item.student_name} 的缴费 $${item.price} 并增加 ${item.amount_lessons} 课时吗？`)) return;
     setConfirming(item._id);
     try {
       await dataIncrement('Students', item.student_id, Number(item.amount_lessons));
@@ -76,7 +76,7 @@ export default function PaymentManage() {
         student_name: item.student_name,
         date: new Date().toLocaleDateString(),
         type: 'topup',
-        note: `续费核销：￥${item.price} / +${item.amount_lessons}课时`,
+        note: `续费核销：$${item.price} / +${item.amount_lessons}课时`,
         lessons_deducted: -Number(item.amount_lessons),
       });
       await dataUpdate('Students', item.student_id, { parent_activated: true });
@@ -119,7 +119,7 @@ export default function PaymentManage() {
             <li key={item._id} style={{ background: '#fff', padding: 16, marginBottom: 10, borderRadius: 10, boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
               <div style={{ marginBottom: 8 }}>
                 <strong>{item.student_name}</strong>
-                <span style={{ marginLeft: 8, color: '#666', fontSize: 14 }}>￥{item.price} / +{item.amount_lessons} 课时</span>
+                <span style={{ marginLeft: 8, color: '#666', fontSize: 14 }}>${item.price} / +{item.amount_lessons} 课时</span>
               </div>
               <div style={{ fontSize: 12, color: '#888', marginBottom: 8 }}>{formatTime(item)} {item.prospective_id ? '（意向转正）' : ''}</div>
               <button type="button" disabled={!!confirming} onClick={() => confirmRegular(item)} style={{ padding: '8px 16px', background: '#005387', color: '#fff', border: 0, borderRadius: 6, cursor: confirming ? 'wait' : 'pointer', fontSize: 14 }}>

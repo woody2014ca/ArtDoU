@@ -79,7 +79,7 @@ router.post('/confirm', async (req, res) => {
       student_name: studentName,
       date: new Date().toLocaleDateString(),
       type: 'topup',
-      note: `续费核销（意向转正）：￥${pay.price || 0} / +${initialLessons}课时`,
+      note: `续费核销（意向转正）：$${pay.price || 0} / +${initialLessons}课时`,
       lessons_deducted: -initialLessons,
       createTime: new Date(),
     });

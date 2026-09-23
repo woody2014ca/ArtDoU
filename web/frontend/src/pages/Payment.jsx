@@ -126,14 +126,14 @@ export default function Payment() {
           />
         </div>
         <div style={{ marginBottom: 16 }}>
-          <label style={{ display: 'block', marginBottom: 6, fontSize: 14, color: '#333' }}>缴费金额（元）/ Amount *</label>
+          <label style={{ display: 'block', marginBottom: 6, fontSize: 14, color: '#333' }}>缴费金额（美元 $）/ Amount (USD) *</label>
           <input
             type="number"
             step="0.01"
             min={0}
             value={price}
             onChange={(e) => setPrice(e.target.value)}
-            placeholder="请输入金额"
+            placeholder="请输入美元金额"
             style={{ width: '100%', padding: 14, border: '1px solid #ddd', borderRadius: 10, fontSize: 16, boxSizing: 'border-box' }}
           />
         </div>
