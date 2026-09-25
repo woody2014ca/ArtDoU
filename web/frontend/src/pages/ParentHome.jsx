@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { dataGet } from '../api';
 import { useGuestRedirectToBind } from '../hooks/useGuestRedirectToBind';
+import { isGalleryArtwork } from '../utils/attendance';
 
 /** 兼容微信/部分浏览器下 clipboard API 失败，避免点击后无任何反馈 */
 async function copyTextToClipboard(text) {
@@ -76,9 +77,7 @@ export default function ParentHome() {
         if (sRes.success && sRes.data) setStudent(sRes.data);
         if (lRes.success && Array.isArray(lRes.data)) {
           const logs = lRes.data;
-          const withPhoto = logs.filter(
-            (w) => w.type !== 'topup' && (w.photo_url || w.work_img || w.work_photo || (w.work_imgs && w.work_imgs.length) || w.note)
-          );
+          const withPhoto = logs.filter(isGalleryArtwork);
           const rewards = logs.filter(
             (i) => i.student_id === studentId && (i.type === 'reward' || (i.change_num != null && i.change_num > 0))
           );

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { dataGet } from '../api';
+import { isLessonCheckin } from '../utils/attendance';
 
 function formatTime(log) {
   const raw = log.date || log.createTime;
@@ -21,12 +22,6 @@ function formatTime(log) {
   }
 }
 
-/** 仅统计老师「消课」提交的记录：扣课时为负数 */
-function isLessonCheckin(log) {
-  const n = Number(log.change_num);
-  return !Number.isNaN(n) && n < 0;
-}
-
 export default function CheckinLogs() {
   const [searchParams] = useSearchParams();
   const studentId = (searchParams.get('id') || '').trim();
@@ -44,8 +39,12 @@ export default function CheckinLogs() {
     }
     (async () => {
       try {
+        // 按学员查必须带 search_student_id，否则全库只返回有限条，该学员记录会被漏掉
+        const logQuery = studentId
+          ? { search_student_id: studentId, lite: '1', limit: '500' }
+          : { lite: '1', limit: '500' };
         const [logRes, stuRes] = await Promise.all([
-          dataGet('Attendance_logs', 'all', { lite: '1' }),
+          dataGet('Attendance_logs', 'all', logQuery),
           studentId ? dataGet('Students', studentId) : Promise.resolve({ success: false }),
         ]);
         const all = (logRes.success && logRes.data) ? logRes.data : [];

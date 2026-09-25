@@ -12,6 +12,19 @@ const ATTENDANCE_LITE_PROJECTION = {
   photo_url: 0,
 };
 
+function isHexObjectIdString(id) {
+  return typeof id === 'string' && /^[a-f0-9]{24}$/i.test(id);
+}
+
+/** student_id 可能是 string 或 ObjectId，查询时兼容两者 */
+function studentIdFilter(sid) {
+  if (!sid) return {};
+  if (isHexObjectIdString(sid)) {
+    return { $or: [{ student_id: sid }, { student_id: toId(sid) }] };
+  }
+  return { student_id: sid };
+}
+
 router.use(authMiddleware);
 
 /** GET /api/data/:collection/:id? — 教师/家长需登录；分享链接（仅查 Attendance_logs+search_student_id）允许未登录 */
@@ -35,24 +48,28 @@ router.get('/:collection/:id?', async (req, res) => {
     if (docId === 'all' || !docId) {
       let filter = {};
       if (collection === 'Attendance_logs' && data.search_student_id) {
-        filter = { student_id: data.search_student_id };
+        filter = studentIdFilter(data.search_student_id);
       } else if (userRole === 'admin') {
         filter = {};
       } else {
         if (collection === 'Attendance_logs' && data.search_student_id) {
-          filter = { student_id: data.search_student_id };
+          filter = studentIdFilter(data.search_student_id);
         } else {
-          filter = collection === 'Students' ? { _id: toId(myStudentId) || myStudentId } : { student_id: myStudentId };
+          filter = collection === 'Students' ? { _id: toId(myStudentId) || myStudentId } : studentIdFilter(myStudentId);
         }
       }
-      const projection =
+      const wantLite =
         collection === 'Attendance_logs' &&
-        !data.search_student_id &&
-        req.query.full !== '1' &&
-        req.query.full !== 'true'
-          ? ATTENDANCE_LITE_PROJECTION
+        (req.query.lite === '1' || req.query.lite === 'true' || (!data.search_student_id && req.query.full !== '1' && req.query.full !== 'true'));
+      const projection = wantLite ? ATTENDANCE_LITE_PROJECTION : null;
+      const limitRaw = Number(req.query.limit);
+      const defaultLimit = collection === 'Attendance_logs' ? 500 : 100;
+      const limit = Math.min(Number.isFinite(limitRaw) && limitRaw > 0 ? limitRaw : defaultLimit, 1000);
+      const sort =
+        collection === 'Attendance_logs'
+          ? { createTime: -1, date: -1 }
           : null;
-      const list = await find(collection, filter, 100, projection);
+      const list = await find(collection, filter, limit, projection, sort);
       return res.json({ success: true, data: list });
     }
 

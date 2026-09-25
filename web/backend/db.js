@@ -120,12 +120,13 @@ export function getDb() {
   return db;
 }
 
-/** 兼容微信云开发用法：列表查询；projection 可排除大字段（如消课作品图） */
-export async function find(collectionName, filter = {}, limit = 100, projection = null) {
+/** 兼容微信云开发用法：列表查询；projection 可排除大字段；sort 如 { createTime: -1 } */
+export async function find(collectionName, filter = {}, limit = 100, projection = null, sort = null) {
   const database = await ensureDb();
   const col = database.collection(collectionName);
   let cursor = col.find(filter);
   if (projection) cursor = cursor.project(projection);
+  if (sort) cursor = cursor.sort(sort);
   const list = await cursor.limit(limit).toArray();
   return list.map((doc) => serializeDoc(doc));
 }

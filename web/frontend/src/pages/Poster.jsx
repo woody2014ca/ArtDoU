@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { dataGet, posterRender } from '../api';
+import { isGalleryArtwork } from '../utils/attendance';
 import html2canvas from 'html2canvas';
 import QRCode from 'qrcode';
 
@@ -85,9 +86,7 @@ export default function Poster() {
     }
     dataGet('Attendance_logs', 'all', { search_student_id: id }).then((res) => {
       if (res.success && Array.isArray(res.data)) {
-        const withImg = res.data.filter(
-          (w) => w.work_imgs?.length || w.work_img || w.work_photo || w.photo_url
-        );
+        const withImg = res.data.filter(isGalleryArtwork);
         setWorks(withImg.slice(0, 18));
       }
       setLoading(false);

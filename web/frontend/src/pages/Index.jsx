@@ -37,7 +37,7 @@ export default function Index() {
       const [sRes, lRes, aRes, pRes, payRes] = await Promise.all([
         dataGet('Students', 'all'),
         dataGet('Leave_requests', 'all'),
-        dataGet('Attendance_logs', 'all', { lite: '1' }),
+        dataGet('Attendance_logs', 'all', { lite: '1', limit: '500' }),
         dataGet('Prospective_students', 'all'),
         dataGet('Payment_logs', 'all'),
       ]);

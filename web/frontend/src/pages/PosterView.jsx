@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import QRCode from 'qrcode';
 import { dataGet } from '../api';
 import { useGuestRedirectToBind } from '../hooks/useGuestRedirectToBind';
+import { isGalleryArtwork } from '../utils/attendance';
 
 export default function PosterView() {
   const [searchParams] = useSearchParams();
@@ -23,9 +24,7 @@ export default function PosterView() {
     }
     dataGet('Attendance_logs', 'all', { search_student_id: id }).then((res) => {
       if (res.success && Array.isArray(res.data)) {
-        const withImg = res.data.filter(
-          (w) => w.work_imgs?.length || w.work_img || w.work_photo || w.photo_url
-        );
+        const withImg = res.data.filter(isGalleryArtwork);
         setWorks(withImg.slice(0, 18));
       }
       setLoading(false);
