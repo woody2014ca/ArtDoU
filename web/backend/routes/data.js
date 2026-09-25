@@ -65,11 +65,15 @@ router.get('/:collection/:id?', async (req, res) => {
       const limitRaw = Number(req.query.limit);
       const defaultLimit = collection === 'Attendance_logs' ? 500 : 100;
       const limit = Math.min(Number.isFinite(limitRaw) && limitRaw > 0 ? limitRaw : defaultLimit, 1000);
-      const sort =
-        collection === 'Attendance_logs'
-          ? { createTime: -1, date: -1 }
-          : null;
-      const list = await find(collection, filter, limit, projection, sort);
+      // 消课记录含大图，库内 sort 易超内存；取回后在应用层按时间倒序
+      const list = await find(collection, filter, limit, projection);
+      if (collection === 'Attendance_logs') {
+        list.sort((a, b) => {
+          const ta = new Date(a.createTime || a.date || 0).getTime();
+          const tb = new Date(b.createTime || b.date || 0).getTime();
+          return tb - ta;
+        });
+      }
       return res.json({ success: true, data: list });
     }
 
