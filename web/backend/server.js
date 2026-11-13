@@ -7,6 +7,12 @@ import dataRoutes from './routes/data.js';
 import paymentRoutes from './routes/payment.js';
 import posterRoutes from './routes/poster.js';
 import checkinAmendRoutes from './routes/checkinAmend.js';
+import mediaRoutes from './routes/media.js';
+import sharingRoutes from './routes/sharing.js';
+import { maintenanceGuard } from './maintenance.js';
+import { validateReleaseConfig } from './storage-config.js';
+
+validateReleaseConfig();
 
 console.log('[ArtDoU] process starting, PORT from env:', process.env.PORT);
 
@@ -26,12 +32,15 @@ console.log('[ArtDoU] will listen on 0.0.0.0:' + PORT);
 app.use(cors({ origin: true, credentials: true }));
 // 消课会提交作品图 base64，放宽限制避免 request entity too large
 app.use(express.json({ limit: '20mb' }));
+app.use('/api', maintenanceGuard);
 
 app.use('/api/auth', authRoutes);
 app.use('/api/data', dataRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/poster', posterRoutes);
 app.use('/api/checkin', checkinAmendRoutes);
+app.use('/api/media', mediaRoutes);
+app.use('/api/share', sharingRoutes);
 
 app.get('/health', (_, res) => res.status(200).json({ status: 'ok', ok: true }));
 

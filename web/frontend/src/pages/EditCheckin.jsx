@@ -1,7 +1,9 @@
+import WorkImage from '../components/WorkImage';
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { dataGet, checkinAmend, dataIncrement, dataDelete } from '../api';
+import { dataGet, checkinAmend, checkinVoid } from '../api';
+import useCheckinSubmission from '../hooks/useCheckinSubmission';
 
 const MAX_FILE_BYTES = 1 * 1024 * 1024;
 const MAX_SIDE_PX = 1600;
@@ -51,6 +53,8 @@ function fileToDataUrl(file) {
 }
 
 export default function EditCheckin() {
+  const [showVoid, setShowVoid] = useState(false);
+  const [voidReason, setVoidReason] = useState('');
   const { logId } = useParams();
   const { role } = useAuth();
   const navigate = useNavigate();
@@ -68,6 +72,9 @@ export default function EditCheckin() {
   const [brief, setBrief] = useState('');
   const [memo, setMemo] = useState('');
   const [workImages, setWorkImages] = useState([]);
+  const submission = useCheckinSubmission(`amend:${logId}`);
+  const [baseVersion, setBaseVersion] = useState(0);
+  const voidSubmission = useCheckinSubmission(`void:${logId}`);
 
   useEffect(() => {
     if (!logId || !isTeacher) {
@@ -81,6 +88,8 @@ export default function EditCheckin() {
         return;
       }
       const log = res.data;
+      if (log.voided) { setLoadError('该消课已撤销，原历史与作品继续保留，请在流水中查看。'); setLoading(false); return; }
+      setBaseVersion(log._edit_version || 0);
       const cn = Number(log.change_num);
       if (Number.isNaN(cn) || cn >= 0) {
         setLoadError('该条不是上课消课记录，无法在此编辑');
@@ -113,7 +122,11 @@ export default function EditCheckin() {
     setMsg('');
     setSaving(true);
     try {
+      const recovered = await submission.recover();
+      if (recovered) { submission.finish(); alert('上次修改已保存，本次未重复处理。'); navigate('/finance', { replace: true }); return; }
       const res = await checkinAmend(logId, {
+        operationId: submission.remember(),
+        baseVersion,
         lessons: num,
         work_imgs: workImages,
         brief,
@@ -124,6 +137,7 @@ export default function EditCheckin() {
         setSaving(false);
         return;
       }
+      submission.finish();
       navigate('/finance', { replace: true });
     } catch (err) {
       setMsg(err.message || '网络异常');
@@ -133,35 +147,18 @@ export default function EditCheckin() {
   };
 
   const handleDelete = async () => {
-    if (!window.confirm(`确定删除本条消课记录？将退回学员 ${deductedLessons} 节余课，且不可恢复。`)) return;
-    setMsg('');
-    setDeleting(true);
+    const reason = voidReason;
+    if (!reason || !reason.trim()) return;
+    setMsg(''); setDeleting(true);
     try {
-      if (studentId && deductedLessons > 0) {
-        const inc = await dataIncrement('Students', studentId, deductedLessons);
-        if (!inc.success) {
-          setMsg(inc.msg || '退回课时失败，未删除记录');
-          setDeleting(false);
-          return;
-        }
-      }
-      const del = await dataDelete('Attendance_logs', logId);
-      if (del.success === false) {
-        setMsg(del.msg || '删除失败');
-        if (studentId && deductedLessons > 0) {
-          await dataIncrement('Students', studentId, -deductedLessons).catch(() => {});
-        }
-        setDeleting(false);
-        return;
-      }
-      navigate('/finance', { replace: true });
-    } catch (err) {
-      setMsg(err.message || '操作失败');
-    } finally {
-      setDeleting(false);
-    }
+      const recovered = await voidSubmission.recover();
+      if (recovered) { voidSubmission.finish(); navigate('/finance', { replace: true }); return; }
+      const result = await checkinVoid(logId, { operationId: voidSubmission.remember(), baseVersion, reason: reason.trim() });
+      if (!result.success) { setMsg(result.msg || '撤销失败'); return; }
+      voidSubmission.finish(); navigate('/finance', { replace: true });
+    } catch (error) { setMsg(error.message || '暂时无法撤销，请使用原提交重试'); }
+    finally { setDeleting(false); }
   };
-
   if (!isTeacher) {
     return (
       <div style={{ padding: 40, textAlign: 'center' }}>
@@ -207,7 +204,7 @@ export default function EditCheckin() {
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
               {workImages.map((url, idx) => (
                 <div key={idx} style={{ position: 'relative', width: 80, height: 80, borderRadius: 8, overflow: 'hidden', border: '1px solid #eee' }}>
-                  <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <WorkImage src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   <button
                     type="button"
                     onClick={() => setWorkImages((prev) => prev.filter((_, i) => i !== idx))}
@@ -302,7 +299,7 @@ export default function EditCheckin() {
 
       <button
         type="button"
-        onClick={handleDelete}
+        onClick={() => setShowVoid(true)}
         disabled={saving || deleting}
         style={{
           width: '100%',
@@ -316,8 +313,16 @@ export default function EditCheckin() {
           fontSize: 16,
         }}
       >
-        {deleting ? '处理中...' : '删除本条消课记录'}
+        {deleting ? '处理中...' : '撤销消课（保留作品）'}
       </button>
+
+      {showVoid && <section style={{marginTop:16,padding:16,border:'1px solid #c00',borderRadius:10}}>
+        <p>确认撤销这条已保存的消课？课时将退回，原记录、作品和评语继续保留。</p>
+        <label htmlFor="void-reason">撤销原因</label>
+        <textarea id="void-reason" value={voidReason} onChange={e=>setVoidReason(e.target.value)} maxLength={1000} rows={3} style={{display:'block',width:'100%',boxSizing:'border-box',margin:'8px 0'}} />
+        <button type="button" onClick={handleDelete} disabled={saving || deleting || !voidReason.trim()}>{deleting ? '处理中…' : '确认撤销并退回课时'}</button>
+        <button type="button" onClick={()=>setShowVoid(false)} disabled={deleting} style={{marginLeft:12}}>取消</button>
+      </section>}
 
       <p style={{ marginTop: 24 }}>
         <Link to="/finance">财务流水</Link>
@@ -327,3 +332,5 @@ export default function EditCheckin() {
     </div>
   );
 }
+
+

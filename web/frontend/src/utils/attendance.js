@@ -20,6 +20,19 @@ export function isGalleryArtwork(w) {
 
 /** 仅老师消课（扣课时）记录 */
 export function isLessonCheckin(log) {
+  if (!log || log.voided || ['topup','reward'].includes(log.type)) return false;
   const n = Number(log?.change_num);
-  return !Number.isNaN(n) && n < 0;
+  return Number.isFinite(n) && n < 0;
+}
+
+export function lessonMovementLabel(log) {
+  if (log.voided) return `已撤销，已退回 ${log.voidRefundLessons || 0} 课时`;
+  const count = Number(log.change_num);
+  if (log.type === 'topup' || log.type === 'reward') {
+    const value = Number.isFinite(count) && count !== 0 ? Math.abs(count) : Math.abs(Number(log.lessons_deducted) || 0);
+    return `${log.type === 'topup' ? '充值增加' : '奖励增加'} ${value} 课时`;
+  }
+  if (Number.isFinite(count) && count > 0) return `增加 ${count} 课时`;
+  if (isLessonCheckin(log)) return `消耗 ${Math.abs(count)} 课时`;
+  return '课时记录';
 }

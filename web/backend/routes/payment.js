@@ -1,10 +1,17 @@
 import { Router } from 'express';
-import { getDb, find, getDoc, add, update, incrementLeftClasses } from '../db.js';
+import { getDb, find } from '../db.js';
+import { confirmPayment, submitPayment, recoverPaymentSubmission } from '../payment-service.js';
 import { authMiddleware } from '../middleware/auth.js';
 
 const router = Router();
 
 router.use(authMiddleware);
+for (const [path, handler] of [['/submit', submitPayment], ['/submission/recover', recoverPaymentSubmission]]) {
+  router.post(path, async (req, res) => {
+    try { res.set('Cache-Control', 'no-store'); return res.json(await handler(req.body, { role: req.role, studentId: req.myStudentId })); }
+    catch (e) { return res.status(e.status || 503).json({ success: false, msg: e.status ? e.message : '暂时无法确认提交结果，请重试同一笔提交' }); }
+  });
+}
 
 const noDb = (res) => res.json({ success: false, msg: '未配置数据库，缴费功能暂不可用' });
 
@@ -44,72 +51,10 @@ router.post('/find-student', async (req, res) => {
   }
 });
 
-/** POST /api/payment/confirm — 意向缴费确认转正（仅 admin） */
+/** Confirm regular or prospective payments atomically; admin only. */
 router.post('/confirm', async (req, res) => {
-  if (req.role !== 'admin') return res.json({ success: false, msg: 'Permission Denied' });
-  try {
-    if (!getDb()) return noDb(res);
-    const { paymentId, prospectiveId } = req.body || {};
-    if (!paymentId || !prospectiveId) return res.json({ success: false, msg: '参数缺失' });
-
-    const pay = await getDoc('Payment_logs', paymentId);
-    if (!pay) return res.json({ success: false, msg: '缴费记录不存在' });
-    const pros = await getDoc('Prospective_students', prospectiveId);
-    if (!pros) return res.json({ success: false, msg: '意向记录不存在' });
-
-    const initialLessons = Number(pay.amount_lessons) || 0;
-    const studentName = pay.student_name || pros.name || '学员';
-
-    const newStudent = await add('Students', {
-      name: pros.name,
-      age: pros.age,
-      parent_phone: pros.phone,
-      left_classes: initialLessons,
-      enroll_date: new Date().toLocaleDateString(),
-      remark: '缴费转正',
-      parent_activated: true,
-      createTime: new Date(),
-    });
-    const newStudentId = typeof newStudent === 'string' ? newStudent : newStudent?._id;
-
-    await update('Payment_logs', paymentId, { student_id: newStudentId, status: 'confirmed', confirm_time: new Date().toLocaleString() });
-    await update('Prospective_students', prospectiveId, { status: 'converted' });
-    await add('Attendance_logs', {
-      student_id: newStudentId,
-      student_name: studentName,
-      date: new Date().toLocaleDateString(),
-      type: 'topup',
-      note: `续费核销（意向转正）：$${pay.price || 0} / +${initialLessons}课时`,
-      lessons_deducted: -initialLessons,
-      createTime: new Date(),
-    });
-
-    // 分享有奖：若意向学员有介绍人（referrer_id），介绍人对应学员自动 +1 课时
-    const referrerId = pros.referrer_id;
-    if (referrerId) {
-      try {
-        const referrerStudent = await getDoc('Students', referrerId);
-        if (referrerStudent) {
-          await incrementLeftClasses('Students', referrerId, 1);
-          await add('Attendance_logs', {
-            student_id: referrerId,
-            student_name: referrerStudent.name || '学员',
-            date: new Date().toLocaleDateString(),
-            type: 'reward',
-            note: '分享有奖 +1 课时',
-            change_num: 1,
-            createTime: new Date(),
-          });
-        }
-      } catch (err) {
-        console.error('分享有奖发放失败:', err.message);
-      }
-    }
-
-    return res.json({ success: true, newStudentId });
-  } catch (e) {
-    res.status(500).json({ success: false, error: e.message });
-  }
+  if (req.role !== 'admin') return res.status(403).json({ success: false, msg: 'Permission Denied' });
+  try { return res.json(await confirmPayment(req.body)); }
+  catch (e) { return res.status(e.status || 503).json({ success: false, msg: e.status ? e.message : '暂时无法确认入账结果，请使用同一缴费记录重试' }); }
 });
-
 export default router;

@@ -9,6 +9,7 @@ export default function LeaveList() {
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(null);
+  const [error, setError] = useState('');
   const isAdmin = role === 'admin' || role === 'teacher';
 
   const getStatusText = (status) => {
@@ -27,14 +28,15 @@ export default function LeaveList() {
 
   const fetchList = async () => {
     if (!isAdmin) return setLoading(false);
-    setLoading(true);
+    setLoading(true); setError('');
     try {
       const res = await dataGet('Leave_requests', 'all');
-      const data = (res.success && res.data) ? res.data : [];
+      if (!res.success || !Array.isArray(res.data)) throw new Error(res.msg || '加载失败');
+      const data = res.data;
       data.sort((a, b) => new Date(b.create_time || b.createTime || b.date || 0) - new Date(a.create_time || a.createTime || a.date || 0));
       setList(data);
     } catch (e) {
-      setList([]);
+      setError('请假记录加载失败，请刷新重试，不能据此判断没有申请。');
     } finally {
       setLoading(false);
     }
@@ -47,7 +49,8 @@ export default function LeaveList() {
   const handleApprove = async (item) => {
     setProcessing(item._id);
     try {
-      await dataUpdate('Leave_requests', item._id, { status: 1 });
+      const result = await dataUpdate('Leave_requests', item._id, { status: 1 });
+      if (!result.success) throw new Error(result.msg || '审核未完成');
       await fetchList();
     } finally {
       setProcessing(null);
@@ -57,7 +60,8 @@ export default function LeaveList() {
   const handleReject = async (item) => {
     setProcessing(item._id);
     try {
-      await dataUpdate('Leave_requests', item._id, { status: 2 });
+      const result = await dataUpdate('Leave_requests', item._id, { status: 2 });
+      if (!result.success) throw new Error(result.msg || '审核未完成');
       await fetchList();
     } finally {
       setProcessing(null);
@@ -77,7 +81,7 @@ export default function LeaveList() {
     <div style={{ maxWidth: 560, margin: '0 auto', padding: 20 }}>
       <h1 style={{ color: '#005387', fontSize: 22, marginBottom: 20 }}>请假记录</h1>
       <p style={{ marginBottom: 16 }}><Link to="/">← 返回首页</Link></p>
-      {loading ? (
+      {error ? <p role="alert" style={{color:'#c00'}}>{error}</p> : loading ? (
         <p style={{ color: '#888' }}>加载中...</p>
       ) : list.length === 0 ? (
         <p style={{ color: '#666' }}>暂无请假记录</p>

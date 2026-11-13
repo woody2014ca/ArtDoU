@@ -1,7 +1,8 @@
+import WorkImage from '../components/WorkImage';
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { dataGet } from '../api';
+import { dataGet, createWorkShare, revokeWorkShares } from '../api';
 import { useGuestRedirectToBind } from '../hooks/useGuestRedirectToBind';
 import { isGalleryArtwork } from '../utils/attendance';
 
@@ -37,6 +38,9 @@ async function copyTextToClipboard(text) {
 }
 
 export default function ParentHome() {
+  const [revokeConfirm, setRevokeConfirm] = useState(false);
+  const [revoking, setRevoking] = useState(false);
+  const [revokeMessage, setRevokeMessage] = useState('');
   const [searchParams] = useSearchParams();
   const id = searchParams.get('id') || '';
   const referrer = searchParams.get('referrer') || '';
@@ -44,6 +48,7 @@ export default function ParentHome() {
   const toParent = searchParams.get('to') === 'parent';
   const navigate = useNavigate();
   const { role, myStudentId, loading, logout } = useAuth();
+  const [loadError, setLoadError] = useState('');
   const [student, setStudent] = useState(null);
   const [works, setWorks] = useState([]);
   const [totalRewards, setTotalRewards] = useState(0);
@@ -68,28 +73,35 @@ export default function ParentHome() {
     }
     if (loading) return;
     if (role === 'guest') return;
+    if (role === 'parent' && String(studentId) !== String(myStudentId)) { setLoadingData(false); return; }
+    let cancelled = false;
+    setLoadingData(true); setLoadError(''); setStudent(null); setWorks([]); setTotalRewards(0);
     (async () => {
       try {
         const [sRes, lRes] = await Promise.all([
           dataGet('Students', studentId),
           dataGet('Attendance_logs', 'all', { search_student_id: studentId }),
         ]);
-        if (sRes.success && sRes.data) setStudent(sRes.data);
+        if (cancelled) return;
+        if (!sRes.success || !sRes.data || !lRes.success) throw new Error(sRes.msg || lRes.msg || '暂时无法读取学员资料，请刷新重试');
+        setStudent(sRes.data);
         if (lRes.success && Array.isArray(lRes.data)) {
           const logs = lRes.data;
           const withPhoto = logs.filter(isGalleryArtwork);
           const rewards = logs.filter(
-            (i) => i.student_id === studentId && (i.type === 'reward' || (i.change_num != null && i.change_num > 0))
+            (i) => i.student_id === studentId && !i.voided && i.type !== 'topup' && (i.type === 'reward' || (i.change_num != null && i.change_num > 0))
           );
           setWorks(withPhoto);
           setTotalRewards(rewards.length);
         }
-      } finally {
-        setLoadingData(false);
-      }
+      } catch (error) { if (!cancelled) setLoadError(error.message || '暂时无法读取学员资料，请刷新重试'); }
+      finally { if (!cancelled) setLoadingData(false); }
     })();
-  }, [studentId, loading, role]);
+    return () => { cancelled = true; };
+  }, [studentId, loading, role, myStudentId]);
 
+  if (role === 'parent' && studentId && String(studentId) !== String(myStudentId)) return <div style={{padding:32,textAlign:'center'}}><p>无权查看其他学员资料</p><Link to={`/parent?id=${encodeURIComponent(myStudentId || '')}`}>返回自己学员的展厅</Link></div>;
+  if (loadError) return <div style={{padding:32,textAlign:'center'}}><p role="alert">{loadError}</p><Link to="/">返回首页</Link></div>;
   if (guestGate.block && guestGate.reason === 'loading') {
     return (
       <div style={{ padding: 40, textAlign: 'center', color: '#888' }}>
@@ -256,7 +268,7 @@ export default function ParentHome() {
             <button
               type="button"
               onClick={() => navigate(`/leave?id=${studentId}&name=${encodeURIComponent(name)}`)}
-              style={{ flex: 1, minWidth: 80, padding: 14, background: '#fff', color: '#005387', border: '2px solid #005387', borderRadius: 10, cursor: 'pointer' }}
+              style={{ flex: '1 1 120px', minWidth: 0, minHeight: 48, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, whiteSpace: 'nowrap', fontSize: 14, lineHeight: 1.4, padding: '12px 10px', background: '#fff', color: '#005387', border: '2px solid #005387', borderRadius: 10, cursor: 'pointer' }}
             >
               🗓 请假条
             </button>
@@ -264,7 +276,7 @@ export default function ParentHome() {
           <button
             type="button"
             onClick={goToPoster}
-            style={{ flex: 1, padding: 14, background: '#fff', color: '#005387', border: '2px solid #005387', borderRadius: 10, cursor: 'pointer' }}
+            style={{ flex: '1 1 120px', minWidth: 0, minHeight: 48, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, whiteSpace: 'nowrap', fontSize: 14, lineHeight: 1.4, padding: '12px 10px', background: '#fff', color: '#005387', border: '2px solid #005387', borderRadius: 10, cursor: 'pointer' }}
           >
             📜 生成海报
           </button>
@@ -274,7 +286,11 @@ export default function ParentHome() {
               const basePath = import.meta.env.BASE_URL.replace(/\/$/, '') || '';
               if (role === 'parent') {
                 const v = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-                const url = `${window.location.origin}${basePath}/poster/view?id=${studentId}&name=${encodeURIComponent(name)}&from=share&v=${v}`;
+                let share;
+                try { share = await createWorkShare(studentId); }
+                catch { alert('暂时无法创建分享，请稍后重试'); return; }
+                if (!share.success) { alert(share.msg || '暂时无法创建分享'); return; }
+                const url = `${window.location.origin}${basePath}/poster/view?share=${encodeURIComponent(share.token)}&referrer=${encodeURIComponent(studentId)}&from=share`;
                 const ok = await copyTextToClipboard(url);
                 if (ok) {
                   setManualCopyUrl('');
@@ -301,10 +317,21 @@ export default function ParentHome() {
                 }
               }
             }}
-            style={{ flex: 1, padding: 14, background: '#fff', color: '#005387', border: '2px solid #005387', borderRadius: 10, cursor: 'pointer' }}
+            style={{ flex: '1 1 120px', minWidth: 0, minHeight: 48, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, whiteSpace: 'nowrap', fontSize: 14, lineHeight: 1.4, padding: '12px 10px', background: '#fff', color: '#005387', border: '2px solid #005387', borderRadius: 10, cursor: 'pointer' }}
           >
             🎁 {role === 'parent' ? '分享有奖' : '通知家长'}
           </button>
+          <button type="button" onClick={()=>{setRevokeConfirm(true);setRevokeMessage('');}} style={{flex:'1 0 100%',minHeight:44,padding:'10px 12px',display:'inline-flex',alignItems:'center',justifyContent:'center',whiteSpace:'nowrap',fontSize:14}}>撤销作品分享</button>
+          {revokeConfirm && <div style={{width:'100%',padding:12,border:'1px solid #ddd',borderRadius:10}}>
+            <p>确认撤销该学员此前全部作品分享链接？作品和历史记录会继续保留。</p>
+            <button type="button" disabled={revoking} onClick={async()=>{
+              setRevoking(true);
+              try{const result=await revokeWorkShares(studentId);if(result.success){setRevokeMessage('作品分享链接已撤销，作品和历史记录继续保留。');setRevokeConfirm(false);setSharePreviewUrl('');setManualCopyUrl('');}else setRevokeMessage(result.msg||'撤销失败');}
+              catch{setRevokeMessage('暂时无法撤销，请稍后重试');}finally{setRevoking(false);}
+            }}>{revoking?'处理中…':'确认撤销全部作品分享'}</button>
+            <button type="button" disabled={revoking} onClick={()=>setRevokeConfirm(false)} style={{marginLeft:12}}>取消</button>
+          </div>}
+          {revokeMessage && <p role="status" style={{width:'100%'}}>{revokeMessage}</p>}
         </div>
       )}
 
@@ -407,6 +434,7 @@ export default function ParentHome() {
           </div>
           <div style={{ marginTop: 8, fontSize: 12, color: '#888' }}>
             提示：微信中的真实卡片由微信生成，样式可能略有不同。
+            <div style={{marginTop:8}}><a href={sharePreviewUrl} target="_blank" rel="noopener noreferrer">打开分享链接核对</a></div>
           </div>
         </div>
       )}
@@ -536,3 +564,4 @@ export default function ParentHome() {
     </div>
   );
 }
+

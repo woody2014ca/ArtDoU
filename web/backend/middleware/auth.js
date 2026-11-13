@@ -1,6 +1,9 @@
 import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'artdou-web-secret-change-in-production';
+if ((process.env.IMAGE_STORAGE_MODE === 'dual' || process.env.SECURE_SHARING_ENABLED === '1') && (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32)) {
+  throw new Error('Dual image mode requires JWT_SECRET with at least 32 characters');
+}
 
 export function signToken(payload, expiresIn = '7d') {
   return jwt.sign(payload, JWT_SECRET, { expiresIn });
@@ -12,6 +15,14 @@ export function verifyToken(token) {
   } catch (e) {
     return null;
   }
+}
+
+// Only for an authenticated refresh/edit path that separately checks record ownership.
+export function verifyExpiredImageGrant(token) {
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET, { ignoreExpiration: true });
+    return decoded.purpose === 'artdou-image' ? decoded : null;
+  } catch { return null; }
 }
 
 /** 从 Authorization: Bearer <token> 或 cookie 读取并校验，设置 req.role, req.myStudentId */

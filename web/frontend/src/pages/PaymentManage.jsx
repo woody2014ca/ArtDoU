@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { dataGet, dataUpdate, dataIncrement, dataAdd, paymentConfirm } from '../api';
+import { dataGet, paymentConfirm } from '../api';
 
 export default function PaymentManage() {
   const { role } = useAuth();
@@ -12,14 +12,17 @@ export default function PaymentManage() {
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState('');
   const [confirming, setConfirming] = useState(null);
+  const [confirmItem, setConfirmItem] = useState(null);
+  const [loadError, setLoadError] = useState('');
   const isAdmin = role === 'admin' || role === 'teacher';
 
   const fetchPayments = async () => {
     if (!isAdmin) return setLoading(false);
-    setLoading(true);
+    setLoading(true); setLoadError('');
     try {
       const res = await dataGet('Payment_logs', 'all');
-      const data = (res.success && res.data) ? res.data : [];
+      if (!res.success || !Array.isArray(res.data)) throw new Error(res.msg || '无法读取缴费记录');
+      const data = res.data;
       const pending = data.filter((i) => i.status === 'pending');
       pending.sort((a, b) => new Date(b.create_time || 0) - new Date(a.create_time || 0));
       setList(pending);
@@ -37,7 +40,7 @@ export default function PaymentManage() {
         }
       }
     } catch (e) {
-      setMsg('加载失败');
+      setLoadError('缴费记录加载失败，请刷新重试；请勿据此判断没有待确认缴费。');
     } finally {
       setLoading(false);
     }
@@ -49,11 +52,11 @@ export default function PaymentManage() {
 
   const confirmProspective = async (item) => {
     if (!item.prospective_id) return;
-    if (!window.confirm(`确认为意向学员「${item.student_name}」入账 $${item.price}，增加 ${item.amount_lessons} 课时，并转为正式学员吗？`)) return;
     setConfirming(item._id);
     try {
       const res = await paymentConfirm(item._id, item.prospective_id);
       if (res.success) {
+        setConfirmItem(null);
         setMsg('已转正并入账');
         fetchPayments();
       } else setMsg(res.msg || '操作失败');
@@ -66,20 +69,11 @@ export default function PaymentManage() {
 
   const confirmRegular = async (item) => {
     if (item.prospective_id) return confirmProspective(item);
-    if (!window.confirm(`确认收到 ${item.student_name} 的缴费 $${item.price} 并增加 ${item.amount_lessons} 课时吗？`)) return;
     setConfirming(item._id);
     try {
-      await dataIncrement('Students', item.student_id, Number(item.amount_lessons));
-      await dataUpdate('Payment_logs', item._id, { status: 'confirmed', confirm_time: new Date().toLocaleString() });
-      await dataAdd('Attendance_logs', {
-        student_id: item.student_id,
-        student_name: item.student_name,
-        date: new Date().toLocaleDateString(),
-        type: 'topup',
-        note: `续费核销：$${item.price} / +${item.amount_lessons}课时`,
-        lessons_deducted: -Number(item.amount_lessons),
-      });
-      await dataUpdate('Students', item.student_id, { parent_activated: true });
+      const result = await paymentConfirm(item._id);
+      if (!result.success) { setMsg(result.msg || '确认失败，请重试同一缴费记录'); return; }
+      setConfirmItem(null);
       setMsg('核销成功');
       fetchPayments();
     } catch (e) {
@@ -109,7 +103,12 @@ export default function PaymentManage() {
     <div style={{ maxWidth: 600, margin: '0 auto', padding: 20 }}>
       <h1 style={{ color: '#005387', fontSize: 22, marginBottom: 24 }}>待确认缴费</h1>
       {msg && <p style={{ color: '#0a0', fontSize: 14, marginBottom: 12 }}>{msg}</p>}
-      {loading ? (
+      {confirmItem && <section style={{padding:16,border:'1px solid #005387',borderRadius:10,marginBottom:16}}>
+        <p>请核实已收到 {confirmItem.student_name} 的缴费：$ {confirmItem.price}，增加 {confirmItem.amount_lessons} 课时{confirmItem.prospective_id ? '，并转为正式学员' : ''}。</p>
+        <button type="button" disabled={Boolean(confirming)} onClick={()=>confirmRegular(confirmItem)}>确认已收款并入账</button>
+        <button type="button" disabled={Boolean(confirming)} onClick={()=>setConfirmItem(null)} style={{marginLeft:12}}>取消</button>
+      </section>}
+      {loadError ? <p role="alert" style={{color:'#c00'}}>{loadError}</p> : loading ? (
         <p>加载中...</p>
       ) : list.length === 0 ? (
         <p style={{ color: '#666' }}>暂无待确认缴费</p>
@@ -122,7 +121,7 @@ export default function PaymentManage() {
                 <span style={{ marginLeft: 8, color: '#666', fontSize: 14 }}>${item.price} / +{item.amount_lessons} 课时</span>
               </div>
               <div style={{ fontSize: 12, color: '#888', marginBottom: 8 }}>{formatTime(item)} {item.prospective_id ? '（意向转正）' : ''}</div>
-              <button type="button" disabled={!!confirming} onClick={() => confirmRegular(item)} style={{ padding: '8px 16px', background: '#005387', color: '#fff', border: 0, borderRadius: 6, cursor: confirming ? 'wait' : 'pointer', fontSize: 14 }}>
+              <button type="button" disabled={!!confirming} onClick={() => setConfirmItem(item)} style={{ padding: '8px 16px', background: '#005387', color: '#fff', border: 0, borderRadius: 6, cursor: confirming ? 'wait' : 'pointer', fontSize: 14 }}>
                 {confirming === item._id ? '处理中...' : item.prospective_id ? '确认转正并入账' : '确认入账'}
               </button>
             </li>

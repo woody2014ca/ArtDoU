@@ -3,6 +3,9 @@ import sharp from 'sharp';
 import QRCode from 'qrcode';
 import { authMiddleware } from '../middleware/auth.js';
 import crypto from 'crypto';
+import { getDoc } from '../db.js';
+import { parseImageGrant, rawImage, imageHash, resolveImageBytes } from '../media.js';
+import { createShare } from '../sharing.js';
 
 const router = Router();
 router.use(authMiddleware);
@@ -25,6 +28,7 @@ function pruneCache() {
 
 /** GET /api/poster/image/:key — 返回缓存的 PNG，用于 <img src=url> 长按保存 */
 router.get('/image/:key', (req, res) => {
+  pruneCache();
   const entry = posterCache.get(req.params.key);
   if (!entry) return res.status(404).send('Not Found');
   res.set('Cache-Control', 'public, max-age=300');
@@ -88,6 +92,9 @@ router.post('/render', async (req, res) => {
   }
   try {
     const { id, name, imageUrls, items: itemsBody } = req.body || {};
+    if (req.role === 'parent' && (!id || String(id) !== String(req.myStudentId))) {
+      return res.status(403).json({ success: false, msg: '无权生成其他学员的海报' });
+    }
     const safeName = (name && String(name).slice(0, 20)) || '学员';
 
     let slots = [];
@@ -105,9 +112,14 @@ router.post('/render', async (req, res) => {
       return res.status(400).json({ success: false, msg: '请至少选择一张作品' });
     }
 
-    const origin = req.get('origin') || req.get('referrer')?.replace(/\/[^/]*$/, '') || process.env.FRONTEND_URL || '';
-    const basePath = '/artdou';
-    const signUpUrl = `${origin}${basePath}/poster/view?id=${id || ''}&referrer=${id || ''}&from=share`;
+    const frontendUrl = new URL(process.env.FRONTEND_URL || '');
+    const origin = frontendUrl.origin;
+    const basePath = frontendUrl.pathname.replace(/\/$/, '') || '/artdou';
+    let signUpUrl = `${origin}${basePath}/enroll?referrer=${encodeURIComponent(id || '')}&from=share`;
+    if (process.env.SECURE_SHARING_ENABLED === '1') {
+      const share = await createShare(req, String(id), 604800, slots.map(slot => slot.url));
+      signUpUrl = `${origin}${basePath}/poster/view?share=${encodeURIComponent(share.token)}&referrer=${encodeURIComponent(id || '')}&from=share`;
+    }
     let qrDataUrl = '';
     try {
       qrDataUrl = await QRCode.toDataURL(signUpUrl, { width: 400, margin: 1 });
@@ -141,7 +153,18 @@ router.post('/render', async (req, res) => {
     const processed = [];
     for (const slot of slots) {
       const u = slot.url;
-      const dataBuf = urlToBuffer(u) || (await fetchImageBuffer(u).catch(() => null));
+      let dataBuf = urlToBuffer(u);
+      if (!dataBuf) {
+        const grant = parseImageGrant(u);
+        if (!grant) return res.status(400).json({ success: false, msg: '图片链接无效或已过期，请刷新后重试' });
+        const source = await getDoc('Attendance_logs', grant.recordId);
+        if (!source || String(source.student_id) !== String(id) || (req.role === 'parent' && String(source.student_id) !== String(req.myStudentId))) {
+          return res.status(403).json({ success: false, msg: '图片不属于该学员' });
+        }
+        const raw = rawImage(source, grant.field, grant.index);
+        if (typeof raw !== 'string' || imageHash(raw) !== grant.sourceSha256) return res.status(409).json({ success: false, msg: '图片已更新，请刷新' });
+        dataBuf = (await resolveImageBytes(source, grant.field, grant.index)).bytes;
+      }
       if (!dataBuf) continue;
       const resized = await resizeToCell(dataBuf, cell);
       processed.push({
@@ -189,7 +212,7 @@ router.post('/render', async (req, res) => {
   ${blocks.join('\n')}
   <line x1="${pad}" y1="${sepY}" x2="${w - pad}" y2="${sepY}" stroke="#eee" stroke-width="${Math.max(1, Math.round(scale))}"/>
   <text x="${w / 2}" y="${footerTop}" text-anchor="middle" font-size="${fs(16)}" font-weight="700" fill="#005387" font-family="${fontFamily}">🎁 我也要报名</text>
-  <text x="${w / 2}" y="${footerTop + fs(22)}" text-anchor="middle" font-size="${fs(12)}" fill="#666" font-family="${fontFamily}">扫码进入报名页</text>
+  <text x="${w / 2}" y="${footerTop + fs(22)}" text-anchor="middle" font-size="${fs(12)}" fill="#666" font-family="${fontFamily}">${process.env.SECURE_SHARING_ENABLED==='1' ? '扫码查看作品 · 页面内可报名' : '扫码进入报名页'}</text>
   ${qrImg}
   <text x="${w / 2}" y="${totalH - fs(24)}" text-anchor="middle" font-size="${fs(11)}" fill="#999" font-family="${fontFamily}">长按保存图片 · 发朋友圈或发给朋友</text>
 </svg>`;

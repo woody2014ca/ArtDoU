@@ -1,14 +1,18 @@
+import WorkImage from '../components/WorkImage';
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import QRCode from 'qrcode';
-import { dataGet } from '../api';
+import { readWorkShare } from '../api';
 import { useGuestRedirectToBind } from '../hooks/useGuestRedirectToBind';
 import { isGalleryArtwork } from '../utils/attendance';
 
 export default function PosterView() {
   const [searchParams] = useSearchParams();
   const id = searchParams.get('id') || '';
-  const name = decodeURIComponent(searchParams.get('name') || '学员');
+  const shareToken = searchParams.get('share') || '';
+  const referralId = searchParams.get('referrer') || id;
+  const [name, setName] = useState('学员');
+  const [shareError, setShareError] = useState('');
   const keysParam = searchParams.get('keys') || '';
   const toParent = searchParams.get('to') === 'parent';
   const navigate = useNavigate();
@@ -18,25 +22,29 @@ export default function PosterView() {
   const guestGate = useGuestRedirectToBind(!!id && toParent);
 
   useEffect(() => {
-    if (!id) {
+    if (!shareToken) {
+      setShareError('分享链接已更新，请联系老师或家长重新分享。');
       setLoading(false);
       return;
     }
-    dataGet('Attendance_logs', 'all', { search_student_id: id }).then((res) => {
+    readWorkShare(shareToken).then((res) => {
       if (res.success && Array.isArray(res.data)) {
         const withImg = res.data.filter(isGalleryArtwork);
         setWorks(withImg.slice(0, 18));
+        setName(res.name || '学员');
+      } else {
+        setShareError(res.msg || '分享不存在、已过期或已被撤销');
       }
       setLoading(false);
-    }).catch(() => setLoading(false));
-  }, [id]);
+    }).catch(() => { setShareError('暂时无法加载分享，请稍后重试'); setLoading(false); });
+  }, [shareToken]);
 
   useEffect(() => {
-    if (!id) return;
+    if (!referralId) return;
     const basePath = import.meta.env.BASE_URL.replace(/\/$/, '') || '';
-    const signUpUrl = `${window.location.origin}${basePath}/enroll?referrer=${id}&from=share`;
+    const signUpUrl = `${window.location.origin}${basePath}/enroll?referrer=${encodeURIComponent(referralId)}&from=share`;
     QRCode.toDataURL(signUpUrl, { width: 200, margin: 1 }).then(setQrDataUrl).catch(() => {});
-  }, [id]);
+  }, [referralId]);
 
   const getUrls = (w) => {
     if (w.work_imgs?.length) return w.work_imgs;
@@ -53,16 +61,16 @@ export default function PosterView() {
 
   const keyList = keysParam.split(',').map((k) => k.trim()).filter(Boolean);
   // 陌生人打开分享链接：最多 3 张图竖向排；带 keys 时按选定展示
-  const posterMaxImages = keyList.length > 0 ? 9 : 3;
+  const posterMaxImages = 4;
   const selectedItems =
     keyList.length > 0
       ? keyList.map((k) => flatCandidates.find((c) => c.key === k)).filter(Boolean)
       : flatCandidates.slice(0, posterMaxImages);
 
-  if (!id) {
+  if (!shareToken || shareError) {
     return (
       <div style={{ maxWidth: 480, margin: '40px auto', padding: 24 }}>
-        <p>链接无效</p>
+        <p>{shareError || '分享链接无效，请联系老师或家长重新分享。'}</p>
         <button type="button" onClick={() => navigate('/')}>返回首页</button>
       </div>
     );
@@ -96,7 +104,7 @@ export default function PosterView() {
               <div style={{ display: 'grid', gridTemplateColumns: isPosterStyle ? '1fr' : 'repeat(2, 1fr)', gap: isPosterStyle ? 12 : 12 }}>
                 {selectedItems.map((item) => (
                   <div key={item.key} style={{ textAlign: 'center' }}>
-                    <img src={item.url} alt="" style={{ width: '100%', borderRadius: 8, display: 'block' }} />
+                    <WorkImage src={item.url} alt="" style={{ width: '100%', borderRadius: 8, display: 'block' }} />
                     {!isPosterStyle && (
                       <>
                         <div style={{ fontSize: 12, color: '#666', marginTop: 6 }}>
@@ -118,7 +126,7 @@ export default function PosterView() {
                 <div style={{ fontSize: 16, fontWeight: 700, color: '#005387', marginBottom: 8 }}>🎁 我也要报名</div>
                 <div style={{ fontSize: 13, color: '#666', marginBottom: 12 }}>扫码进入报名页</div>
                 {qrDataUrl && (
-                  <img src={qrDataUrl} alt="报名" style={{ display: 'block', margin: '0 auto', width: 140, height: 140 }} />
+                  <WorkImage src={qrDataUrl} alt="报名" style={{ display: 'block', margin: '0 auto', width: 140, height: 140 }} />
                 )}
               </div>
             )}
@@ -126,7 +134,7 @@ export default function PosterView() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <button
               type="button"
-              onClick={() => navigate(`/enroll?referrer=${id}&from=share`)}
+              onClick={() => navigate(`/enroll?referrer=${encodeURIComponent(referralId)}&from=share`)}
               style={{ padding: 14, background: '#005387', color: '#fff', border: 0, borderRadius: 10, cursor: 'pointer', fontSize: 16 }}
             >
               🎁 我也要报名
@@ -142,3 +150,4 @@ export default function PosterView() {
     </div>
   );
 }
+

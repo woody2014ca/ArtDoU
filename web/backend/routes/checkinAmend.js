@@ -1,70 +1,23 @@
 import { Router } from 'express';
-import { getDb, getDoc, update, incrementLeftClasses } from '../db.js';
 import { authMiddleware } from '../middleware/auth.js';
-
-function makePosterNote(text) {
-  return String(text || '').trim();
-}
-
-const router = Router();
-router.use(authMiddleware);
-
-/** POST /api/checkin/amend/:id — 修改消课：课时数、作品图、简评与备忘（同步学员余课） */
-router.post('/amend/:id', async (req, res) => {
-  if (req.role !== 'admin') {
-    return res.json({ success: false, msg: '仅教师可修改' });
-  }
-  try {
-    if (!getDb()) return res.json({ success: false, msg: '未配置数据库' });
-    const { id } = req.params;
-    const log = await getDoc('Attendance_logs', id);
-    if (!log) return res.json({ success: false, msg: '记录不存在' });
-    const cn = Number(log.change_num);
-    if (Number.isNaN(cn) || cn >= 0) {
-      return res.json({ success: false, msg: '仅可修改上课消课记录' });
-    }
-    const oldLessons = Math.abs(cn);
-    const newLessons = Number(req.body?.lessons);
-    if (!Number.isFinite(newLessons) || newLessons < 1 || newLessons > 99) {
-      return res.json({ success: false, msg: '消课节数须在 1～99' });
-    }
-    const sid = log.student_id;
-    if (!sid) return res.json({ success: false, msg: '缺少学员信息' });
-
-    const deltaStudent = oldLessons - newLessons;
-    if (deltaStudent !== 0) {
-      await incrementLeftClasses('Students', sid, deltaStudent);
-    }
-
-    let work_imgs;
-    if (Array.isArray(req.body.work_imgs)) {
-      work_imgs = req.body.work_imgs.filter((u) => typeof u === 'string' && u.length > 0);
-    } else {
-      work_imgs = Array.isArray(log.work_imgs) ? [...log.work_imgs] : [];
-      if (!work_imgs.length && (log.photo_url || log.work_img)) {
-        work_imgs = [log.photo_url || log.work_img].filter(Boolean);
-      }
-    }
-
-    const brief = req.body.brief !== undefined ? String(req.body.brief) : (log.brief ?? '');
-    const memo = req.body.memo !== undefined ? String(req.body.memo) : (log.memo ?? '');
-    const teacher_notes =
-      req.body.teacher_notes !== undefined ? String(req.body.teacher_notes) : (log.teacher_notes ?? '');
-
-    await update('Attendance_logs', id, {
-      change_num: -newLessons,
-      work_imgs,
-      brief,
-      memo,
-      teacher_notes,
-      note: makePosterNote(brief || teacher_notes),
-      photo_url: work_imgs.length ? work_imgs[0] : '',
-    });
-    return res.json({ success: true });
-  } catch (e) {
-    console.error('[checkin amend]', e);
-    res.status(500).json({ success: false, error: e.message });
-  }
+import { saveCheckin, voidCheckin } from '../checkin-service.js';
+import { ensureDb } from '../db.js';
+const router=Router();router.use(authMiddleware);
+const handler=kind=>async(req,res)=>{
+  if(req.role!=='admin')return res.status(403).json({success:false,msg:'仅教师可操作'});
+  try {res.set('Cache-Control','no-store');res.json(await saveCheckin(kind,req.params.id,req.body));}
+  catch(error){const status=error.status||503;res.status(status).json({success:false,msg:error.status?error.message:'保存暂未完成，请使用原提交重试，切勿重复扣课'});}
+};
+router.post('/create',handler('create'));router.post('/amend/:id',handler('amend'));
+router.post('/void/:id',async(req,res)=>{
+  if(req.role!=='admin')return res.status(403).json({success:false,msg:'仅教师可撤销'});
+  try{res.set('Cache-Control','no-store');res.json(await voidCheckin(req.params.id,req.body));}
+  catch(e){res.status(e.status||503).json({success:false,msg:e.status?e.message:'撤销暂未完成，请使用原提交重试'});}
 });
-
+router.get('/operation/:operationId',async(req,res)=>{
+  if(req.role!=='admin')return res.status(403).json({success:false});
+  if(!/^[a-f0-9-]{36}$/i.test(req.params.operationId))return res.status(400).json({success:false});
+  try{const db=await ensureDb();const operation=await db.collection('Checkin_operations').findOne({_id:`checkin:${req.params.operationId}`});res.set('Cache-Control','no-store');res.json({success:true,completed:!!operation,result:operation?.result||null});}
+  catch{res.status(503).json({success:false,msg:'暂时无法确认提交结果，请稍后重试'});}
+});
 export default router;

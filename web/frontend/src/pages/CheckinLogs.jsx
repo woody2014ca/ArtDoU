@@ -142,7 +142,7 @@ export default function CheckinLogs() {
                       fontSize: 16,
                     }}
                   >
-                    {Math.abs(Number(item.change_num) || 0)} 节
+                    {item.voided ? '已撤销（历史保留）' : `${Math.abs(Number(item.change_num) || 0)} 节`}
                   </div>
                   {item._id && (
                     <button

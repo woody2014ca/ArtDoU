@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 
-function isCheckinLog(item) {
-  const n = Number(item.change_num);
-  return !Number.isNaN(n) && n < 0;
-}
+import { isLessonCheckin as isCheckinLog, lessonMovementLabel } from '../utils/attendance';
 import { useAuth } from '../context/AuthContext';
-import { dataGet, dataDelete } from '../api';
+import { dataGet } from '../api';
 
 export default function Finance() {
   const { role } = useAuth();
@@ -14,6 +11,7 @@ export default function Finance() {
   const [logs, setLogs] = useState([]);
   const [pendingCount, setPendingCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const isAdmin = role === 'admin' || role === 'teacher';
   const goPaymentManage = () => navigate('/payment/manage');
 
@@ -23,27 +21,19 @@ export default function Finance() {
       dataGet('Attendance_logs', 'all', { lite: '1', limit: '500' }),
       dataGet('Payment_logs', 'all'),
     ]).then(([logRes, payRes]) => {
-      const data = (logRes.success && logRes.data) ? logRes.data : [];
+      if (!logRes.success || !Array.isArray(logRes.data) || !payRes.success || !Array.isArray(payRes.data)) throw new Error('无法读取财务记录');
+      const data = logRes.data;
       data.sort((a, b) => new Date(b.createTime || b.date || 0) - new Date(a.createTime || a.date || 0));
-      setLogs(data.slice(0, 100));
+      setLogs(data);
       const payments = (payRes.success && payRes.data) ? payRes.data : [];
       setPendingCount(payments.filter((p) => p.status === 'pending').length);
       setLoading(false);
-    });
+    }).catch(() => {setLoadError('财务记录加载失败，请刷新重试；当前不能判断余课或待确认数量。');setLoading(false);});
   }, [role, isAdmin]);
-
-  const handleDelete = async (id) => {
-    if (!window.confirm('确定删除这条记录？')) return;
-    const res = await dataDelete('Attendance_logs', id);
-    if (res.success !== false) {
-      setLogs((prev) => prev.filter((i) => i._id !== id));
-    } else {
-      alert(res.msg || '删除失败');
-    }
-  };
 
   const now = new Date();
   const monthLogs = logs.filter((l) => {
+    if (!isCheckinLog(l)) return false;
     const d = new Date(l.date || l.createTime);
     return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
   });
@@ -93,26 +83,26 @@ export default function Finance() {
           style={{ flex: 1, textAlign: 'center', color: 'inherit', textDecoration: 'none', cursor: 'pointer' }}
         >
           <div style={{ fontSize: 12, opacity: 0.9 }}>待确认缴费数</div>
-          <div style={{ fontSize: 28, fontWeight: 700 }}>{pendingCount}</div>
+          <div style={{ fontSize: 28, fontWeight: 700 }}>{loading || loadError ? '—' : pendingCount}</div>
           <div style={{ fontSize: 12, opacity: 0.85, marginTop: 4 }}>点击去确认 →</div>
         </Link>
         <div style={{ width: 2, height: 48, background: 'rgba(255,255,255,0.4)' }} />
         <div style={{ flex: 1, textAlign: 'center' }}>
-          <div style={{ fontSize: 12, opacity: 0.9 }}>本月总消课流水记录数</div>
-          <div style={{ fontSize: 28, fontWeight: 700 }}>{monthLogs.length}</div>
+          <div style={{ fontSize: 12, opacity: 0.9 }}>本月消课记录数</div>
+          <div style={{ fontSize: 28, fontWeight: 700 }}>{loading || loadError ? '—' : monthLogs.length}</div>
         </div>
       </div>
 
-      {loading ? (
+      {loadError ? <p role="alert" style={{color:'#c00'}}>{loadError}</p> : loading ? (
         <p style={{ color: '#888' }}>加载中...</p>
       ) : (
         <>
-          <div style={{ marginBottom: 12, fontSize: 14, color: '#666' }}>消课流水明细</div>
+          <div style={{ marginBottom: 12, fontSize: 14, color: '#666' }}>充值与消课流水明细</div>
           <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
             {logs.length === 0 ? (
               <li style={{ padding: 24, textAlign: 'center', color: '#888' }}>暂无消课记录</li>
             ) : (
-              logs.map((item) => (
+              logs.slice(0, 100).map((item) => (
                 <li
                   key={item._id}
                   style={{
@@ -131,7 +121,7 @@ export default function Finance() {
                   </div>
                   <div style={{ textAlign: 'right', flexShrink: 0 }}>
                     <div style={{ color: '#005387', fontWeight: 600, fontSize: 14 }}>
-                      消耗 {Math.abs(Number(item.change_num) || 0)} 课时
+                      {lessonMovementLabel(item)}
                     </div>
                     <div style={{ fontSize: 12, color: '#999', marginTop: 4, maxHeight: 120, overflowY: 'auto', textAlign: 'left', lineHeight: 1.5 }}>{item.note || item.brief || item.teacher_notes || item.teacher_comment || '常规消课'}</div>
                     {item._id && (
@@ -139,7 +129,8 @@ export default function Finance() {
                         {isCheckinLog(item) && (
                           <button type="button" onClick={() => navigate(`/checkin/edit/${item._id}`)} style={{ background: 'none', border: 0, color: '#005387', cursor: 'pointer', padding: 0, marginRight: 8 }}>编辑消课</button>
                         )}
-                        <button type="button" onClick={() => handleDelete(item._id)} style={{ background: 'none', border: 0, color: '#999', cursor: 'pointer', padding: 0, marginLeft: isCheckinLog(item) ? 8 : 0 }}>删除</button>
+                        {isCheckinLog(item) && <button type="button" onClick={() => navigate(`/checkin/edit/${item._id}`)} style={{ background: 'none', border: 0, color: '#999', cursor: 'pointer', padding: 0 }}>撤销消课</button>}
+                        {item.voided && <span>历史与作品已保留 · {item.voidReason}</span>}
                       </div>
                     )}
                   </div>

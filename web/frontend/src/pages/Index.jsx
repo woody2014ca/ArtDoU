@@ -1,3 +1,4 @@
+import { isLessonCheckin } from '../utils/attendance';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -56,6 +57,7 @@ export default function Index() {
       const enrolls = (pRes.success && pRes.data) ? pRes.data : [];
       const now = new Date();
       const monthLogs = logs.filter((log) => {
+        if (!isLessonCheckin(log)) return false;
         const d = new Date(log.date || log.createTime);
         return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
       }).length;

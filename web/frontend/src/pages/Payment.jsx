@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { dataAdd, paymentConfirm } from '../api';
+import { paymentSubmit, paymentSubmissionRecover, paymentConfirm } from '../api';
 import { useGuestRedirectToBind } from '../hooks/useGuestRedirectToBind';
 
 export default function Payment() {
@@ -23,10 +23,38 @@ export default function Payment() {
   const displayName = decodeURIComponent(studentName);
   /** 老师给意向学员入账：提交后直接转正 */
   const teacherConvert = isAdmin && !!prospectiveId;
+  const storageKey = 'artdou-pending-payment:' + (prospectiveId ? 'prospective:' + prospectiveId : 'student:' + studentId);
+  const submission = useRef(null);
+  if (!submission.current || submission.current.key !== storageKey) {
+    const id = localStorage.getItem(storageKey) || crypto.randomUUID();
+    localStorage.setItem(storageKey, id);
+    submission.current = { key: storageKey, id };
+  }
+  const [savedId, setSavedId] = useState(null);
+  const [completed, setCompleted] = useState(false);
+  const [checking, setChecking] = useState(true);
+  const target = prospectiveId ? {prospective_id: prospectiveId} : {student_id: studentId};
+  useEffect(() => {
+    let active = true; setChecking(true); setSavedId(null); setCompleted(false);
+    paymentSubmissionRecover({operationId: submission.current.id, ...target}).then(r => {
+      if (!active) return;
+      if (!r.success) { setMsg(r.msg || '暂时无法核对上次提交，请刷新重试'); return; }
+      if (r.completed) {
+        setSavedId(r._id);
+        if (r.summary) { setLessons(String(r.summary.amount_lessons)); setPrice(String(r.summary.price)); setProofNote(r.summary.proof_note); }
+        setMsg(r.summary?.status === 'confirmed' ? '上次缴费已入账，继续操作不会重复增加课时。' : '上次缴费凭证已保存，可继续处理，不会新增凭证。');
+      }
+      setChecking(false);
+    }).catch(() => { if(active) setMsg('暂时无法核对上次提交，请刷新重试'); });
+    return () => { active = false; };
+  }, [storageKey, role]);
+  const finishSubmission = () => { setCompleted(true); localStorage.removeItem(storageKey); submission.current.id = crypto.randomUUID(); };
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!lessons || !price) {
+    if (checking || completed) return;
+    if (!savedId && (!lessons || !price)) {
       setMsg('请填写课时和金额');
       return;
     }
@@ -34,28 +62,31 @@ export default function Payment() {
       setMsg('缺少学员信息，请从「意向学员缴费」查找学员后再提交');
       return;
     }
+    localStorage.setItem(storageKey, submission.current.id);
     setMsg('');
     setLoading(true);
     try {
       const payload = {
         student_name: displayName,
-        amount_lessons: parseInt(lessons, 10),
-        price: parseFloat(price),
+        amount_lessons: Number(lessons),
+        price: Number(price),
         status: 'pending',
         create_time: new Date().toISOString(),
         proof_note: proofNote || undefined,
       };
       if (prospectiveId) payload.prospective_id = prospectiveId;
       else payload.student_id = studentId;
-      const res = await dataAdd('Payment_logs', payload);
+      const res = savedId ? {success:true, _id:savedId} : await paymentSubmit({...payload, operationId:submission.current.id});
       if (!(res.success || res._id)) {
         setMsg(res.msg || '提交失败');
         return;
       }
       const paymentId = res._id;
+      setSavedId(paymentId);
       if (teacherConvert && paymentId) {
         const conf = await paymentConfirm(paymentId, prospectiveId);
         if (conf.success) {
+          finishSubmission();
           setMsg('已转正并入账');
           setTimeout(() => navigate('/enroll/list', { replace: true }), 1500);
         } else {
@@ -63,6 +94,7 @@ export default function Payment() {
         }
         return;
       }
+      finishSubmission();
       if (isAdmin && studentId && paymentId) {
         setMsg('缴费已记录，请到「待确认缴费」完成入账');
         setTimeout(() => navigate('/payment/manage', { replace: true }), 1500);
@@ -113,12 +145,13 @@ export default function Payment() {
         <div style={{ fontSize: 18, fontWeight: 600 }}>{displayName}</div>
       </div>
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} noValidate>
         <div style={{ marginBottom: 16 }}>
           <label style={{ display: 'block', marginBottom: 6, fontSize: 14, color: '#333' }}>购买课时 / Lessons *</label>
           <input
             type="number"
             min={1}
+            disabled={Boolean(savedId) || checking}
             value={lessons}
             onChange={(e) => setLessons(e.target.value)}
             placeholder="请输入课时数"
@@ -131,6 +164,7 @@ export default function Payment() {
             type="number"
             step="0.01"
             min={0}
+            disabled={Boolean(savedId) || checking}
             value={price}
             onChange={(e) => setPrice(e.target.value)}
             placeholder="请输入美元金额"
@@ -140,6 +174,7 @@ export default function Payment() {
         <div style={{ marginBottom: 20 }}>
           <label style={{ display: 'block', marginBottom: 6, fontSize: 14, color: '#333' }}>缴费凭证说明（选填）</label>
           <textarea
+            disabled={Boolean(savedId) || checking}
             value={proofNote}
             onChange={(e) => setProofNote(e.target.value)}
             placeholder="可填写转账流水号或凭证摘要，截图可单独发给老师"
@@ -155,7 +190,7 @@ export default function Payment() {
         )}
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || checking || completed}
           style={{
             width: '100%',
             padding: 14,
@@ -167,7 +202,7 @@ export default function Payment() {
             fontSize: 16,
           }}
         >
-          {loading ? '处理中...' : teacherConvert ? '确认入账并转正' : '提交凭证'}
+          {completed ? '已完成' : checking ? '核对上次提交…' : loading ? '处理中...' : savedId ? (teacherConvert ? '继续确认已保存的缴费' : '完成已保存的提交') : teacherConvert ? '确认入账并转正' : '提交凭证'}
         </button>
       </form>
 

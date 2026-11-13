@@ -51,8 +51,8 @@ function buildClientOptions(isAtlas) {
     maxPoolSize: 10,
   };
   if (isAtlas) {
-    opts.tlsAllowInvalidCertificates = true;
-    opts.tlsAllowInvalidHostnames = true;
+    // Preserve the driver's certificate and hostname verification defaults.
+    opts.tls = true;
   } else {
     // Railway 内网 Mongo 走 IPv4 更稳
     opts.autoSelectFamily = false;
@@ -118,6 +118,22 @@ export async function ensureDb() {
 
 export function getDb() {
   return db;
+}
+
+export async function closeDatabase() {
+  await client?.close();
+  client = null;
+  db = null;
+}
+
+export async function runTransaction(work) {
+  const database = await ensureDb();
+  const session = client.startSession();
+  try {
+    return await session.withTransaction(() => work(database, session), {
+      readConcern: { level: 'snapshot' }, writeConcern: { w: 'majority' }, maxCommitTimeMS: 15000,
+    });
+  } finally { await session.endSession(); }
 }
 
 /** 兼容微信云开发用法：列表查询；projection 可排除大字段；sort 如 { createTime: -1 } */

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { dataGet, dataAdd, dataIncrement } from '../api';
+import { dataGet, checkinCreate } from '../api';
+import useCheckinSubmission from '../hooks/useCheckinSubmission';
 
 function makePosterNote(text) {
   return String(text || '').trim();
@@ -70,6 +71,7 @@ export default function Checkin() {
   const [workImages, setWorkImages] = useState([]); // array of data URLs
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState('');
+  const submission = useCheckinSubmission(`create:${id}`);
 
   useEffect(() => {
     if (isRealStudent && id && !nameFromQuery) {
@@ -87,20 +89,20 @@ export default function Checkin() {
     if (role !== 'admin' && role !== 'teacher') { setMsg('仅老师可操作'); return; }
     setLoading(true);
     try {
+      const recovered = await submission.recover();
+      if (recovered) { submission.finish(); alert('上次消课已保存，本次未重复扣课。'); navigate('/parent?id=' + id, { replace: true }); return; }
       const num = Number(count);
       const payload = {
-        student_id: id, student_name: name, change_num: -num,
+        operationId: submission.remember(), student_id: id, lessons: num,
         teacher_notes: remark || '', brief: brief || '', memo: memo || '',
-        note: makePosterNote(brief || remark || ''), date: new Date().toISOString(),
       };
       if (workImages.length > 0) {
         payload.work_imgs = workImages;
         payload.photo_url = workImages[0];
       }
-      const addRes = await dataAdd('Attendance_logs', payload);
+      const addRes = await checkinCreate(payload);
       if (!addRes.success) { setMsg(addRes.msg || addRes.error || '写入记录失败'); setLoading(false); return; }
-      const incRes = await dataIncrement('Students', id, -num);
-      if (!incRes.success) { setMsg(incRes.msg || '扣减课时失败'); setLoading(false); return; }
+      submission.finish();
       navigate('/parent?id=' + id, { replace: true });
     } catch (err) { setMsg(err.message || '网络异常'); } finally { setLoading(false); }
   };

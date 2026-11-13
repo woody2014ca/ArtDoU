@@ -77,6 +77,20 @@ export async function dataGet(collection, id = 'all', query = {}) {
   return fetchJson(url, { headers: headers() });
 }
 
+export async function refreshMediaLink(src) {
+  const url = new URL(src, window.location.origin);
+  const apiUrl = new URL(API_BASE, window.location.origin);
+  if (url.origin !== apiUrl.origin || !url.pathname.endsWith('/api/media/image')) return null;
+  const grant = url.searchParams.get('grant');
+  if (!grant) return null;
+  const response = await fetchJson(`${API_BASE}/media/refresh`, {
+    method: 'POST', headers: headers(), body: JSON.stringify({ grant }),
+  });
+  if (!response.success || !response.grant) return null;
+  url.searchParams.set('grant', response.grant);
+  return url.toString();
+}
+
 export async function dataAdd(collection, data) {
   return fetchJson(`${API_BASE}/data/${collection}`, {
     method: 'POST',
@@ -106,6 +120,35 @@ export async function dataIncrement(collection, id, value) {
 }
 
 /** 修改消课记录（课时、图片、简评、备忘） */
+export async function checkinCreate(payload) {
+  return fetchJson(`${API_BASE}/checkin/create`, { method: 'POST', headers: headers(), body: JSON.stringify(payload) });
+}
+
+export async function checkinOperation(operationId) {
+  return fetchJson(`${API_BASE}/checkin/operation/${encodeURIComponent(operationId)}`, { headers: headers() });
+}
+
+export async function checkinVoid(logId,payload) {
+  return fetchJson(`${API_BASE}/checkin/void/${encodeURIComponent(logId)}`,{method:'POST',headers:headers(),body:JSON.stringify(payload)});
+}
+
+export async function createWorkShare(studentId, urls) {
+  return fetchJson(`${API_BASE}/share`, { method: 'POST', headers: headers(), body: JSON.stringify({ studentId, urls }) });
+}
+
+export async function revokeWorkShares(studentId) {
+  return fetchJson(`${API_BASE}/share/revoke-student`, { method: 'POST', headers: headers(), body: JSON.stringify({ studentId }) });
+}
+
+export async function readWorkShare(token) {
+  const result = await fetchJson(`${API_BASE}/share/${encodeURIComponent(token)}`, { headers: headers() });
+  if (result.success) {
+    const origin = new URL(API_BASE, window.location.origin).origin;
+    result.data = result.data.map(work => ({ ...work, work_imgs: work.work_imgs.map(url => new URL(url, origin).toString()) }));
+  }
+  return result;
+}
+
 export async function checkinAmend(logId, payload) {
   return fetchJson(`${API_BASE}/checkin/amend/${logId}`, {
     method: 'POST',
@@ -153,3 +196,10 @@ export async function posterRender(id, name, imageUrlsOrItems) {
 }
 
 export { getToken, setToken };
+
+export async function paymentSubmit(body) {
+ return fetchJson(API_BASE + '/payment/submit', {method:'POST',headers:headers(),body:JSON.stringify(body)});
+}
+export async function paymentSubmissionRecover(body) {
+ return fetchJson(API_BASE + '/payment/submission/recover', {method:'POST',headers:headers(),body:JSON.stringify(body)});
+}

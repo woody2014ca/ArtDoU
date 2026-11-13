@@ -12,10 +12,12 @@ export default function Leave() {
   const [reason, setReason] = useState('');
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState('');
+  const [submitted, setSubmitted] = useState(false);
   const guestGate = useGuestRedirectToBind(!!id);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading || submitted) return;
     setMsg('');
     if (!leaveDate) {
       setMsg('请选择请假日期');
@@ -36,6 +38,7 @@ export default function Leave() {
         create_time: new Date().toISOString(),
       });
       if (res.success || res._id) {
+        setSubmitted(true);
         setMsg('申请已提交，请等待老师确认');
         setTimeout(() => navigate(-1), 1500);
       } else {
@@ -105,7 +108,7 @@ export default function Leave() {
         {msg && <p style={{ color: msg.startsWith('申请已提交') ? '#0a0' : '#c00', fontSize: 14, marginBottom: 12 }}>{msg}</p>}
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || submitted}
           style={{
             width: '100%',
             padding: 14,
@@ -117,7 +120,7 @@ export default function Leave() {
             fontSize: 16,
           }}
         >
-          {loading ? '提交中...' : '提交请假条'}
+          {submitted ? '已提交' : loading ? '提交中...' : '提交请假条'}
         </button>
       </form>
 

@@ -1,7 +1,8 @@
+import WorkImage from '../components/WorkImage';
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { dataGet, posterRender } from '../api';
+import { dataGet, posterRender, createWorkShare } from '../api';
 import { isGalleryArtwork } from '../utils/attendance';
 import html2canvas from 'html2canvas';
 import QRCode from 'qrcode';
@@ -65,6 +66,7 @@ export default function Poster() {
   const [loading, setLoading] = useState(true);
   const [posterDone, setPosterDone] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState('');
+  const [shareError, setShareError] = useState('');
   /** 点击保存/朋友圈后，在页面内展示的图片（长按保存），不弹窗。{ dataUrl, hint } */
   const [inlineSaveImage, setInlineSaveImage] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -75,9 +77,15 @@ export default function Poster() {
   useEffect(() => {
     if (!posterDone || !id) return;
     const basePath = import.meta.env.BASE_URL.replace(/\/$/, '') || '';
-    const signUpUrl = `${window.location.origin}${basePath}/poster/view?id=${id}&referrer=${id}&from=share`;
-    QRCode.toDataURL(signUpUrl, { width: 160, margin: 1 }).then(setQrDataUrl).catch(() => {});
-  }, [posterDone, id]);
+    let cancelled = false;
+    createWorkShare(id, selectedItems.map(item => item.url)).then(async share => {
+      if (!share.success) throw new Error(share.msg || '无法创建作品分享');
+      const signUpUrl = `${window.location.origin}${basePath}/poster/view?share=${encodeURIComponent(share.token)}&referrer=${encodeURIComponent(id)}&from=share`;
+      const qr = await QRCode.toDataURL(signUpUrl, { width: 160, margin: 1 });
+      if (!cancelled) { setQrDataUrl(qr); setShareError(''); }
+    }).catch(error => { if (!cancelled) { setQrDataUrl(''); setShareError(error.message || '无法创建作品分享'); } });
+    return () => { cancelled = true; };
+  }, [posterDone, id, selected, works]);
 
   useEffect(() => {
     if (!id) {
@@ -232,7 +240,7 @@ export default function Poster() {
                       position: 'relative',
                     }}
                   >
-                    <img crossOrigin="anonymous" src={item.url} alt="" style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', display: 'block' }} />
+                    <WorkImage crossOrigin="anonymous" src={item.url} alt="" style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', display: 'block' }} />
                     {isSel && (
                       <span style={{ position: 'absolute', right: 6, top: 6, background: '#005387', color: '#fff', borderRadius: '50%', width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>✓</span>
                     )}
@@ -310,7 +318,7 @@ export default function Poster() {
                     const showCaption = showCaptionOnlyFirstSlotForSameWork(item, selectedItems) && captionText;
                     return (
                     <div key={item.key} style={{ textAlign: 'center' }}>
-                      <img crossOrigin="anonymous" src={item.url} alt="" style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', borderRadius: 8, display: 'block' }} />
+                      <WorkImage crossOrigin="anonymous" src={item.url} alt="" style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', borderRadius: 8, display: 'block' }} />
                       <div style={{ fontSize: 12, color: '#666', marginTop: 6 }}>
                         {item.work?.date ? new Date(item.work.date).toLocaleDateString('zh-CN') : ''}
                       </div>
@@ -324,10 +332,11 @@ export default function Poster() {
               </div>
               <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid #eee', textAlign: 'center' }}>
                 <div style={{ fontSize: 16, fontWeight: 700, color: '#005387' }}>🎁 我也要报名</div>
-                <div style={{ fontSize: 12, color: '#666', marginTop: 8 }}>扫码进入报名页</div>
+                <div style={{ fontSize: 12, color: '#666', marginTop: 8 }}>扫码查看作品 · 页面内可报名</div>
+                {shareError && <p style={{ color: '#b00' }}>{shareError}</p>}
                 {qrDataUrl && (
                   <div style={{ marginTop: 10, display: 'flex', justifyContent: 'center' }}>
-                    <img src={qrDataUrl} alt="报名入口" style={{ width: 120, height: 120, display: 'block' }} />
+                    <WorkImage src={qrDataUrl} alt="作品分享入口" style={{ width: 120, height: 120, display: 'block' }} />
                   </div>
                 )}
                 <div style={{ fontSize: 11, color: '#999', marginTop: 8 }}>长按保存图片 · 发朋友圈或发给朋友</div>
@@ -364,3 +373,4 @@ export default function Poster() {
     </div>
   );
 }
+
