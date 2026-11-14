@@ -18,16 +18,17 @@ function isHexObjectIdString(id) {
 }
 
 /** 兼容 _id 存为 string 或 ObjectId（API 迁移导入时可能为 string） */
-async function findById(col, id) {
+async function findById(col, id, projection = null) {
+  const options = projection ? {projection} : {};
   if (id === undefined || id === null || id === '') return null;
-  if (id instanceof ObjectId) return col.findOne({ _id: id });
+  if (id instanceof ObjectId) return col.findOne({ _id: id },options);
   if (isHexObjectIdString(id)) {
     const oid = toId(id);
-    let doc = await col.findOne({ _id: oid });
+    let doc = await col.findOne({ _id: oid },options);
     if (doc) return doc;
-    return col.findOne({ _id: id });
+    return col.findOne({ _id: id },options);
   }
-  return col.findOne({ _id: id });
+  return col.findOne({ _id: id },options);
 }
 
 async function idFilterFor(col, id) {
@@ -148,10 +149,10 @@ export async function find(collectionName, filter = {}, limit = 100, projection 
 }
 
 /** 兼容：单条查询 by _id */
-export async function getDoc(collectionName, id) {
+export async function getDoc(collectionName, id, projection = null) {
   const database = await ensureDb();
   const col = database.collection(collectionName);
-  return serializeDoc(await findById(col, id));
+  return serializeDoc(await findById(col, id, projection));
 }
 
 /** 新增，返回 _id 字符串 */

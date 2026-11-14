@@ -80,7 +80,7 @@ export default function ParentHome() {
       try {
         const [sRes, lRes] = await Promise.all([
           dataGet('Students', studentId),
-          dataGet('Attendance_logs', 'all', { search_student_id: studentId }),
+          dataGet('Attendance_logs', 'all', { search_student_id: studentId, view: 'gallery' }),
         ]);
         if (cancelled) return;
         if (!sRes.success || !sRes.data || !lRes.success) throw new Error(sRes.msg || lRes.msg || '暂时无法读取学员资料，请刷新重试');
@@ -472,8 +472,10 @@ export default function ParentHome() {
                   }}
                 >
                   {cover ? (
-                    <img
-                      src={cover}
+                    <WorkImage
+                      src={cover.includes('/api/media/image?') ? `${cover}&size=thumb` : cover}
+                      loading="lazy"
+                      decoding="async"
                       alt=""
                       style={{ width: '100%', aspectRatio: '1', objectFit: 'cover' }}
                     />

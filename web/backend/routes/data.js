@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { getDb, find, getDoc, add, update, remove, incrementLeftClasses, toId } from '../db.js';
 import { authMiddleware } from '../middleware/auth.js';
 import { presentAttendance, IMAGE_FIELDS } from '../media.js';
+import {galleryProjection,presentGallery} from '../gallery.js';
 
 const router = Router();
 
@@ -74,7 +75,8 @@ router.get('/:collection/:id?', async (req, res) => {
       const wantLite =
         collection === 'Attendance_logs' &&
         (req.query.lite === '1' || req.query.lite === 'true' || (!data.search_student_id && req.query.full !== '1' && req.query.full !== 'true'));
-      const projection = wantLite ? ATTENDANCE_LITE_PROJECTION : null;
+      const gallery = collection === 'Attendance_logs' && req.query.view === 'gallery';
+      const projection = gallery ? galleryProjection : wantLite ? ATTENDANCE_LITE_PROJECTION : null;
       const limitRaw = Number(req.query.limit);
       const defaultLimit = collection === 'Attendance_logs' ? 500 : 100;
       const limit = Math.min(Number.isFinite(limitRaw) && limitRaw > 0 ? limitRaw : defaultLimit, 1000);
@@ -88,7 +90,7 @@ router.get('/:collection/:id?', async (req, res) => {
         });
       }
       res.set('Cache-Control', 'private, no-store');
-      return res.json({ success: true, data: collection === 'Attendance_logs' ? list.map(doc => presentAttendance(doc, req)) : list });
+      return res.json({ success: true, data: gallery ? list.map(doc=>presentGallery(doc,req)) : collection === 'Attendance_logs' ? list.map(doc => presentAttendance(doc, req)) : list });
     }
 
     const one = await getDoc(collection, docId);

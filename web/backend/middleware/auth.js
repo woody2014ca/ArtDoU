@@ -21,7 +21,7 @@ export function verifyToken(token) {
 export function verifyExpiredImageGrant(token) {
   try {
     const decoded = jwt.verify(token, JWT_SECRET, { ignoreExpiration: true });
-    return decoded.purpose === 'artdou-image' ? decoded : null;
+    return ['artdou-image','artdou-gallery-image'].includes(decoded.purpose) ? decoded : null;
   } catch { return null; }
 }
 
