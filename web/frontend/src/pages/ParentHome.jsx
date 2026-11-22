@@ -415,14 +415,14 @@ export default function ParentHome() {
           >
             <div style={{ width: 96, height: 96, flexShrink: 0, background: '#eee' }}>
               <img
-                src={`${import.meta.env.BASE_URL.replace(/\/$/, '') || ''}/og-share.png`}
-                alt="知否艺术 · 邀请你看"
+                src={`${import.meta.env.BASE_URL.replace(/\/$/, '') || ''}/artdou-share-20261122.png`}
+                alt="ArtDoU"
                 style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
               />
             </div>
             <div style={{ padding: 10, flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 14, fontWeight: 600, color: '#111', marginBottom: 4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                知否艺术 · 邀请你看
+                ArtDoU
               </div>
               <div style={{ fontSize: 13, color: '#555', lineHeight: 1.4, maxHeight: 36, overflow: 'hidden' }}>
                 点击查看成长报告，我也要报名

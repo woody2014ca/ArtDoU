@@ -3,15 +3,47 @@
   "outputDirectory": "dist",
   "framework": "vite",
   "redirects": [
-    { "source": "/", "destination": "/artdou", "permanent": false },
-    { "source": "/login", "destination": "/artdou/login", "permanent": false },
-    { "source": "/parent", "destination": "/artdou/parent", "permanent": false },
-    { "source": "/bind", "destination": "/artdou/bind", "permanent": false }
+    {
+      "source": "/",
+      "destination": "/artdou",
+      "permanent": false
+    },
+    {
+      "source": "/login",
+      "destination": "/artdou/login",
+      "permanent": false
+    },
+    {
+      "source": "/parent",
+      "destination": "/artdou/parent",
+      "permanent": false
+    },
+    {
+      "source": "/bind",
+      "destination": "/artdou/bind",
+      "permanent": false
+    }
   ],
   "rewrites": [
-    { "source": "/artdou/assets/:path*", "destination": "/assets/:path*" },
-    { "source": "/artdou/og-share.png", "destination": "/og-share.png" },
-    { "source": "/artdou/:path*", "destination": "/index.html" },
-    { "source": "/artdou", "destination": "/index.html" }
+    {
+      "source": "/artdou/artdou-share-20261122.png",
+      "destination": "/artdou-share-20261122.png"
+    },
+    {
+      "source": "/artdou/assets/:path*",
+      "destination": "/assets/:path*"
+    },
+    {
+      "source": "/artdou/og-share.png",
+      "destination": "/og-share.png"
+    },
+    {
+      "source": "/artdou/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/artdou",
+      "destination": "/index.html"
+    }
   ]
 }
